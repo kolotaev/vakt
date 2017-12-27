@@ -1,90 +1,76 @@
 import json
+from constants import *
 
 
-class Policy():
+class Policy:
     """
-    Represents a policy that regulates access and allowed actions of subjects over some resources under a set of conditions.
+    Represents a policy that regulates access and allowed actions of subjects
+    over some resources under a set of conditions.
     """
 
     def __init__(self, id, description=None, subjects=[], effect=None, resources=[], actions=[], conditions=[]):
-        self.id = id
-        self.description = description
-        self.subjects = subjects
-        self.effect = effect
-        self.resources = resources
-        self.actions = actions
-        self.conditions = conditions
-
+        self._id = id
+        self._description = description
+        self._subjects = subjects
+        self._effect = effect
+        self._resources = resources
+        self._actions = actions
+        self._conditions = conditions
 
     @classmethod
-    def fromJson(data):
+    def from_json(cls, data):
         """Create Policy from json string"""
         try:
             props = json.loads(data)
-        except Error as e:
+        except json.JSONDecodeError as e:
             print("Error creating policy from json.", e)
 
-        self.id = props['id']
-        self.description = props['description']
-        self.subjects = props['subjects']
-        self.effect = props['effect']
-        self.resources = props['resources']
-        self.actions = props['actions']
-        self.conditions = props['conditions']
-
+        return Policy(props['id'], props['description'], props['subjects'],  props['effect'],
+                      props['resources'], props['actions'], props['conditions'])
 
     @property
     def id(self):
-        self._id
-
-
-    @property
-    def description(self):
-        self._description
-
+        return self.id
 
     @property
     def description(self):
-        self._description
+        return self._description
 
+    @property
+    def description(self):
+        return self._description
 
     @property
     def subjects(self):
-        self._subjects
-
+        return self._subjects
 
     @property
     def effect(self):
-        self._effect
-
+        return self._effect
 
     @property
     def resources(self):
-        self._resources
-
+        return self._resources
 
     @property
     def subjects(self):
-        self._subjects
-
+        return self._subjects
 
     @property
     def actions(self):
-        self._actions
-
+        return self._actions
 
     @property
     def conditions(self):
-        self._conditions
-
+        return self._conditions
 
     def allow_access(self):
         return self.effect == ALLOW_ACCESS
 
-
-    def start_delimeter(self):
+    @staticmethod
+    def start_delimiter():
         return '<'
 
-
-    def end_delimeter(self):
+    @staticmethod
+    def end_delimiter():
         return '>'

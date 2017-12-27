@@ -14,6 +14,6 @@ class Request(ABC):
         self.context = context
 
     @abstractmethod
-    def is_allowed():
+    def is_allowed(self):
         """Is requested intent allowed or not?"""
         pass

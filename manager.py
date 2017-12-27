@@ -32,3 +32,5 @@ class PolicyManager(ABC):
     def delete(self, id):
         """Delete a policy"""
         pass
+
+    # todo - add method
