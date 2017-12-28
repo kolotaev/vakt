@@ -1,9 +1,9 @@
-from functools import lru_cache
 import re
 
-from compiler import regex
+from compiler import compile_regex
 
 
+# todo - move to policy class or as a trait?
 class RegexMatcher:
     """
     Matcher that uses regular expressions.
@@ -11,12 +11,6 @@ class RegexMatcher:
 
     @staticmethod
     def matches(policy, where, what):
-
-        # we have LRU cache instead of a standard simple re.compile builtin one.
-        @lru_cache(maxsize=512)
-        def get(phrase):
-            return re.compile(phrase)
-
         for i in where:
             if policy.start_delimiter not in i:
                 # it's a single string match
@@ -25,14 +19,14 @@ class RegexMatcher:
                 else:
                     continue
 
-            pattern = get(i)
+            pattern = compile_regex(i, policy.start_delimiter, policy.end_delimiter)
             if pattern:
                 if re.match(pattern, what):
                     return True
                 continue
 
             try:
-                pattern = regex.compile_regex(i, policy.start_delimiter, policy.end_delimiter)
+                pattern = compile_regex(i, policy.start_delimiter, policy.end_delimiter)
             except ValueError as e:
                 # todo - add logger
                 # log here
