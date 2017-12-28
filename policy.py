@@ -67,10 +67,10 @@ class Policy:
     def allow_access(self):
         return self.effect == ALLOW_ACCESS
 
-    @staticmethod
-    def start_delimiter():
+    @property
+    def start_delimiter(self):
         return '<'
 
-    @staticmethod
-    def end_delimiter():
+    @property
+    def end_delimiter(self):
         return '>'
