@@ -1,18 +1,24 @@
 from functools import lru_cache
 import re
 
+__all__ = ['compile_regex']
+
 
 @lru_cache(maxsize=512)
 def compile_regex(phrase, start, end):
+    regex_vars = []
+    pattern = '^'
     try:
-        idxs = _delimiter_indices(phrase, start, end)
+        idxs = get_delimiter_indices(phrase, start, end)
     except ValueError as e:
         raise e
+    for i in idxs[::2]:
+        raw = phrase[end:idxs[i]]
+        end_i = idxs[i+1]
+        pattern = phrase[idxs[i]+1:end-1]
 
-    varz = []
 
-
-def _delimiter_indices(string, start, end):
+def get_delimiter_indices(string, start, end):
     error_msg = "Pattern %s has unbalanced braces" % string
     idx, level = 0, 0
     idxs = []
