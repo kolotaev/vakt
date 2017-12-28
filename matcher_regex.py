@@ -12,9 +12,8 @@ class RegexMatcher:
     @staticmethod
     def matches(policy, where, what):
         for i in where:
-            if policy.start_delimiter not in i:
-                # it's a single string match
-                if i == what:
+            if policy.start_delimiter not in i:  # check if 'where' item is written in a policy-defined-regex syntax.
+                if i == what:  # it's a single string match
                     return True
                 else:
                     continue
