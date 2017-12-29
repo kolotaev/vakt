@@ -15,7 +15,13 @@ def compile_regex(phrase, start, end):
     for i in idxs[::2]:
         raw = phrase[end:idxs[i]]
         end_i = idxs[i+1]
-        pattern = phrase[idxs[i]+1:end-1]
+        pt = phrase[idxs[i]+1:end-1]
+        regex_var_idx = i / 2
+        pattern = pattern + "%s(%s)" % (re.escape(raw), pt)
+        regex_vars[regex_var_idx] = re.compile('^%s$' % pt)
+        raw = phrase[end_i:]
+        pattern = '%s%s$' % (pattern, re.escape(raw))
+        return re.compile(pattern)
 
 
 def get_delimiter_indices(string, start, end):
