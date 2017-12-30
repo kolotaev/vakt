@@ -17,8 +17,10 @@ class RegexMatcher:
                     return True
                 else:
                     continue
-
-            pattern = compile_regex(i, policy.start_delimiter, policy.end_delimiter)
+            try:
+                pattern = compile_regex(i, policy.start_delimiter, policy.end_delimiter)
+            except ValueError:
+                pass
             if pattern:
                 if re.match(pattern, what):
                     return True
