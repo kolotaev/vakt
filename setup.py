@@ -13,8 +13,8 @@ if __name__ == "__main__":
         author_email='ekolotaev@gmail.com',
         url='https://github.com/kolotaev/vakt',
         py_modules=['vakt'],
-        install_requires=['pytest>=2.4.2'],
-        tests_require=['pytest>=2.4.2', 'pretend'],
+        install_requires=['pytest>=3.3.1'],
+        tests_require=['pytest>=3.3.1'],
         classifiers=[
             'Framework :: Pytest',
             'Programming Language :: Python',
