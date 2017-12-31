@@ -1,13 +1,10 @@
 import re
-
-from compiler import compile_regex
+from vakt.compiler import compile_regex
 
 
 # todo - move to policy class or as a trait?
 class RegexMatcher:
-    """
-    Matcher that uses regular expressions.
-    """
+    """Matcher that uses regular expressions."""
 
     @staticmethod
     def matches(policy, where, what):

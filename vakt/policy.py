@@ -1,12 +1,10 @@
 import json
-from constants import *
+from vakt.constants import *
 
 
 class Policy:
-    """
-    Represents a policy that regulates access and allowed actions of subjects
-    over some resources under a set of conditions.
-    """
+    """Represents a policy that regulates access and allowed actions of subjects
+    over some resources under a set of conditions."""
 
     def __init__(self, id, description=None, subjects=[], effect=None, resources=[], actions=[], conditions=[]):
         self._id = id

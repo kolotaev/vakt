@@ -26,14 +26,15 @@ def compile_regex(phrase, start, end):
 
 def get_delimiter_indices(string, start, end):
     error_msg = "Pattern %s has unbalanced braces" % string
-    idx, level = 0, 0
+    idx, level, i = 0, 0, 0
     idxs = []
-    for i in string:
-        if i == start:
+    for s in string:
+        i = i + 1
+        if s == start:
             level = level + 1
             if level == 1:
-                idx = i
-        elif i == end:
+                idx = s
+        elif s == end:
             level = level - 1
             if level == 0:
                 idxs.append(idx)

@@ -2,11 +2,9 @@ from abc import ABC, abstractmethod
 
 
 class PolicyManager(ABC):
-    """
-    Interface for managers that persist policies.
+    """Interface for managers that persist policies.
     Every manager should implement all the specified methods, but how, it's up to it to decide:
-    it can be in-memory storage, SQL database, NoSQL solution, etc.
-    """
+    it can be in-memory storage, SQL database, NoSQL solution, etc."""
 
     @abstractmethod
     def get(self, id):
