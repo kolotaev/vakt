@@ -5,35 +5,34 @@ __all__ = ['compile_regex']
 
 
 @lru_cache(maxsize=512)
-def compile_regex(phrase, start, end):
+def compile_regex(phrase, start_delimiter, end_delimiter):
     regex_vars = []
     pattern = '^'
+    end = 0
     try:
-        idxs = get_delimiter_indices(phrase, start, end)
+        idxs = get_delimiter_indices(phrase, start_delimiter, end_delimiter)
     except ValueError as e:
         raise e
-    for i in idxs[::2]:
-        raw = phrase[end:idxs[i]]
-        end_i = idxs[i+1]
-        pt = phrase[idxs[i]+1:end-1]
-        regex_var_idx = i / 2
+    for i, idx in enumerate(idxs[::2]):
+        raw = phrase[end:idx]
+        end = idxs[i+1]
+        pt = phrase[idx+1:end-1]
         pattern = pattern + "%s(%s)" % (re.escape(raw), pt)
-        regex_vars[regex_var_idx] = re.compile('^%s$' % pt)
-        raw = phrase[end_i:]
+        regex_vars.insert(i//2, re.compile('^%s$' % pt))
+        raw = phrase[end:]
         pattern = '%s%s$' % (pattern, re.escape(raw))
         return re.compile(pattern)
 
 
 def get_delimiter_indices(string, start, end):
     error_msg = "Pattern %s has unbalanced braces" % string
-    idx, level, i = 0, 0, 0
+    idx, level = 0, 0
     idxs = []
-    for s in string:
-        i = i + 1
+    for i, s in enumerate(string):
         if s == start:
             level = level + 1
             if level == 1:
-                idx = s
+                idx = i
         elif s == end:
             level = level - 1
             if level == 0:
@@ -41,6 +40,7 @@ def get_delimiter_indices(string, start, end):
                 idxs.append(i + 1)
             elif level < 0:
                 raise ValueError(error_msg)
+
     if level != 0:
         raise ValueError(error_msg)
     return idxs
