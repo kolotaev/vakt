@@ -38,6 +38,7 @@ def test_compile_regex_raises_exception_if_unbalanced(phrase, start, end):
     ('foo:bar:<.*>', '<', '>', 'foo:bar:baz:me:python', True),
     ('foo:bar:<.*>', '<', '>', 'foo:bar:', True),
     ('foo:bar:<me*>', '<', '>', 'foo:bar:', False),
+    ('foo.bar:<.*>', '<', '>', 'foo:bar:', False),
     ('foo:bar:<me*>', '<', '>', 'foo:bar:meeeeeeeeee', True),
     ('foo:bar:<me*>', '<', '>', 'foo:bar:m', True),
     ('[[abc]]', '[', ']', 'c', True),
