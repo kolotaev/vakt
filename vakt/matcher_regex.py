@@ -1,5 +1,6 @@
 import re
 from vakt.compiler import compile_regex
+from vakt.exceptions import InvalidPattern
 
 
 # todo - move to policy class or as a trait?
@@ -16,7 +17,7 @@ class RegexMatcher:
                     continue
             try:
                 pattern = compile_regex(i, policy.start_delimiter, policy.end_delimiter)
-            except ValueError:
+            except InvalidPattern:
                 pass
             if pattern:
                 if re.match(pattern, what):
@@ -25,7 +26,7 @@ class RegexMatcher:
 
             try:
                 pattern = compile_regex(i, policy.start_delimiter, policy.end_delimiter)
-            except ValueError as e:
+            except InvalidPattern as e:
                 # todo - add logger
                 # log here
                 return False

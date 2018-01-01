@@ -1,5 +1,6 @@
 from functools import lru_cache
 import re
+from vakt.exceptions import InvalidPattern
 
 __all__ = ['compile_regex']
 
@@ -11,7 +12,7 @@ def compile_regex(phrase, start_delimiter, end_delimiter):
     end = 0
     try:
         idxs = get_delimiter_indices(phrase, start_delimiter, end_delimiter)
-    except ValueError as e:
+    except InvalidPattern as e:
         raise e
     for i, idx in enumerate(idxs[::2]):
         raw = phrase[end:idx]
@@ -39,8 +40,8 @@ def get_delimiter_indices(string, start, end):
                 idxs.append(idx)
                 idxs.append(i + 1)
             elif level < 0:
-                raise ValueError(error_msg)
+                raise InvalidPattern(error_msg)
 
     if level != 0:
-        raise ValueError(error_msg)
+        raise InvalidPattern(error_msg)
     return idxs
