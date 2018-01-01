@@ -18,11 +18,10 @@ def compile_regex(phrase, start_delimiter, end_delimiter):
         raw = phrase[end:idx]
         end = idxs[i+1]
         pt = phrase[idx+1:end-1]
-        pattern = pattern + "%s(%s)" % (re.escape(raw), pt)
+        pattern = pattern + '%s(%s)' % (re.escape(raw), pt)
         regex_vars.insert(i//2, re.compile('^%s$' % pt))
-        raw = phrase[end:]
-        pattern = '%s%s$' % (pattern, re.escape(raw))
-        return re.compile(pattern)
+    raw = phrase[end:]
+    return re.compile('%s%s$' % (pattern, re.escape(raw)))
 
 
 def get_delimiter_indices(string, start, end):
