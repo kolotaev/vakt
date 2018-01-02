@@ -1,3 +1,4 @@
+import pytest
 from vakt.policy import Policy
 from vakt.effects import *
 
@@ -13,3 +14,15 @@ def test_properties():
     assert 'books:{\d+}' == policy.resources
     assert ['create', 'delete'] == policy.actions
     assert [] == policy.conditions
+
+
+@pytest.mark.parametrize('data', [
+    '{"id":123}',
+])
+def test_from_json_creates_policy(data):
+    p = Policy.from_json(data)
+    assert data == p.to_json()
+
+
+def test_from_json_can_not_create_policy():
+    assert 0 == 0
