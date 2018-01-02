@@ -3,7 +3,7 @@ from vakt.effects import *
 
 
 def test_properties():
-    policy = Policy(id='123', description='readme',
+    policy = Policy('123', description='readme',
                     subjects=['user'], effect=ALLOW_ACCESS,
                     resources='books:{\d+}', actions=['create', 'delete'], conditions=[])
     assert '123' == policy.id

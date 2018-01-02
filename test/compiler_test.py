@@ -10,7 +10,7 @@ from vakt.exceptions import InvalidPattern
     ('a', '{', '}', '^a$'),
     ('', '{', '}', '^$'),
     ('[[abc]+]', '[', ']', '^([abc]+)$'),
-    ('foo:[[abc]+]:bar', '[', ']', '^foo\\:[abc]+\\:bar$'),
+    ('foo:[[abc]+]:bar', '[', ']', '^foo\\:([abc]+)\\:bar$'),
     ('a:b:{foo-bar.*i{2}}', '{', '}', '^a\\:b\\:(foo-bar.*i{2})$'),
 ])
 def test_compile_regex_compiles_correctly(phrase, start, end, output):

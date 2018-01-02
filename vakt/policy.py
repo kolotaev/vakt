@@ -28,7 +28,7 @@ class Policy:
 
     @property
     def id(self):
-        return self.id
+        return self._id
 
     @property
     def description(self):
