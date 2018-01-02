@@ -1,6 +1,8 @@
 import pytest
+import json
 from vakt.policy import Policy
 from vakt.effects import *
+from vakt.exceptions import PolicyCreationError
 
 
 def test_properties():
@@ -16,13 +18,25 @@ def test_properties():
     assert [] == policy.conditions
 
 
-@pytest.mark.parametrize('data', [
-    '{"id":123}',
+@pytest.mark.parametrize('data, expect', [
+    ('{"id":123}',
+     '{"id": 123, "description": null, ' +
+     '"subjects": [], "effect": "deny", "resources": [], "actions": [], "conditions": []}'),
+    ('{"id":123, "effect":"allow", "actions": ["create", "update"]}',
+     '{"id": 123, "description": null, ' +
+     '"subjects": [], "effect": "allow", "resources": [], "actions": ["create", "update"], "conditions": []}'),
 ])
-def test_from_json_creates_policy(data):
+def test_from_to_json_round_trip(data, expect):
     p = Policy.from_json(data)
-    assert data == p.to_json()
+    assert expect == p.to_json()
 
 
-def test_from_json_can_not_create_policy():
-    assert 0 == 0
+@pytest.mark.parametrize('data, exception, msg', [
+    ('{}', PolicyCreationError, "'id'"),
+    ('{"id":}', json.JSONDecodeError, 'value'),
+    ('', json.JSONDecodeError, 'value'),
+])
+def test_from_json_can_not_create_policy(data, exception, msg):
+    with pytest.raises(exception) as excinfo:
+        Policy.from_json(data)
+    assert msg in str(excinfo.value)
