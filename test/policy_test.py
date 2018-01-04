@@ -1,12 +1,12 @@
 import pytest
 import json
-from vakt.policy import Policy
+from vakt.policy import DefaultPolicy
 from vakt.effects import *
 from vakt.exceptions import PolicyCreationError
 
 
 def test_properties():
-    policy = Policy('123', description='readme',
+    policy = DefaultPolicy('123', description='readme',
                     subjects=['user'], effect=ALLOW_ACCESS,
                     resources='books:{\d+}', actions=['create', 'delete'], conditions=[])
     assert '123' == policy.id
@@ -27,7 +27,7 @@ def test_properties():
      '"subjects": [], "effect": "allow", "resources": [], "actions": ["create", "update"], "conditions": []}'),
 ])
 def test_from_to_json_round_trip(data, expect):
-    p = Policy.from_json(data)
+    p = DefaultPolicy.from_json(data)
     assert expect == p.to_json()
 
 
@@ -38,5 +38,5 @@ def test_from_to_json_round_trip(data, expect):
 ])
 def test_from_json_can_not_create_policy(data, exception, msg):
     with pytest.raises(exception) as excinfo:
-        Policy.from_json(data)
+        DefaultPolicy.from_json(data)
     assert msg in str(excinfo.value)
