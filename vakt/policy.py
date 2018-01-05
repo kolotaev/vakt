@@ -1,9 +1,10 @@
 import json
 from vakt.effects import *
 from vakt.exceptions import PolicyCreationError
+from vakt.util import JsonDumper
 
 
-class DefaultPolicy:
+class DefaultPolicy(JsonDumper):
     """Represents a policy that regulates access and allowed actions of subjects
     over some resources under a set of conditions."""
 
@@ -35,10 +36,6 @@ class DefaultPolicy:
                    props.get('resources', ()),
                    props.get('actions', ()),
                    props.get('conditions', ()))
-
-    def to_json(self):
-        """Get JSON representation of a Policy"""
-        return json.dumps(self.__dict__)
 
     def allow_access(self):
         """Does policy imply allow-access?"""
