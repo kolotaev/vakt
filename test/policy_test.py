@@ -3,6 +3,8 @@ import json
 from vakt.policy import DefaultPolicy
 from vakt.effects import *
 from vakt.exceptions import PolicyCreationError
+from vakt.conditions.cidr import CIDRCondition
+from vakt.conditions.string import StringEqualCondition
 
 
 def test_properties():
@@ -29,6 +31,11 @@ def test_properties():
 def test_from_to_json_round_trip(data, expect):
     p = DefaultPolicy.from_json(data)
     assert expect == p.to_json()
+
+
+def test_json_representation_of_a_policy_with_conditions():
+    p = DefaultPolicy('123', conditions=[CIDRCondition('192.168.1.0/24'), StringEqualCondition('test-me')])
+    assert '{}' == p.to_json()
 
 
 @pytest.mark.parametrize('data, exception, msg', [

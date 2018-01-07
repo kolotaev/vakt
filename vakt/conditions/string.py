@@ -1,7 +1,8 @@
 from vakt.conditions.base import Condition
+from vakt.util import JsonDumper
 
 
-class StringEqualCondition(Condition):
+class StringEqualCondition(Condition, JsonDumper):
     """Condition that is fulfilled if the string value equals the specified property of this condition"""
 
     def __init__(self, equals):

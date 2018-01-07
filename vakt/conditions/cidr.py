@@ -1,8 +1,9 @@
 import ipaddress
 from vakt.conditions.base import Condition
+from vakt.util import JsonDumper
 
 
-class CIDRCondition(Condition):
+class CIDRCondition(Condition, JsonDumper):
     """Condition that is fulfilled when request's IP address is in the provided CIDR"""
 
     def __init__(self, cidr):
