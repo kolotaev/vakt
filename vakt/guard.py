@@ -29,9 +29,25 @@ class Guard:
             return self._check_policies_allow(request, policies)
 
     def _check_policies_allow(self, request, policies):
-        """Check if any of a given policy allow a specified request"""
-        allow = False
+        """Check if any of a given policy allows a specified request"""
+        allows = False
         for p in policies:
+            # First we check if action is OK. Since usually action is the most used check.
             match = self.matcher.matches(p, p.actions, request.action)
             if not match:
                 continue
+            # Subject is more performant check then resources, so we try it second.
+            match = self.matcher.matches(p, p.subjects, request.subject)
+            if not match:
+                continue
+            match = self.matcher.matches(p, p.resources, request.resource)
+            if not match:
+                continue
+
+
+    def _check_conditions_pass(self, policy, request):
+        """Check conditions pass for a request"""
+        for i, condition in enumerate(policy.conditions):
+            if not condition.ok(request.context[i], request):
+                return False
+        return True
