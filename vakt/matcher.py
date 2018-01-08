@@ -7,8 +7,7 @@ from vakt.exceptions import InvalidPattern
 class RegexMatcher:
     """Matcher that uses regular expressions."""
 
-    @staticmethod
-    def matches(policy, where, what):
+    def matches(self, policy, where, what):
         for i in where:
             if policy.start_delimiter not in i:  # check if 'where' item is written in a policy-defined-regex syntax.
                 if i == what:  # it's a single string match

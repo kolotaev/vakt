@@ -31,4 +31,7 @@ class PolicyManager(ABC):
         """Delete a policy"""
         pass
 
-    # todo - add method
+    @abstractmethod
+    def find_by_request(self, request):
+        """Get potential policies for a given request"""
+        pass
