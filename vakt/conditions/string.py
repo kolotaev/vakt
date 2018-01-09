@@ -3,22 +3,22 @@ from vakt.util import JsonDumper
 
 
 class StringEqualCondition(Condition, JsonDumper):
-    """Condition that is fulfilled if the string value equals the specified property of this condition"""
+    """Condition that is satisfied if the string value equals the specified property of this condition"""
 
     def __init__(self, equals):
         if not isinstance(equals, str):
             raise TypeError('equals  property should be a string')
         self.equals = equals
 
-    def ok(self, what, request):
+    def satisfied(self, what, request):
         return isinstance(what, str) and what == self.equals
 
 
 class StringPairsEqualCondition(Condition):
-    """Condition that is fulfilled when given data is an array of pairs and
+    """Condition that is satisfied when given data is an array of pairs and
        those pairs are represented by equal to each other strings"""
 
-    def ok(self, what, request):
+    def satisfied(self, what, request):
         if not isinstance(what, list):
             return False
         for pair in what:

@@ -9,6 +9,6 @@ class Condition(ABC):
         return self.__class__.__name__
 
     @abstractmethod
-    def ok(self, what, request):
-        """Is request fulfilled by the condition"""
+    def satisfied(self, what, request):
+        """Is the condition satisfied by the request"""
         pass

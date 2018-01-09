@@ -4,12 +4,12 @@ from vakt.util import JsonDumper
 
 
 class CIDRCondition(Condition, JsonDumper):
-    """Condition that is fulfilled when request's IP address is in the provided CIDR"""
+    """Condition that is satisfied when request's IP address is in the provided CIDR"""
 
     def __init__(self, cidr):
         self.cidr = cidr
 
-    def ok(self, what, request):
+    def satisfied(self, what, request):
         if not isinstance(what, str):
             return False
         try:
