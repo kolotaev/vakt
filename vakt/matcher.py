@@ -12,17 +12,7 @@ class RegexMatcher:
             if policy.start_delimiter not in i:  # check if 'where' item is written in a policy-defined-regex syntax.
                 if i == what:  # it's a single string match
                     return True
-                else:
-                    continue
-            try:
-                pattern = compile_regex(i, policy.start_delimiter, policy.end_delimiter)
-            except InvalidPattern:
-                pass
-            if pattern:
-                if re.match(pattern, what):
-                    return True
                 continue
-
             try:
                 pattern = compile_regex(i, policy.start_delimiter, policy.end_delimiter)
             except InvalidPattern as e:
