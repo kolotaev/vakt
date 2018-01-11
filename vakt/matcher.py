@@ -21,5 +21,4 @@ class RegexMatcher:
                 return False
             if re.match(pattern, what):
                 return True
-
         return False

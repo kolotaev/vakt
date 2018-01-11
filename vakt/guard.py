@@ -33,15 +33,12 @@ class Guard:
         allow = False
         for p in policies:
             # First we check if action is OK. Since usually action is the most used check.
-            match = self.matcher.matches(p, p.actions, request.action)
-            if not match:
+            if not self.matcher.matches(p, p.actions, request.action):
                 continue
-            # Subject is more performant check then resources, so we try it second.
-            match = self.matcher.matches(p, p.subjects, request.subject)
-            if not match:
+            # Subject is a more performant check then resources, so we try it second.
+            if not self.matcher.matches(p, p.subjects, request.subject):
                 continue
-            match = self.matcher.matches(p, p.resources, request.resource)
-            if not match:
+            if not self.matcher.matches(p, p.resources, request.resource):
                 continue
             if not self._check_conditions_pass(p, request):
                 continue
