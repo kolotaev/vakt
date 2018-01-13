@@ -1,5 +1,6 @@
-from functools import lru_cache
 import re
+from functools import lru_cache
+
 from vakt.exceptions import InvalidPattern
 
 __all__ = ['compile_regex']
@@ -25,7 +26,7 @@ def compile_regex(phrase, start_delimiter, end_delimiter):
 
 
 def get_delimiter_indices(string, start, end):
-    error_msg = "Pattern %s has unbalanced braces" % string
+    error_msg = 'Pattern %s has unbalanced braces'
     idx, level = 0, 0
     indices = []
     for i, s in enumerate(string):
@@ -39,8 +40,8 @@ def get_delimiter_indices(string, start, end):
                 indices.append(idx)
                 indices.append(i + 1)
             elif level < 0:
-                raise InvalidPattern(error_msg)
+                raise InvalidPattern(error_msg % string)
 
     if level != 0:
-        raise InvalidPattern(error_msg)
+        raise InvalidPattern(error_msg % string)
     return indices

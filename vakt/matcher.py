@@ -1,4 +1,5 @@
 import re
+
 from vakt.compiler import compile_regex
 from vakt.exceptions import InvalidPattern
 

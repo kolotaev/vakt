@@ -1,4 +1,5 @@
 import ipaddress
+
 from vakt.conditions.base import Condition
 from vakt.util import JsonDumper
 

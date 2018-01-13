@@ -35,20 +35,21 @@ class Guard:
             # First we check if action is OK. Since usually action is the most used check.
             if not self.matcher.matches(p, p.actions, request.action):
                 continue
-            # Subject is a more performant check then resources, so we try it second.
+            # Subject is a more quick check then resources, so we try it second.
             if not self.matcher.matches(p, p.subjects, request.subject):
                 continue
             if not self.matcher.matches(p, p.resources, request.resource):
                 continue
-            if not self._check_conditions_pass(p, request):
+            if not self._conditions_satisfied(p, request):
                 continue
             if not p.allow_access:
                 return False
             allow = True
         return allow
 
-    def _check_conditions_pass(self, policy, request):
-        """Check conditions pass for a request"""
+    @staticmethod
+    def _conditions_satisfied(policy, request):
+        """Check if conditions in the policy are satisfied for a given request"""
         for key, condition in enumerate(policy.conditions):
             try:
                 ctx_condition = request.context[key]
