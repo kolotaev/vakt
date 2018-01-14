@@ -1,7 +1,7 @@
 import re
 
-from vakt.compiler import compile_regex
-from vakt.exceptions import InvalidPattern
+from .compiler import compile_regex
+from .exceptions import InvalidPattern
 
 
 # todo - move to policy class or as a trait?

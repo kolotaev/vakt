@@ -1,4 +1,4 @@
-from vakt.conditions.base import Condition
+from ..conditions.base import Condition
 
 
 class SubjectEqualCondition(Condition):

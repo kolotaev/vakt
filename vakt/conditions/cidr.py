@@ -1,7 +1,7 @@
 import ipaddress
 
-from vakt.conditions.base import Condition
-from vakt.util import JsonDumper
+from ..conditions.base import Condition
+from ..util import JsonDumper
 
 
 class CIDRCondition(Condition, JsonDumper):

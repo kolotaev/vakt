@@ -1,7 +1,7 @@
 import re
 from functools import lru_cache
 
-from vakt.exceptions import InvalidPattern
+from .exceptions import InvalidPattern
 
 __all__ = ['compile_regex']
 

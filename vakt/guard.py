@@ -1,4 +1,4 @@
-from vakt.util import JsonDumper
+from .util import JsonDumper
 
 
 class Request(JsonDumper):

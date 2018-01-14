@@ -1,5 +1,6 @@
 import pytest
 import json
+
 from vakt.policy import DefaultPolicy
 from vakt.effects import *
 from vakt.exceptions import PolicyCreationError
