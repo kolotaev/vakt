@@ -14,9 +14,9 @@ class JsonDumper:
 
     def to_json(self):
         """Get JSON representation of an object"""
-        return json.dumps(self.data(), default=self._serializer)
+        return json.dumps(self._data(), default=self._serializer)
 
-    def data(self):
+    def _data(self):
         """Get the object data. Is useful for overriding in custom classes"""
         return self.__dict__
 
@@ -25,3 +25,6 @@ class JsonDumper:
         if isinstance(obj, self.__class__):
             return obj.to_json()
         return obj.__dict__
+
+    def __repr__(self):
+        return self.to_json()

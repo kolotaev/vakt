@@ -34,6 +34,7 @@ def test_from_to_json_round_trip(data, expect):
     assert expect == p.to_json()
 
 
+@pytest.mark.xfail
 def test_json_representation_of_a_policy_with_conditions():
     p = DefaultPolicy('123', conditions=[CIDRCondition('192.168.1.0/24'), StringEqualCondition('test-me')])
     assert '{}' == p.to_json()

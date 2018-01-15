@@ -1,20 +1,25 @@
-from functools import lru_cache
-import re
+from inspect import signature
 
-counter = 0
+class A:
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+
+    @classmethod
+    def foo(cls, data):
+        inst = cls.__new__(cls)
+        for k, v in data.items():
+            setattr(inst, k, v)
+        print('fff: ')
+        print(len(signature(cls.__init__).parameters))
+
+        return inst
 
 
-@lru_cache(maxsize=512)
-def get(key: str, foo: str, bar: str):
-    global counter
-    d = foo + key + bar
-    counter = counter + 1
-    return re.compile(d)
+name = 'A'
+klass = globals()[name]
+instance = klass.foo({'a': 12, 'b': 78})
 
-for m in range(3):
-    for i in range(30):
-        d = '//' + str(i) + '.*/'
-        k = get(d, '<', '>')
+print(instance)
+print(instance.a)
 
-print(get.cache_info())
-print(counter)

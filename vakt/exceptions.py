@@ -4,5 +4,10 @@ class InvalidPattern(Exception):
 
 
 class PolicyCreationError(Exception):
-    """Error during policy creation occurred. 'id' is missing."""
+    """Error during Policy creation occurred."""
+    pass
+
+
+class ConditionCreationError(Exception):
+    """Error during Condition creation occurred."""
     pass
