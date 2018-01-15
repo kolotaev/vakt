@@ -1,8 +1,7 @@
 from ..conditions.base import Condition
-from ..util import JsonDumper
 
 
-class StringEqualCondition(Condition, JsonDumper):
+class StringEqualCondition(Condition):
     """Condition that is satisfied if the string value equals the specified property of this condition"""
 
     def __init__(self, equals):

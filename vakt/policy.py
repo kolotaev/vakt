@@ -1,8 +1,8 @@
 import json
 
-from vakt.effects import *
-from vakt.exceptions import PolicyCreationError
-from vakt.util import JsonDumper
+from .effects import *
+from .exceptions import PolicyCreationError
+from .util import JsonDumper
 
 
 class DefaultPolicy(JsonDumper):
@@ -20,7 +20,6 @@ class DefaultPolicy(JsonDumper):
 
     @classmethod
     def from_json(cls, data):
-        """Create Policy from JSON string"""
         try:
             props = json.loads(data)
         except json.JSONDecodeError as e:

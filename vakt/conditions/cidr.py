@@ -1,10 +1,9 @@
 import ipaddress
 
 from ..conditions.base import Condition
-from ..util import JsonDumper
 
 
-class CIDRCondition(Condition, JsonDumper):
+class CIDRCondition(Condition):
     """Condition that is satisfied when request's IP address is in the provided CIDR"""
 
     def __init__(self, cidr):
