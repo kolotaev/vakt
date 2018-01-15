@@ -50,4 +50,4 @@ def test_compile_regex_output_matches_correctly(phrase, start, end, match_agains
     if match_should_succeed:
         assert result.match(match_against)
     else:
-        assert result.match(match_against) is None
+        assert not result.match(match_against)
