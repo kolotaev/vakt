@@ -25,6 +25,3 @@ class JsonDumper:
         if isinstance(obj, self.__class__):
             return obj.to_json()
         return obj.__dict__
-
-    def __repr__(self):
-        return self.to_json()
