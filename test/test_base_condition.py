@@ -24,8 +24,8 @@ def test_from_json():
         '{"type": "ABCondition", "contents": {"a": 1, "b": 2}}',
         '{"type": "ABCondition", "contents": {"a": "x", "b": "y"}}',
     ]
-    assert '' == ABCondition.from_json(conditions[0])
-    assert '' == ABCondition.from_json(conditions[1])
+    assert isinstance(Condition.from_json(conditions[0]), ABCondition)
+    assert isinstance(Condition.from_json(conditions[1]), ABCondition)
 
 
 def test_name():
