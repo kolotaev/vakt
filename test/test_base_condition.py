@@ -6,7 +6,7 @@ class ABCondition(Condition):
         self.a = a
         self.b = b
 
-    def satisfied(self, what, request):
+    def satisfied(self, what=None, request=None):
         return self.a == self.b
 
 
@@ -33,6 +33,6 @@ def test_name():
 
 
 def test_satisfied():
-    assert ABCondition(2, 2).satisfied('a', 'b')
-    assert not ABCondition(1, 2).satisfied('a', 'b')
+    assert ABCondition(2, 2).satisfied()
+    assert not ABCondition(1, 2).satisfied()
 
