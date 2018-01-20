@@ -29,20 +29,9 @@ class Condition(ABC, JsonDumper):
             raise ConditionCreationError("No 'contents' key in JSON data found")
         if 'type' not in data:
             raise ConditionCreationError("No 'type' key in JSON data found")
-
         m = importlib.import_module(cls.__mro__[0].__module__)
         m = getattr(m, data['type'])
-        o = cls.__new__(m)
-        given_args_len = len(data['contents'])
-        expected_args_len = len(signature(cls.__init__).parameters)-1
-        if given_args_len != expected_args_len:
-            raise ConditionCreationError(
-                'Number of arguments does not match. Given %d. Expected %d' % (given_args_len, expected_args_len))
-        for k, v in data.items():
-            setattr(o, k, v)
-        return o
-
-        # return m._create_from_dictionary(jc)
+        return m._create_from_dictionary(data)
 
     def _data(self):
         return {
