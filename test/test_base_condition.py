@@ -15,21 +15,25 @@ def test_to_json():
         ABCondition(1, 2),
         ABCondition('x', 'y'),
     ]
-    assert '{"type": "ABCondition", "contents": {"a": 1, "b": 2}}' == conditions[0].to_json()
-    assert '{"type": "ABCondition", "contents": {"a": "x", "b": "y"}}' == conditions[1].to_json()
+    assert '{"type": "test_base_condition.ABCondition", "contents": {"a": 1, "b": 2}}' == conditions[0].to_json()
+    assert '{"type": "test_base_condition.ABCondition", "contents": {"a": "x", "b": "y"}}' == conditions[1].to_json()
 
 
 def test_from_json():
     conditions = [
-        '{"type": "ABCondition", "contents": {"a": 1, "b": 2}}',
-        '{"type": "ABCondition", "contents": {"a": "x", "b": "y"}}',
+        '{"type": "test_base_condition.ABCondition", "contents": {"a": 1, "b": 1}}',
+        '{"type": "test_base_condition.ABCondition", "contents": {"a": "x", "b": "y"}}',
     ]
-    assert isinstance(Condition.from_json(conditions[0]), ABCondition)
-    assert isinstance(Condition.from_json(conditions[1]), ABCondition)
+    c1 = Condition.from_json(conditions[0])
+    c2 = Condition.from_json(conditions[1])
+    assert isinstance(c1, ABCondition)
+    assert isinstance(c2, ABCondition)
+    assert c1.satisfied()
+    assert not c2.satisfied()
 
 
 def test_name():
-    assert 'ABCondition' == ABCondition(1, 2).name()
+    assert 'test_base_condition.ABCondition' == ABCondition(1, 2).name()
 
 
 def test_satisfied():

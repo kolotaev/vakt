@@ -17,7 +17,7 @@ class Condition(ABC, JsonDumper):
 
     def name(self):
         """Get condition name"""
-        return self.__class__.__name__
+        return '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
 
     @classmethod
     def from_json(cls, json_data):
@@ -29,20 +29,11 @@ class Condition(ABC, JsonDumper):
             raise ConditionCreationError("No 'contents' key in JSON data found")
         if 'type' not in data:
             raise ConditionCreationError("No 'type' key in JSON data found")
-        m = importlib.import_module(cls.__mro__[0].__module__)
-        m = getattr(m, data['type'])
-        return m._create_from_dictionary(data)
+        parts = data['type'].split('.')
+        m = importlib.import_module(".".join(parts[:-1]))
+        klass = getattr(m, parts[-1])
 
-    def _data(self):
-        return {
-            'type': self.name(),
-            'contents': self.__dict__,
-        }
-
-    @classmethod
-    def _create_from_dictionary(cls, data):
-        """Factory for creating various Condition from dictionary"""
-        o = cls.__new__(cls)
+        o = klass.__new__(klass)
         if 'contents' not in data:
             raise ConditionCreationError("No 'contents' key in JSON data found")
         given_args_len = len(data['contents'])
@@ -50,6 +41,12 @@ class Condition(ABC, JsonDumper):
         if given_args_len != expected_args_len:
             raise ConditionCreationError(
                 'Number of arguments does not match. Given %d. Expected %d' % (given_args_len, expected_args_len))
-        for k, v in data.items():
+        for k, v in data['contents'].items():
             setattr(o, k, v)
         return o
+
+    def _data(self):
+        return {
+            'type': self.name(),
+            'contents': self.__dict__,
+        }
