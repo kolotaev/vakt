@@ -19,8 +19,8 @@ class Condition(ABC, JsonDumper):
         """Get condition name"""
         return '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
 
-    @staticmethod
-    def from_json(json_data):
+    @classmethod
+    def from_json(cls, json_data):
         try:
             data = json.loads(json_data)
         except json.JSONDecodeError as e:

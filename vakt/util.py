@@ -5,9 +5,9 @@ from abc import abstractmethod
 class JsonDumper:
     """Mixin for dumping object to JSON"""
 
-    @staticmethod
+    @classmethod
     @abstractmethod
-    def from_json(data):
+    def from_json(cls, data):
         """Create object from a JSON string
            Returns a new instance of a class"""
         pass
@@ -22,6 +22,6 @@ class JsonDumper:
 
     def _serializer(self, obj):
         """JSON serializer for objects not supported by default json encoder"""
-        if isinstance(obj, self.__class__):
+        if isinstance(obj, JsonDumper):
             return obj.to_json()
         return obj.__dict__

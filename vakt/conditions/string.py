@@ -9,7 +9,7 @@ class StringEqualCondition(Condition):
             raise TypeError('equals  property should be a string')
         self.equals = equals
 
-    def satisfied(self, what, request):
+    def satisfied(self, what, request=None):
         return isinstance(what, str) and what == self.equals
 
 
@@ -17,7 +17,7 @@ class StringPairsEqualCondition(Condition):
     """Condition that is satisfied when given data is an array of pairs and
        those pairs are represented by equal to each other strings"""
 
-    def satisfied(self, what, request):
+    def satisfied(self, what, request=None):
         if not isinstance(what, list):
             return False
         for pair in what:

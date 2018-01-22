@@ -41,7 +41,7 @@ class DefaultPolicy(JsonDumper):
                    props.get('effect', DENY_ACCESS),
                    props.get('resources', ()),
                    props.get('actions', ()),
-                   props.get('conditions', conditions))
+                   conditions)
 
     def allow_access(self):
         """Does policy imply allow-access?"""

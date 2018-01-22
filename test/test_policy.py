@@ -34,10 +34,15 @@ def test_json_roundtrip(data, expect):
     assert expect == p.to_json()
 
 
-@pytest.mark.xfail
-def test_json_representation_of_a_policy_with_conditions():
+def test_json_roundtrip_of_a_policy_with_conditions():
     p = DefaultPolicy('123', conditions=[CIDRCondition('192.168.1.0/24'), StringEqualCondition('test-me')])
-    assert '{}' == p.to_json()
+    s = p.to_json()
+    p1 = DefaultPolicy.from_json(s)
+    assert '123' == p1.id
+    assert 2 == len(p1.conditions)
+    assert isinstance(p1.conditions[0], CIDRCondition)
+    assert isinstance(p1.conditions[1], StringEqualCondition)
+    assert p1.conditions[1].satisfied('test-me')
 
 
 @pytest.mark.parametrize('data, exception, msg', [
