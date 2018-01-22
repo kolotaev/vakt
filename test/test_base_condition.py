@@ -53,3 +53,7 @@ def test_json_roundtrip(condition, satisfied):
     assert c1.__dict__ == condition.__dict__
     assert satisfied == c1.satisfied(None, None)
 
+
+@pytest.mark.xfail
+def test_from_json_fails():
+    assert 0 == 1

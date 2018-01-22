@@ -6,7 +6,7 @@ class StringEqualCondition(Condition):
 
     def __init__(self, equals):
         if not isinstance(equals, str):
-            raise TypeError('equals  property should be a string')
+            raise TypeError('equals property should be a string')
         self.equals = equals
 
     def satisfied(self, what, request=None):
