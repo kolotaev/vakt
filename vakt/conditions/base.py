@@ -15,10 +15,6 @@ class Condition(ABC, JsonDumper):
         """Is the condition satisfied by the request"""
         pass
 
-    def name(self):
-        """Get condition name"""
-        return '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
-
     @classmethod
     def from_json(cls, json_data):
         try:
@@ -47,6 +43,6 @@ class Condition(ABC, JsonDumper):
 
     def _data(self):
         return {
-            'type': self.name(),
+            'type': '%s.%s' % (self.__class__.__module__, self.__class__.__name__),
             'contents': self.__dict__,
         }

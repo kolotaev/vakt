@@ -14,10 +14,6 @@ class ABCondition(Condition):
         return self.a == self.b
 
 
-def test_name():
-    assert 'test_base_condition.ABCondition' == ABCondition(1, 2).name()
-
-
 def test_satisfied():
     assert ABCondition(2, 2).satisfied()
     assert not ABCondition(1, 2).satisfied()
