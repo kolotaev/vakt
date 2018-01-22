@@ -3,6 +3,7 @@ import json
 from .effects import *
 from .exceptions import PolicyCreationError
 from .util import JsonDumper
+from .conditions.base import Condition
 
 
 class DefaultPolicy(JsonDumper):
@@ -29,13 +30,18 @@ class DefaultPolicy(JsonDumper):
         if 'id' not in props:
             raise PolicyCreationError("Error creating policy from json. 'id' attribute is required")
 
+        conditions = []
+        if 'conditions' in props:
+            for c in props['conditions']:
+                conditions.append(Condition.from_json(c))
+
         return cls(props['id'],
                    props.get('description'),
                    props.get('subjects', ()),
                    props.get('effect', DENY_ACCESS),
                    props.get('resources', ()),
                    props.get('actions', ()),
-                   props.get('conditions', ()))
+                   props.get('conditions', conditions))
 
     def allow_access(self):
         """Does policy imply allow-access?"""
