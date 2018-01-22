@@ -19,8 +19,8 @@ class Condition(ABC, JsonDumper):
         """Get condition name"""
         return '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
 
-    @classmethod
-    def from_json(cls, json_data):
+    @staticmethod
+    def from_json(json_data):
         try:
             data = json.loads(json_data)
         except json.JSONDecodeError as e:
@@ -37,7 +37,7 @@ class Condition(ABC, JsonDumper):
         if 'contents' not in data:
             raise ConditionCreationError("No 'contents' key in JSON data found")
         given_args_len = len(data['contents'])
-        expected_args_len = len(signature(cls.__init__).parameters)-1
+        expected_args_len = len(signature(klass.__init__).parameters)-1
         if given_args_len != expected_args_len:
             raise ConditionCreationError(
                 'Number of arguments does not match. Given %d. Expected %d' % (given_args_len, expected_args_len))

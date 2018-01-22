@@ -4,7 +4,7 @@ import json
 from vakt.policy import DefaultPolicy
 from vakt.effects import *
 from vakt.exceptions import PolicyCreationError
-from vakt.conditions.cidr import CIDRCondition
+from vakt.conditions.net import CIDRCondition
 from vakt.conditions.string import StringEqualCondition
 
 
@@ -29,7 +29,7 @@ def test_properties():
      '{"id": 123, "description": null, ' +
      '"subjects": [], "effect": "allow", "resources": [], "actions": ["create", "update"], "conditions": []}'),
 ])
-def test_from_to_json_round_trip(data, expect):
+def test_json_roundtrip(data, expect):
     p = DefaultPolicy.from_json(data)
     assert expect == p.to_json()
 
@@ -45,7 +45,7 @@ def test_json_representation_of_a_policy_with_conditions():
     ('{"id":}', json.JSONDecodeError, 'value'),
     ('', json.JSONDecodeError, 'value'),
 ])
-def test_from_json_can_not_create_policy(data, exception, msg):
+def test_json_roundtrip_not_create_policy(data, exception, msg):
     with pytest.raises(exception) as excinfo:
         DefaultPolicy.from_json(data)
     assert msg in str(excinfo.value)

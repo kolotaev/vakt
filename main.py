@@ -1,25 +1,18 @@
-from inspect import signature
+from vakt.conditions.base import Condition
 
-class A:
+
+class ABCondition(Condition):
     def __init__(self, a, b):
         self.a = a
         self.b = b
 
-    @classmethod
-    def foo(cls, data):
-        inst = cls.__new__(cls)
-        for k, v in data.items():
-            setattr(inst, k, v)
-        print('fff: ')
-        print(len(signature(cls.__init__).parameters))
-
-        return inst
+    def satisfied(self, what=None, request=None):
+        return self.a == self.b
 
 
-name = 'A'
-klass = globals()[name]
-instance = klass.foo({'a': 12, 'b': 78})
+d = ABCondition(8, 90).to_json()
+print(d)
 
-print(instance)
-print(instance.a)
-
+c = Condition.from_json(d)
+print(c)
+print(c.satisfied())

@@ -1,4 +1,8 @@
+import pytest
+
 from vakt.conditions.base import Condition
+from vakt.conditions.string import StringEqualCondition
+import vakt.conditions.net
 
 
 class ABCondition(Condition):
@@ -8,6 +12,15 @@ class ABCondition(Condition):
 
     def satisfied(self, what=None, request=None):
         return self.a == self.b
+
+
+def test_name():
+    assert 'test_base_condition.ABCondition' == ABCondition(1, 2).name()
+
+
+def test_satisfied():
+    assert ABCondition(2, 2).satisfied()
+    assert not ABCondition(1, 2).satisfied()
 
 
 def test_to_json():
@@ -32,11 +45,15 @@ def test_from_json():
     assert not c2.satisfied()
 
 
-def test_name():
-    assert 'test_base_condition.ABCondition' == ABCondition(1, 2).name()
-
-
-def test_satisfied():
-    assert ABCondition(2, 2).satisfied()
-    assert not ABCondition(1, 2).satisfied()
+@pytest.mark.parametrize('condition, satisfied', [
+    (ABCondition(1, 1), True),
+    (ABCondition(1, 1.2), False),
+    (StringEqualCondition('foo'), False),
+    (vakt.conditions.net.CIDRCondition('192.168.0.1/24'), False),
+])
+def test_json_roundtrip(condition, satisfied):
+    c1 = Condition.from_json(condition.to_json())
+    assert isinstance(c1, condition.__class__)
+    assert c1.__dict__ == condition.__dict__
+    assert satisfied == c1.satisfied(None, None)
 

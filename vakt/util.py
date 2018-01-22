@@ -5,9 +5,9 @@ from abc import abstractmethod
 class JsonDumper:
     """Mixin for dumping object to JSON"""
 
-    @classmethod
+    @staticmethod
     @abstractmethod
-    def from_json(cls, data):
+    def from_json(data):
         """Create object from a JSON string
            Returns a new instance of a class"""
         pass
