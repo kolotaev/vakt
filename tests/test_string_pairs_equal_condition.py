@@ -9,6 +9,7 @@ from vakt.conditions.string import StringPairsEqualCondition
     ("not-list", False),
     ([['a']], False),
     ([['a', 'a']], True),
+    ([['й', 'й']], True),
     ([['a', 'b']], False),
     ([['a', 'b', 'c']], False),
     ([['a', 'a'], ['b', 'b']], True),

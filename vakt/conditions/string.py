@@ -33,14 +33,14 @@ class StringPairsEqualCondition(Condition):
 
 
 class RegexMatchCondition(Condition):
-    """Condition that is satisfied when given data matches the provided regular expression"""
+    """Condition that is satisfied when given data matches the provided regular expression.
+       Note, that you should provide syntactically valid regular-expression string. It's not escaped"""
 
     def __init__(self, pattern):
         try:
-            re.compile(pattern)
+            self.regex = re.compile(pattern)
         except Exception as e:
             raise TypeError('pattern should be a valid regexp string. Error %s' % e)
-        self.pattern = pattern
 
     def satisfied(self, what, request=None):
-        return bool(self.pattern.match(str(what)))
+        return bool(self.regex.match(str(what)))
