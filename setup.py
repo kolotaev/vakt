@@ -22,7 +22,7 @@ if __name__ == "__main__":
         tests_require=[
             'pytest>=3.3.1'
         ],
-        packages=find_packages(exclude='test'),
+        packages=find_packages(exclude='tests'),
         classifiers=[
             'Programming Language :: Python',
             'Programming Language :: Python :: 3.4',

@@ -3,19 +3,17 @@ import pytest
 from vakt.conditions.string import StringPairsEqualCondition
 
 
-def test_string_pairs_equal_construct_fails():
-    with pytest.raises(TypeError) as excinfo:
-        StringEqualCondition(dict())
-    assert 'equals property should be a string' in str(excinfo.value)
-
-
-@pytest.mark.parametrize('arg, against, result', [
-    ('foo', 'foo', True),
-    ('foo', 'bar', False),
-    ('тест', 'нет', False),
-    ('тест', 'тест', True),
-    ('', '', True),
+@pytest.mark.parametrize('against, result', [
+    ([[]], False),
+    ([], True),
+    ("not-list", False),
+    ([['a']], False),
+    ([['a', 'a']], True),
+    ([['a', 'b']], False),
+    ([['a', 'b', 'c']], False),
+    ([['a', 'a'], ['b', 'b']], True),
+    ([['a', 'a'], ['b', 'c']], False),
 ])
-def test_string_pairs_equal_satisfied(arg, against, result):
-    c = StringEqualCondition(arg)
+def test_string_pairs_equal_satisfied(against, result):
+    c = StringPairsEqualCondition()
     assert result == c.satisfied(against)
