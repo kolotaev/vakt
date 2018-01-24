@@ -14,8 +14,9 @@ def test_regex_match_construct_fails():
     ('.*', 'foo', True),
     ('aaa', 'aaa', True),
     ('aaa', 'aab', False),
-    (r'[\d\w]+', '567asd', True),
+    ('[\d\w]+', '567asd', True),
     ('', '', True),
+    ('^python\?exe$', 'python?exe', True),
 ])
 def test_regex_match_condition_satisfied(arg, against, result):
     c = RegexMatchCondition(arg)

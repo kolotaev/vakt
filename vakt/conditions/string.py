@@ -34,7 +34,7 @@ class StringPairsEqualCondition(Condition):
 
 class RegexMatchCondition(Condition):
     """Condition that is satisfied when given data matches the provided regular expression.
-       Note, that you should provide syntactically valid regular-expression string. It's not escaped"""
+       Note, that you should provide syntactically valid regular-expression string."""
 
     def __init__(self, pattern):
         try:
