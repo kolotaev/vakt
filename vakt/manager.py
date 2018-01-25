@@ -32,6 +32,7 @@ class PolicyManager(ABC):
         pass
 
     @abstractmethod
+    # todo - maybe add a field on which to match?
     def find_by_request(self, request):
         """Get potential policies for a given request"""
         pass
