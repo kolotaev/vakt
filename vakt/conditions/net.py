@@ -9,7 +9,7 @@ class CIDRCondition(Condition):
     def __init__(self, cidr):
         self.cidr = cidr
 
-    def satisfied(self, what, request):
+    def satisfied(self, what, request=None):
         if not isinstance(what, str):
             return False
         try:
