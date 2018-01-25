@@ -11,15 +11,9 @@ class MemoryManager(PolicyManager):
         self.lock = threading.Lock()
 
     def get(self, id):
-        self.lock.acquire()
-        try:
+        with self.lock:
             return self.policies.get(id)
-        finally:
-            self.lock.release()
 
     def delete(self, id):
-        self.lock.acquire()
-        try:
+        with self.lock:
             del self.policies[id]
-        finally:
-            self.lock.release()
