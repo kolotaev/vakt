@@ -1,3 +1,5 @@
+import json
+
 from .util import JsonDumper
 
 
@@ -10,6 +12,20 @@ class Request(JsonDumper):
         self.action = action
         self.subject = subject
         self.context = context
+
+    @classmethod
+    def from_json(cls, data):
+        try:
+            props = json.loads(data)
+        except json.JSONDecodeError as e:
+            # todo - logging
+            # print("Error creating policy from json.", e)
+            raise e
+
+        return cls(props.get('resource', ''),
+                   props.get('action', ''),
+                   props.get('subject', ''),
+                   props.get('context'))
 
 
 class Guard:
