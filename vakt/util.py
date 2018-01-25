@@ -14,14 +14,12 @@ class JsonDumper:
 
     def to_json(self):
         """Get JSON representation of an object"""
-        return json.dumps(self._data(), default=self._serializer)
+        def serializer(obj):
+            if isinstance(obj, JsonDumper):
+                return obj.to_json()
+            return obj.__dict__
+        return json.dumps(self._data(), default=serializer)
 
     def _data(self):
         """Get the object data. Is useful for overriding in custom classes"""
         return self.__dict__
-
-    def _serializer(self, obj):
-        """JSON serializer for objects not supported by default json encoder"""
-        if isinstance(obj, JsonDumper):
-            return obj.to_json()
-        return obj.__dict__
