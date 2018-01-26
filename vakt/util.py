@@ -20,11 +20,8 @@ class JsonDumper:
         """
         Get JSON representation of an object
         """
-        def serializer(obj):
-            if isinstance(obj, JsonDumper):
-                return obj.to_json()
-            return obj.__dict__
-        return json.dumps(self._data(), default=serializer)
+        return json.dumps(self._data(),
+                          default=lambda o: o.to_json() if isinstance(o, JsonDumper) else o.__dict__)
 
     def _data(self):
         """
