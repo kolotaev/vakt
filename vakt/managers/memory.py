@@ -36,8 +36,4 @@ class MemoryManager(PolicyManager):
 
     def find_by_request(self, request):
         with self.lock:
-            result = []
-            for p in self.policies:
-                if request.subject in p.subjects:
-                    result.append(p)
-        return result
+            return [p for p in self.policies if request.subject in p.subjects]
