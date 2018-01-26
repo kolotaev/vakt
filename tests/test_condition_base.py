@@ -24,14 +24,14 @@ def test_to_json():
         ABCondition(1, 2),
         ABCondition('x', 'y'),
     ]
-    assert '{"type": "test_base_condition.ABCondition", "contents": {"a": 1, "b": 2}}' == conditions[0].to_json()
-    assert '{"type": "test_base_condition.ABCondition", "contents": {"a": "x", "b": "y"}}' == conditions[1].to_json()
+    assert '{"type": "test_condition_base.ABCondition", "contents": {"a": 1, "b": 2}}' == conditions[0].to_json()
+    assert '{"type": "test_condition_base.ABCondition", "contents": {"a": "x", "b": "y"}}' == conditions[1].to_json()
 
 
 def test_from_json():
     conditions = [
-        '{"type": "test_base_condition.ABCondition", "contents": {"a": 1, "b": 1}}',
-        '{"type": "test_base_condition.ABCondition", "contents": {"a": "x", "b": "y"}}',
+        '{"type": "test_condition_base.ABCondition", "contents": {"a": 1, "b": 1}}',
+        '{"type": "test_condition_base.ABCondition", "contents": {"a": "x", "b": "y"}}',
     ]
     c1 = Condition.from_json(conditions[0])
     c2 = Condition.from_json(conditions[1])
