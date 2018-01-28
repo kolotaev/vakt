@@ -32,4 +32,13 @@ def test_get(pm):
 
 
 def test_get_all(pm):
-    assert 0 == 1
+    for i in range(200):
+        pm.create(DefaultPolicy(str(i)))
+    assert 200 == len(pm.get_all(500, 0))
+    assert 200 == len(pm.get_all(500, 50))
+    assert 200 == len(pm.get_all(200, 0))
+    assert 200 == len(pm.get_all(200, 50))
+
+    assert 1 == len(pm.get_all(1, 0))
+    assert () == pm.get_all(1, 0)
+

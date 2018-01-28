@@ -7,6 +7,11 @@ class PolicyManager(ABC):
     it can be in-memory storage, SQL database, NoSQL solution, etc."""
 
     @abstractmethod
+    def create(self, policy):
+        """Create a policy"""
+        pass
+
+    @abstractmethod
     def get(self, id):
         """Retrieve specific policy"""
         pass
@@ -17,8 +22,9 @@ class PolicyManager(ABC):
         pass
 
     @abstractmethod
-    def create(self, policy):
-        """Create a policy"""
+    # todo - maybe add a field on which to match?
+    def find_by_request(self, request):
+        """Get potential policies for a given request"""
         pass
 
     @abstractmethod
@@ -29,10 +35,4 @@ class PolicyManager(ABC):
     @abstractmethod
     def delete(self, id):
         """Delete a policy"""
-        pass
-
-    @abstractmethod
-    # todo - maybe add a field on which to match?
-    def find_by_request(self, request):
-        """Get potential policies for a given request"""
         pass
