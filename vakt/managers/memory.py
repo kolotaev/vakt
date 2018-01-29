@@ -22,11 +22,11 @@ class MemoryManager(PolicyManager):
         return self.policies.get(id)
 
     def get_all(self, limit, offset):
-        result = list(self.policies.items())
+        result = [v for k, v in self.policies.items()]
         if limit + offset > len(result):
             limit = len(result)
             offset = 0
-        return result[offset:limit]
+        return result[offset:limit + offset]
 
     def find_by_request(self, request):
         with self.lock:

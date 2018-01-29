@@ -37,8 +37,14 @@ def test_get_all(pm):
     assert 200 == len(pm.get_all(500, 0))
     assert 200 == len(pm.get_all(500, 50))
     assert 200 == len(pm.get_all(200, 0))
+    assert 200 == len(pm.get_all(200, 1))
+    assert 199 == len(pm.get_all(199, 0))
     assert 200 == len(pm.get_all(200, 50))
 
     assert 1 == len(pm.get_all(1, 0))
-    assert () == pm.get_all(1, 0)
+    assert '0' == pm.get_all(1, 0)[0].id
+
+    assert 5 == len(pm.get_all(5, 4))
+    assert '4' == pm.get_all(5, 4)[0].id
+    assert '8' == pm.get_all(5, 4)[4].id
 
