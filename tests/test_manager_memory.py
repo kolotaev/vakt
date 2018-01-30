@@ -48,3 +48,22 @@ def test_get_all(pm):
     assert '4' == pm.get_all(5, 4)[0].id
     assert '8' == pm.get_all(5, 4)[4].id
 
+
+def test_update(pm):
+    policy = DefaultPolicy('1')
+    pm.create(policy)
+    assert '1' == pm.get('1').id
+    assert None is pm.get('1').description
+    policy.description = 'foo'
+    pm.update(policy)
+    assert '1' == pm.get('1').id
+    assert 'foo' == pm.get('1').description
+
+
+def test_delete(pm):
+    policy = DefaultPolicy('1')
+    pm.create(policy)
+    assert '1' == pm.get('1').id
+    pm.delete('1')
+    assert None is pm.get('1')
+    pm.delete('1000000')

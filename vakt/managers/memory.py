@@ -36,4 +36,5 @@ class MemoryManager(PolicyManager):
         self.policies[policy.id] = policy
 
     def delete(self, id):
-        del self.policies[id]
+        if id in self.policies:
+            del self.policies[id]
