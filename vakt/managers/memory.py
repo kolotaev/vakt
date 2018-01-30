@@ -30,7 +30,7 @@ class MemoryManager(PolicyManager):
 
     def find_by_request(self, request):
         with self.lock:
-            return [p for p in self.policies if request.subject in p.subjects]
+            return [p for i, p in self.policies.items() if request.subject in p.subjects]
 
     def update(self, policy):
         self.policies[policy.id] = policy

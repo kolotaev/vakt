@@ -2,6 +2,7 @@ import pytest
 
 from vakt.managers.memory import MemoryManager
 from vakt.policy import DefaultPolicy
+from vakt.guard import Request
 from vakt.exceptions import PolicyExists
 
 
@@ -47,6 +48,14 @@ def test_get_all(pm):
     assert 5 == len(pm.get_all(5, 4))
     assert '4' == pm.get_all(5, 4)[0].id
     assert '8' == pm.get_all(5, 4)[4].id
+
+
+def test_find_by_request(pm):
+    pm.create(DefaultPolicy('1', subjects=['max', 'bob']))
+    pm.create(DefaultPolicy('2', subjects=['sam', 'nina']))
+    req = Request(subject='sam', action='get', resource='books')
+    assert 1 == len(pm.find_by_request(req))
+    assert '2' == pm.find_by_request(req)[0].id
 
 
 def test_update(pm):
