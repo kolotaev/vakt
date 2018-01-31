@@ -31,7 +31,9 @@ class StringMatcher:
 
     def matches(self, policy, where, what):
         for phrase in where:
+            if policy.start_delimiter == where[0] and policy.end_delimiter == where[-1]:
+                where = where[1:-1]
             if what in phrase:
-                return True
+                    return True
             continue
         return False
