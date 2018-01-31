@@ -23,3 +23,15 @@ class RegexMatcher:
             if re.match(pattern, what):
                 return True
         return False
+
+
+# todo - move to policy class or as a trait?
+class StringMatcher:
+    """Matcher that uses string equality."""
+
+    def matches(self, policy, where, what):
+        for phrase in where:
+            if what in phrase:
+                return True
+            continue
+        return False
