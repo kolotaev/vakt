@@ -8,7 +8,8 @@ from .exceptions import InvalidPattern
 class RegexMatcher:
     """Matcher that uses regular expressions."""
 
-    def matches(self, policy, where, what):
+    def matches(self, policy, field, what):
+        where = getattr(policy, field, [])
         for i in where:
             if policy.start_delimiter not in i:  # check if 'where' item is written in a policy-defined-regex syntax.
                 if i == what:  # it's a single string match
@@ -29,11 +30,12 @@ class RegexMatcher:
 class StringMatcher:
     """Matcher that uses string equality."""
 
-    def matches(self, policy, where, what):
-        for phrase in where:
-            if policy.start_delimiter == phrase[0] and policy.end_delimiter == phrase[-1]:
-                phrase = phrase[1:-1]
-            if what in phrase:
+    def matches(self, policy, field, what):
+        where = getattr(policy, field, [])
+        for item in where:
+            if policy.start_delimiter == item[0] and policy.end_delimiter == item[-1]:
+                item = item[1:-1]
+            if what in item:
                     return True
             continue
         return False
