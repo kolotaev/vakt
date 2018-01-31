@@ -35,7 +35,7 @@ class StringMatcher:
         for item in where:
             if policy.start_delimiter == item[0] and policy.end_delimiter == item[-1]:
                 item = item[1:-1]
-            if what in item:
+            if what == item:
                     return True
             continue
         return False
