@@ -13,4 +13,4 @@ python:
 install:
   - pip install
 script:
-  - pythom -m pytest
+  - python -m pytest
