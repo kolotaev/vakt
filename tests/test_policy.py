@@ -54,3 +54,25 @@ def test_json_roundtrip_not_create_policy(data, exception, msg):
     with pytest.raises(exception) as excinfo:
         DefaultPolicy.from_json(data)
     assert msg in str(excinfo.value)
+
+
+@pytest.mark.parametrize('effect, result', [
+    ('foo', False),
+    ('', False),
+    (None, False),
+    (DENY_ACCESS, False),
+    (ALLOW_ACCESS, True),
+])
+def test_allow_access(effect, result):
+    p = DefaultPolicy('1', effect=effect)
+    assert result == p.allow_access()
+
+
+def test_start_delimiter():
+    p = DefaultPolicy('1')
+    assert '<' == p.start_delimiter
+
+
+def test_end_delimiter():
+    p = DefaultPolicy('1')
+    assert '>' == p.end_delimiter
