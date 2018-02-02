@@ -39,7 +39,7 @@ class Guard:
     def is_allowed(self, request):
         """Is given request intent allowed or not?"""
         policies = self.manager.find_by_request(request)
-        if not policies or len(policies) == 0:
+        if policies is None or len(policies) == 0:
             return False
         else:
             return self._check_policies_allow(request, policies)
