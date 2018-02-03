@@ -1,4 +1,5 @@
 import re
+from abc import ABC, abstractmethod
 
 from .compiler import compile_regex
 from .exceptions import InvalidPattern
@@ -27,7 +28,7 @@ class RegexMatcher:
 
 
 # todo - move to policy class or as a trait?
-class StringMatcher:
+class StringMatcher(ABC):
     """Matcher that uses string equality."""
 
     def matches(self, policy, field, what):
@@ -35,7 +36,33 @@ class StringMatcher:
         for item in where:
             if policy.start_delimiter == item[0] and policy.end_delimiter == item[-1]:
                 item = item[1:-1]
-            if what == item:
+            if self.compare(what, item):
                     return True
             continue
         return False
+
+    @abstractmethod
+    def compare(self, needle, haystack):
+        pass
+
+
+class StringExactMatcher(StringMatcher):
+    """
+    Matcher that uses exact string equality. Case-sensitive.
+    E.g. 'sun' in 'sunny' - False
+         'sun' in 'sun' - True
+    """
+
+    def compare(self, needle, haystack):
+        return needle == haystack
+
+
+class StringFuzzyMatcher(StringMatcher):
+    """
+    Matcher that uses fuzzy substring string equality. Case-sensitive.
+    E.g. 'sun' in 'sunny' - True
+         'sun' in 'sun' - True
+    """
+
+    def compare(self, needle, haystack):
+        return needle in haystack

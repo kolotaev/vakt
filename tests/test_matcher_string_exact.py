@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.matcher import StringMatcher
+from vakt.matcher import StringExactMatcher
 from vakt.policy import DefaultPolicy
 
 
@@ -16,5 +16,5 @@ from vakt.policy import DefaultPolicy
     (DefaultPolicy('1', resources=['books:1', 'books:2']), 'resources', 'books:1', True),
 ])
 def test_matches(policy, field, what, result):
-    m = StringMatcher()
+    m = StringExactMatcher()
     assert result == m.matches(policy, field, what)
