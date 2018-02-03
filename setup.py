@@ -19,9 +19,6 @@ if __name__ == "__main__":
         url='https://github.com/kolotaev/vakt',
         py_modules=['vakt'],
         install_requires=[],
-        tests_require=[
-            'pytest>=3.3.1'
-        ],
         packages=find_packages(exclude='tests'),
         classifiers=[
             'Programming Language :: Python',
