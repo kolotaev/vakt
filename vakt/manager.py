@@ -43,12 +43,15 @@ class Migration(ABC):
 
     @abstractmethod
     def get_manager(self):
+        """Gets a Manager to use for migration"""
         pass
 
     @abstractmethod
     def create(self, policy):
+        """Create a Policy inside DB"""
         pass
 
     @abstractmethod
     def migrate(self):
+        """Migrate a Policy schema"""
         pass
