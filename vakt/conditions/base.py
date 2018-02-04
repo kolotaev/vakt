@@ -30,8 +30,6 @@ class Condition(ABC, JsonDumper):
         klass = getattr(m, parts[-1])
 
         o = klass.__new__(klass)
-        if 'contents' not in data:
-            raise ConditionCreationError("No 'contents' key in JSON data found")
         given_args_len = len(data['contents'])
         expected_args_len = len(signature(klass.__init__).parameters)-1
         if given_args_len != expected_args_len:

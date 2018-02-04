@@ -2,6 +2,7 @@ import pytest
 
 from vakt.conditions.base import Condition
 from vakt.conditions.string import StringEqualCondition
+from vakt.exceptions import ConditionCreationError
 import vakt.conditions.net
 
 
@@ -54,6 +55,15 @@ def test_json_roundtrip(condition, satisfied):
     assert satisfied == c1.satisfied(None, None)
 
 
-@pytest.mark.xfail
-def test_from_json_fails():
-    assert 0 == 1
+@pytest.mark.parametrize('data, msg', [
+    ('{crap}', 'Invalid JSON data'),
+    ("{}", "No 'contents' key in JSON"),
+    ('{"type": "vakt.conditions.net.CIDRCondition"}', "No 'contents' key in JSON"),
+    ('{"contents": {"cidr": "192.168.2.0/24"}}', "No 'type' key in JSON"),
+    ('{"type": "vakt.conditions.net.CIDRCondition", "contents": {"cidr": "192.168.2.0/24", "foo":"bar"}}',
+     'Number of arguments does not match. Given 2. Expected 1'),
+])
+def test_from_json_fails(data, msg):
+    with pytest.raises(ConditionCreationError) as excinfo:
+        Condition.from_json(data)
+    assert msg in str(excinfo.value)
