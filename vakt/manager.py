@@ -36,3 +36,19 @@ class PolicyManager(ABC):
     def delete(self, id):
         """Delete a policy"""
         pass
+
+
+class Migration(ABC):
+    """Class for Manager data migration tasks"""
+
+    @abstractmethod
+    def get_manager(self):
+        pass
+
+    @abstractmethod
+    def create(self, policy):
+        pass
+
+    @abstractmethod
+    def migrate(self):
+        pass
