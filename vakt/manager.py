@@ -39,7 +39,8 @@ class PolicyManager(ABC):
 
 
 class Migration(ABC):
-    """Class for Manager data migration tasks"""
+    """Class for Manager data migration tasks.
+    Useful mainly for relational databases."""
 
     @abstractmethod
     def get_manager(self):

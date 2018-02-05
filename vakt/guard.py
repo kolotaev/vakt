@@ -48,24 +48,27 @@ class Guard:
         """Check if any of a given policy allows a specified request"""
         allow = False
         for p in policies:
+            # Special case. If one of the policies denies access - it is general 'access denied' answer
+            if not p.allow_access:
+                return False
             # First we check if action is OK. Since usually action is the most used check.
             if not self.matcher.matches(p, 'actions', request.action):
                 continue
             # Subject is a more quick check then resources, so we try it second.
             if not self.matcher.matches(p, 'subjects', request.subject):
                 continue
+            # Check for resources access
             if not self.matcher.matches(p, 'resources', request.resource):
                 continue
-            if not self._conditions_satisfied(p, request):
+            # Lastly check if the given request's context satisfies conditions of a policy
+            if not self._are_conditions_satisfied(p, request):
                 continue
-            if not p.allow_access:
-                return False
             allow = True
         return allow
 
     @staticmethod
-    def _conditions_satisfied(policy, request):
-        """Check if conditions in the policy are satisfied for a given request"""
+    def _are_conditions_satisfied(policy, request):
+        """Check if conditions in the policy are satisfied for a given request's context"""
         for key, condition in enumerate(policy.conditions):
             try:
                 ctx_condition = request.context[key]
