@@ -25,14 +25,14 @@ def test_to_json():
         ABCondition(1, 2),
         ABCondition('x', 'y'),
     ]
-    assert '{"type": "test_condition_base.ABCondition", "contents": {"a": 1, "b": 2}}' == conditions[0].to_json()
-    assert '{"type": "test_condition_base.ABCondition", "contents": {"a": "x", "b": "y"}}' == conditions[1].to_json()
+    assert '{"contents": {"a": 1, "b": 2}, "type": "test_condition_base.ABCondition"}' == conditions[0].to_json()
+    assert '{"contents": {"a": "x", "b": "y"}, "type": "test_condition_base.ABCondition"}' == conditions[1].to_json()
 
 
 def test_from_json():
     conditions = [
-        '{"type": "test_condition_base.ABCondition", "contents": {"a": 1, "b": 1}}',
-        '{"type": "test_condition_base.ABCondition", "contents": {"a": "x", "b": "y"}}',
+        '{"contents": {"a": 1, "b": 1}, "type": "test_condition_base.ABCondition"}',
+        '{"contents": {"a": "x", "b": "y"}, "type": "test_condition_base.ABCondition"}',
     ]
     c1 = Condition.from_json(conditions[0])
     c2 = Condition.from_json(conditions[1])
@@ -60,7 +60,7 @@ def test_json_roundtrip(condition, satisfied):
     ("{}", "No 'contents' key in JSON"),
     ('{"type": "vakt.conditions.net.CIDRCondition"}', "No 'contents' key in JSON"),
     ('{"contents": {"cidr": "192.168.2.0/24"}}', "No 'type' key in JSON"),
-    ('{"type": "vakt.conditions.net.CIDRCondition", "contents": {"cidr": "192.168.2.0/24", "foo":"bar"}}',
+    ('{"contents": {"cidr": "192.168.2.0/24", "foo":"bar"}, "type": "vakt.conditions.net.CIDRCondition"}',
      'Number of arguments does not match. Given 2. Expected 1'),
 ])
 def test_from_json_fails(data, msg):

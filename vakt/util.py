@@ -21,6 +21,7 @@ class JsonDumper:
         Get JSON representation of an object
         """
         return json.dumps(self._data(),
+                          sort_keys=True,
                           default=lambda o: o.to_json() if isinstance(o, JsonDumper) else o.__dict__)
 
     def _data(self):

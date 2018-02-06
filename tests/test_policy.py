@@ -22,11 +22,11 @@ def test_properties():
 
 @pytest.mark.parametrize('data, expect', [
     ('{"id":123}',
-     '{"id": 123, "description": null, ' +
-     '"subjects": [], "effect": "deny", "resources": [], "actions": [], "conditions": []}'),
+     '{"actions": [], "conditions": [], "description": null, "effect": "deny", ' +
+     '"id": 123, "resources": [], "subjects": []}'),
     ('{"id":123, "effect":"allow", "actions": ["create", "update"]}',
-     '{"id": 123, "description": null, ' +
-     '"subjects": [], "effect": "allow", "resources": [], "actions": ["create", "update"], "conditions": []}'),
+     '{"actions": ["create", "update"], "conditions": [], "description": null, "effect": "allow", "id": 123, ' +
+     '"resources": [], "subjects": []}'),
 ])
 def test_json_roundtrip(data, expect):
     p = DefaultPolicy.from_json(data)
