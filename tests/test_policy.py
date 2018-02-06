@@ -1,5 +1,4 @@
 import pytest
-import json
 
 from vakt.policy import DefaultPolicy
 from vakt.effects import *
@@ -47,8 +46,8 @@ def test_json_roundtrip_of_a_policy_with_conditions():
 
 @pytest.mark.parametrize('data, exception, msg', [
     ('{}', PolicyCreationError, "'id'"),
-    ('{"id":}', json.JSONDecodeError, 'value'),
-    ('', json.JSONDecodeError, 'value'),
+    ('{"id":}', ValueError, 'value'),
+    ('', ValueError, 'value'),
 ])
 def test_json_roundtrip_not_create_policy(data, exception, msg):
     with pytest.raises(exception) as excinfo:

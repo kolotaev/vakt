@@ -23,7 +23,7 @@ class DefaultPolicy(JsonDumper):
     def from_json(cls, data):
         try:
             props = json.loads(data)
-        except json.JSONDecodeError as e:
+        except ValueError as e:
             # todo - logging
             # print("Error creating policy from json.", e)
             raise e

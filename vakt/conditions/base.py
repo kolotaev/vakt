@@ -19,7 +19,7 @@ class Condition(ABC, JsonDumper):
     def from_json(cls, json_data):
         try:
             data = json.loads(json_data)
-        except json.JSONDecodeError as e:
+        except ValueError as e:
             raise ConditionCreationError('Invalid JSON data. JSON error: %s' % e)
         if 'contents' not in data:
             raise ConditionCreationError("No 'contents' key in JSON data found")
