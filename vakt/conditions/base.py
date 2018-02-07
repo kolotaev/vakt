@@ -1,13 +1,13 @@
 import json
 import importlib
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from inspect import signature
 
 from ..util import JsonDumper
 from ..exceptions import ConditionCreationError
 
 
-class Condition(ABC, JsonDumper):
+class Condition(JsonDumper, metaclass=ABCMeta):
     """Basic Condition"""
 
     @abstractmethod

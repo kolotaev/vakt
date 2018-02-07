@@ -7,7 +7,8 @@ def test_regex_match_construct_fails():
     with pytest.raises(TypeError) as excinfo:
         RegexMatchCondition('[lll')
     assert 'pattern should be a valid regexp string' in str(excinfo.value)
-    assert 'unterminated character set at position 0' in str(excinfo.value)
+    assert 'unterminated character set at position 0' in str(excinfo.value) \
+           or 'unexpected end of regular expression' in str(excinfo.value)
 
 
 @pytest.mark.parametrize('arg, against, result', [

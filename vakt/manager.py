@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 
-class PolicyManager(ABC):
+class PolicyManager(metaclass=ABCMeta):
     """Interface for managers that persist policies.
     Every manager should implement all the specified methods, but how, it's up to it to decide:
     it can be in-memory storage, SQL database, NoSQL solution, etc."""
@@ -38,7 +38,7 @@ class PolicyManager(ABC):
         pass
 
 
-class Migration(ABC):
+class Migration(metaclass=ABCMeta):
     """Class for Manager data migration tasks.
     Useful mainly for relational databases."""
 

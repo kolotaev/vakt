@@ -1,5 +1,5 @@
 import re
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 from .compiler import compile_regex
 from .exceptions import InvalidPattern
@@ -28,7 +28,7 @@ class RegexMatcher:
 
 
 # todo - move to policy class or as a trait?
-class StringMatcher(ABC):
+class StringMatcher(metaclass=ABCMeta):
     """Matcher that uses string equality."""
 
     def matches(self, policy, field, what):
