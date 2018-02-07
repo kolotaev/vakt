@@ -45,14 +45,14 @@ def test_json_roundtrip_of_a_policy_with_conditions():
 
 
 @pytest.mark.parametrize('data, exception, msg', [
-    ('{}', PolicyCreationError, "'id'"),
-    ('{"id":}', ValueError, 'value'),
-    ('', ValueError, 'value'),
+    ('{}', PolicyCreationError, ("'id'", '')),
+    ('{"id":}', ValueError, ('value', 'JSON')),
+    ('', ValueError, ('value', 'JSON')),
 ])
 def test_json_roundtrip_not_create_policy(data, exception, msg):
     with pytest.raises(exception) as excinfo:
         DefaultPolicy.from_json(data)
-    assert msg in str(excinfo.value)
+    assert msg[0] in str(excinfo.value) or msg[1] in str(excinfo.value)
 
 
 @pytest.mark.parametrize('effect, result', [
