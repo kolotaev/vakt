@@ -5,14 +5,14 @@ from vakt.exceptions import InvalidPattern
 
 
 @pytest.mark.parametrize('phrase, start, end, output', [
-    ('foo:bar:<.*>', '<', '>', '^foo\\:bar\\:(.*)$'),
-    ('foo:bar:[.*]', '[', ']', '^foo\\:bar\\:(.*)$'),
-    ('foo:bar:[фу-бар.*]', '[', ']', '^foo\\:bar\\:(фу-бар.*)$'),
+    ('foo:bar:<.*>', '<', '>', r'^foo\:bar\:(.*)$'),
+    ('foo:bar:[.*]', '[', ']', r'^foo\:bar\:(.*)$'),
+    ('foo:bar:[фу-бар.*]', '[', ']', r'^foo\:bar\:(фу-бар.*)$'),
     ('a', '{', '}', '^a$'),
     ('', '{', '}', '^$'),
     ('[[abc]+]', '[', ']', '^([abc]+)$'),
-    ('foo:[[abc]+]:bar', '[', ']', '^foo\\:([abc]+)\\:bar$'),
-    ('a:b:{foo-bar.*i{2}}', '{', '}', '^a\\:b\\:(foo-bar.*i{2})$'),
+    ('foo:[[abc]+]:bar', '[', ']', r'^foo\:([abc]+)\:bar$'),
+    ('a:b:{foo-bar.*i{2}}', '{', '}', r'^a\:b\:(foo-bar.*i{2})$'),
 ])
 def test_compile_regex_compiles_correctly(phrase, start, end, output):
     result = compile_regex(phrase, start, end)
