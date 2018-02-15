@@ -3,10 +3,11 @@ from functools import lru_cache
 
 from .exceptions import InvalidPattern
 
+
 __all__ = ['compile_regex']
 
 
-@lru_cache(maxsize=512)
+@lru_cache(maxsize=1024)
 def compile_regex(phrase, start_delimiter, end_delimiter):
     regex_vars = []
     pattern = '^'
