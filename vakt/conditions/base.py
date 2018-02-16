@@ -1,10 +1,14 @@
 import json
+import logging
 import importlib
 from abc import ABCMeta, abstractmethod
 from inspect import signature
 
 from ..util import JsonDumper
 from ..exceptions import ConditionCreationError
+
+
+log = logging.getLogger(__name__)
 
 
 class Condition(JsonDumper, metaclass=ABCMeta):
@@ -20,8 +24,10 @@ class Condition(JsonDumper, metaclass=ABCMeta):
         try:
             data = json.loads(json_data)
         except ValueError as e:
+            log.exception('Error creating Condition', exc_info=True)
             raise ConditionCreationError('Invalid JSON data. JSON error: %s' % e)
         if 'contents' not in data:
+            log.exception('Error creating Condition. No "contents" key in JSON data found')
             raise ConditionCreationError("No 'contents' key in JSON data found")
         if 'type' not in data:
             raise ConditionCreationError("No 'type' key in JSON data found")
@@ -33,6 +39,7 @@ class Condition(JsonDumper, metaclass=ABCMeta):
         given_args_len = len(data['contents'])
         expected_args_len = len(signature(klass.__init__).parameters)-1
         if given_args_len != expected_args_len:
+            log.exception('Error creating Condition. Mismatched number of arguments')
             raise ConditionCreationError(
                 'Number of arguments does not match. Given %d. Expected %d' % (given_args_len, expected_args_len))
         for k, v in data['contents'].items():

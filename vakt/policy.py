@@ -1,9 +1,13 @@
 import json
+import logging
 
 from .effects import *
 from .exceptions import PolicyCreationError
 from .util import JsonDumper
 from .conditions.base import Condition
+
+
+log = logging.getLogger(__name__)
 
 
 class DefaultPolicy(JsonDumper):
@@ -24,10 +28,10 @@ class DefaultPolicy(JsonDumper):
         try:
             props = json.loads(data)
         except ValueError as e:
-            # todo - logging
-            # print("Error creating policy from json.", e)
+            log.exception("Error creating policy from json.", exc_info=True)
             raise e
         if 'id' not in props:
+            log.exception("Error creating policy from json. 'id' attribute is required")
             raise PolicyCreationError("Error creating policy from json. 'id' attribute is required")
 
         conditions = []

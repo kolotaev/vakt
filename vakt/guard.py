@@ -1,6 +1,10 @@
 import json
+import logging
 
 from .util import JsonDumper
+
+
+log = logging.getLogger(__name__)
 
 
 class Request(JsonDumper):
@@ -18,8 +22,7 @@ class Request(JsonDumper):
         try:
             props = json.loads(data)
         except ValueError as e:
-            # todo - logging
-            # print("Error creating policy from json.", e)
+            log.exception("Error creating policy from json.", exc_info=True)
             raise e
 
         return cls(props.get('resource', ''),
@@ -28,6 +31,7 @@ class Request(JsonDumper):
                    props.get('context'))
 
 
+# todo - add info-level logging
 class Guard:
     """Executor of policy checks.
        Given a manager and a matcher it can decide via `is_allowed` method if a given request allowed or not."""
