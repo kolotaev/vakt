@@ -1,6 +1,10 @@
 import re
+import logging
 
 from ..conditions.base import Condition
+
+
+log = logging.getLogger(__name__)
 
 
 class StringEqualCondition(Condition):
@@ -8,6 +12,7 @@ class StringEqualCondition(Condition):
 
     def __init__(self, equals):
         if not isinstance(equals, str):
+            log.error('StringEqualCondition creation. Equals property should be a string')
             raise TypeError('equals property should be a string')
         self.equals = equals
 
@@ -40,6 +45,7 @@ class RegexMatchCondition(Condition):
         try:
             self.regex = re.compile(pattern)
         except Exception as e:
+            log.error('RegexMatchCondition creation. Failed to compile regexp %s', pattern)
             raise TypeError('pattern should be a valid regexp string. Error %s' % e)
 
     def satisfied(self, what, request=None):

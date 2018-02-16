@@ -30,6 +30,7 @@ class Condition(JsonDumper, metaclass=ABCMeta):
             log.exception('Error creating Condition. No "contents" key in JSON data found')
             raise ConditionCreationError("No 'contents' key in JSON data found")
         if 'type' not in data:
+            log.exception('Error creating Condition. No "type" key in JSON data found')
             raise ConditionCreationError("No 'type' key in JSON data found")
         parts = data['type'].split('.')
         m = importlib.import_module(".".join(parts[:-1]))

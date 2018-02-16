@@ -1,7 +1,11 @@
 import threading
+import logging
 
 from ..manager import PolicyManager
 from ..exceptions import PolicyExists
+
+
+log = logging.getLogger(__name__)
 
 
 class MemoryManager(PolicyManager):
@@ -15,6 +19,7 @@ class MemoryManager(PolicyManager):
         id = policy.id
         with self.lock:
             if id in self.policies:
+                log.error('error trying to create already existing policy with ID=%s', id)
                 raise PolicyExists
             self.policies[id] = policy
 

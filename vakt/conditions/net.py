@@ -1,6 +1,10 @@
 import ipaddress
+import logging
 
 from ..conditions.base import Condition
+
+
+log = logging.getLogger(__name__)
 
 
 class CIDRCondition(Condition):
@@ -15,7 +19,7 @@ class CIDRCondition(Condition):
         try:
             ip = ipaddress.ip_address(what)
             net = ipaddress.ip_network(self.cidr)
-        except ValueError as e:
-            # todo - add logging
+        except ValueError:
+            log.exception('Error CIDRCondition satisfied', exc_info=True)
             return False
         return ip in net
