@@ -9,7 +9,8 @@ python:
   - "pypy3"  # Pypy3 5.8.0-beta0
 install:
   - pip install -r requirements.txt
+  - pip install codecov
 script:
-  - python -m pytest
+  - coverage python -m pytest
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - codecov
