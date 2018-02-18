@@ -12,6 +12,8 @@ from vakt.conditions.string import StringPairsEqualCondition
     ([['й', 'й']], True),
     ([[1, '1']], False),
     ([['1', 1]], False),
+    ([[1, 1]], False),
+    ([[1.0, 1.0]], False),
     ([['a', 'b']], False),
     ([['a', 'b', 'c']], False),
     ([['a', 'a'], ['b', 'b']], True),
