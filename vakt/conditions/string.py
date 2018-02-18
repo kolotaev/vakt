@@ -43,6 +43,7 @@ class RegexMatchCondition(Condition):
 
     def __init__(self, pattern):
         try:
+            # todo - de we need escape?
             self.regex = re.compile(pattern)
         except Exception as e:
             log.error('RegexMatchCondition creation. Failed to compile regexp %s', pattern)
