@@ -10,6 +10,8 @@ from vakt.conditions.string import StringPairsEqualCondition
     ([['a']], False),
     ([['a', 'a']], True),
     ([['й', 'й']], True),
+    ([[1, '1']], False),
+    ([['1', 1]], False),
     ([['a', 'b']], False),
     ([['a', 'b', 'c']], False),
     ([['a', 'a'], ['b', 'b']], True),

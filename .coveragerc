@@ -2,3 +2,5 @@
 exclude_lines =
     pragma: no cover
     @abstract
+omit =
+    setup.py
