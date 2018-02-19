@@ -14,14 +14,17 @@ class DefaultPolicy(JsonDumper):
     """Represents a policy that regulates access and allowed actions of subjects
     over some resources under a set of conditions."""
 
-    def __init__(self, id, description=None, subjects=(), effect=DENY_ACCESS, resources=(), actions=(), conditions=()):
+    def __init__(self, id, description=None, subjects=(), effect=DENY_ACCESS, resources=(), actions=(), conditions=None):
         self.id = id
         self.description = description
         self.subjects = subjects
         self.effect = effect
         self.resources = resources
         self.actions = actions
-        # todo - maybe a map where a key is the description?
+        conditions = conditions or {}
+        if not isinstance(conditions, dict):
+            log.exception('Error creating Policy. Conditions must be a dictionary')
+            raise PolicyCreationError("Error creating Policy. Conditions must be a dictionary")
         self.conditions = conditions
 
     @classmethod
@@ -35,10 +38,10 @@ class DefaultPolicy(JsonDumper):
             log.exception("Error creating policy from json. 'id' attribute is required")
             raise PolicyCreationError("Error creating policy from json. 'id' attribute is required")
 
-        conditions = []
+        conditions = {}
         if 'conditions' in props:
-            for c in props['conditions']:
-                conditions.append(Condition.from_json(c))
+            for k, c in props['conditions'].items():
+                conditions[k] = Condition.from_json(c)
 
         return cls(props['id'],
                    props.get('description'),

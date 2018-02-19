@@ -73,7 +73,7 @@ class Guard:
     @staticmethod
     def are_conditions_satisfied(policy, request):
         """Check if conditions in the policy are satisfied for a given request's context"""
-        for key, condition in enumerate(policy.conditions):
+        for key, condition in policy.conditions.items():
             try:
                 ctx_condition = request.context[key]
             except KeyError:

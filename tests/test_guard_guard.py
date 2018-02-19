@@ -20,10 +20,10 @@ policies = [
         subjects=('Max', 'Peter', '<Zac|Ken>'),
         resources=('myrn:some.domain.com:resource:123', 'myrn:some.domain.com:resource:345', 'myrn:something:foo:<.+>'),
         actions=('<create|delete>', 'get'),
-        conditions=(
-            CIDRCondition('127.0.0.1/32'),
-            SubjectEqualCondition(),
-        ),
+        conditions={
+            'ip': CIDRCondition('127.0.0.1/32'),
+            'owner': SubjectEqualCondition(),
+        },
     ),
     DefaultPolicy(
         id='2',
