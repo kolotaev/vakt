@@ -65,13 +65,13 @@ class Guard:
             if not self.matcher.matches(p, 'resources', request.resource):
                 continue
             # Lastly check if the given request's context satisfies conditions of a policy
-            if not self._are_conditions_satisfied(p, request):
+            if not self.are_conditions_satisfied(p, request):
                 continue
             allow = True
         return allow
 
     @staticmethod
-    def _are_conditions_satisfied(policy, request):
+    def are_conditions_satisfied(policy, request):
         """Check if conditions in the policy are satisfied for a given request's context"""
         for key, condition in enumerate(policy.conditions):
             try:
