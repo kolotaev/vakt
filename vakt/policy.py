@@ -21,6 +21,7 @@ class DefaultPolicy(JsonDumper):
         self.effect = effect
         self.resources = resources
         self.actions = actions
+        # todo - maybe a map where a key is the description?
         self.conditions = conditions
 
     @classmethod
