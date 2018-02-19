@@ -29,7 +29,7 @@ policies = [
         id='2',
         description='Allows Max to update any resource',
         effect=ALLOW_ACCESS,
-        subjects=['max'],
+        subjects=['Max'],
         actions=['update'],
         resources=['<.*>'],
     ),
@@ -37,9 +37,12 @@ policies = [
         id='3',
         description='Max is not allowed to print any resource',
         effect=DENY_ACCESS,
-        subjects=['max'],
+        subjects=['Max'],
         actions=['print'],
         resources=['<.*>'],
+    ),
+    DefaultPolicy(
+        id='4'
     ),
 ]
 for p in policies:
@@ -48,14 +51,25 @@ for p in policies:
 
 @pytest.mark.parametrize('req, result', [
     (
-            Request(),
-            False,
+        # Empty request carries no information, so nothing is allowed, even empty Policy #4
+        Request(),
+        False,
     ),
     (
+        # Max is allowed to update anything
         Request(
-            resource='any',
-            action='get',
-            subject='max'
+            subject='Max',
+            resource='myrn:some.domain.com:resource:123',
+            action='update'
+        ),
+        True,
+    ),
+    (
+        # Max, but not max is allowed to update anything
+        Request(
+            subject='max',
+            resource='myrn:some.domain.com:resource:123',
+            action='update'
         ),
         False,
     ),
