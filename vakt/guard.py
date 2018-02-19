@@ -11,7 +11,7 @@ class Request(JsonDumper):
     """Request object that holds all the information about the requested resource intent.
     Is responsible to decisions is the requested intent allowed or not."""
 
-    def __init__(self, resource, action, subject, context=None):
+    def __init__(self, resource=None, action=None, subject=None, context=None):
         self.resource = resource
         self.action = action
         self.subject = subject

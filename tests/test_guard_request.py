@@ -16,3 +16,10 @@ def test_json_roundtrip():
 def test_json_decode_fails_for_incorrect_data():
     with pytest.raises(ValueError):
         Request.from_json('{')
+
+
+def test_can_create_empty_request():
+    r = Request()
+    assert isinstance(r, Request)
+    r2 = Request.from_json('{}')
+    assert isinstance(r2, Request)

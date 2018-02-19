@@ -48,6 +48,10 @@ for p in policies:
 
 @pytest.mark.parametrize('req, result', [
     (
+            Request(),
+            False,
+    ),
+    (
         Request(
             resource='any',
             action='get',
