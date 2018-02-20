@@ -49,14 +49,14 @@ for p in policies:
     pm.create(p)
 
 
-@pytest.mark.parametrize('req, result', [
+@pytest.mark.parametrize('desc, req, should_be_allowed', [
     (
-        # Empty request carries no information, so nothing is allowed, even empty Policy #4
+        'Empty request carries no information, so nothing is allowed, even empty Policy #4',
         Request(),
         False,
     ),
     (
-        # Max is allowed to update anything
+        'Max is allowed to update anything',
         Request(
             subject='Max',
             resource='myrn:some.domain.com:resource:123',
@@ -65,7 +65,7 @@ for p in policies:
         True,
     ),
     (
-        # Max, but not max is allowed to update anything
+        'Max, but not max is allowed to update anything',
         Request(
             subject='max',
             resource='myrn:some.domain.com:resource:123',
@@ -73,7 +73,24 @@ for p in policies:
         ),
         False,
     ),
+    (
+        'Max is not allowed to print anything',
+        Request(
+            subject='Max',
+            resource='myrn:some.domain.com:resource:123',
+            action='print',
+        ),
+        False,
+    ),
+    (
+        'Max is not allowed to print anything, even an empty resource',
+        Request(
+            subject='Max',
+            action='print'
+        ),
+        False,
+    ),
 ])
-def test_is_allowed(req, result):
+def test_is_allowed(desc, req, should_be_allowed):
     g = Guard(pm, RegexMatcher())
-    assert result == g.is_allowed(req)
+    assert should_be_allowed == g.is_allowed(req)

@@ -1,13 +1,13 @@
 import json
 import logging
 
-from .util import JsonDumper
+from .util import JsonDumper, PrettyPrint
 
 
 log = logging.getLogger(__name__)
 
 
-class Request(JsonDumper):
+class Request(JsonDumper, PrettyPrint):
     """Request object that holds all the information about the requested resource intent.
     Is responsible to decisions is the requested intent allowed or not."""
 
@@ -42,19 +42,22 @@ class Guard:
 
     def is_allowed(self, request):
         """Is given request intent allowed or not?"""
-        policies = self.manager.find_by_request(request)
-        if policies is None or len(policies) == 0:
+        try:
+            policies = self.manager.find_by_request(request)
+            if not policies:
+                return False
+            else:
+                # Manager is not obliged to do the exact policies match. It's up to the manager
+                # to decide what policies to return. So we need a more correct programmatically done check.
+                return self.check_policies_allow(request, policies)
+        except Exception:
+            log.exception('Unexpected exception occurred while checking Request %s', request, exc_info=True)
             return False
-        else:
-            return self._check_policies_allow(request, policies)
 
-    def _check_policies_allow(self, request, policies):
+    def check_policies_allow(self, request, policies):
         """Check if any of a given policy allows a specified request"""
         allow = False
         for p in policies:
-            # Special case. If one of the policies denies access - it is general 'access denied' answer
-            if not p.allow_access:
-                return False
             # First we check if action is OK. Since usually action is the most used check.
             if not self.matcher.matches(p, 'actions', request.action):
                 continue
@@ -67,6 +70,10 @@ class Guard:
             # Lastly check if the given request's context satisfies conditions of a policy
             if not self.are_conditions_satisfied(p, request):
                 continue
+            # If policy passed all matches - it's the right policy and all we need is to check its allow-effect.
+            # If we have 2 or more matched policies and one of them has deny access - it's deny for all of them.
+            if not p.allow_access():
+                return False
             allow = True
         return allow
 
