@@ -35,6 +35,7 @@ class MemoryManager(PolicyManager):
 
     def find_by_request(self, request):
         with self.lock:
+            # todo - no need in items()
             return [p for i, p in self.policies.items() if request.subject in p.subjects]
 
     def update(self, policy):

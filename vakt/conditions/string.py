@@ -43,11 +43,12 @@ class RegexMatchCondition(Condition):
 
     def __init__(self, pattern):
         try:
-            # todo - de we need escape?
+            # todo - do we need escape?
             self.regex = re.compile(pattern)
         except Exception as e:
             log.error('RegexMatchCondition creation. Failed to compile regexp %s', pattern)
             raise TypeError('pattern should be a valid regexp string. Error %s' % e)
 
     def satisfied(self, what, request=None):
+        # todo - try match?
         return bool(self.regex.match(str(what)))

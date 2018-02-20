@@ -3,14 +3,14 @@ import logging
 
 from .effects import *
 from .exceptions import PolicyCreationError
-from .util import JsonDumper
+from .util import JsonDumper, PrettyPrint
 from .conditions.base import Condition
 
 
 log = logging.getLogger(__name__)
 
 
-class DefaultPolicy(JsonDumper):
+class DefaultPolicy(JsonDumper, PrettyPrint):
     """Represents a policy that regulates access and allowed actions of subjects
     over some resources under a set of conditions."""
 

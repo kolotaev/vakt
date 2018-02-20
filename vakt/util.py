@@ -22,10 +22,19 @@ class JsonDumper:
         """
         return json.dumps(self._data(),
                           sort_keys=True,
-                          default=lambda o: o.to_json() if isinstance(o, JsonDumper) else o.__dict__)
+                          default=lambda o: o.to_json() if isinstance(o, JsonDumper) else vars(o))
 
     def _data(self):
         """
         Get the object data. Is useful for overriding in custom classes
         """
-        return self.__dict__
+        return vars(self)
+
+
+class PrettyPrint:
+    """
+    Allows to log objects with all the fields
+    """
+
+    def __str__(self):
+        return "%s: %s" % (self.__class__, vars(self))
