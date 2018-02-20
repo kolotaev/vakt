@@ -67,3 +67,8 @@ def test_from_json_fails(data, msg):
     with pytest.raises(ConditionCreationError) as excinfo:
         Condition.from_json(data)
     assert msg in str(excinfo.value)
+
+
+def test_pretty_print():
+    c = ABCondition(1, 2)
+    assert "<class 'test_condition_base.ABCondition'>: {'a': 1, 'b': 2}" == str(c)

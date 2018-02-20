@@ -4,14 +4,14 @@ import importlib
 from abc import ABCMeta, abstractmethod
 from inspect import signature
 
-from ..util import JsonDumper
+from ..util import JsonDumper, PrettyPrint
 from ..exceptions import ConditionCreationError
 
 
 log = logging.getLogger(__name__)
 
 
-class Condition(JsonDumper, metaclass=ABCMeta):
+class Condition(JsonDumper, PrettyPrint, metaclass=ABCMeta):
     """Basic Condition"""
 
     @abstractmethod

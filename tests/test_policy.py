@@ -82,3 +82,10 @@ def test_start_delimiter():
 def test_end_delimiter():
     p = DefaultPolicy('1')
     assert '>' == p.end_delimiter
+
+
+def test_pretty_print():
+    p = DefaultPolicy('1', description='readme', subjects=['user'])
+    assert "<class 'vakt.policy.DefaultPolicy'>: {'id': '1', 'description': " + \
+           "'readme', 'subjects': ['user'], 'effect': 'deny', 'resources': (), " + \
+           "'actions': (), 'conditions': {}}" == str(p)

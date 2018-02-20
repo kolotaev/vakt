@@ -23,3 +23,9 @@ def test_can_create_empty_request():
     assert isinstance(r, Request)
     r2 = Request.from_json('{}')
     assert isinstance(r2, Request)
+
+
+def test_pretty_print():
+    r = Request(resource='books:abc', action='view', context={'ip': '127.0.0.1'})
+    assert "<class 'vakt.guard.Request'>: {'resource': 'books:abc', 'action': 'view', " + \
+           "'subject': None, 'context': {'ip': '127.0.0.1'}}" == str(r)
