@@ -71,4 +71,6 @@ def test_from_json_fails(data, msg):
 
 def test_pretty_print():
     c = ABCondition(1, 2)
-    assert "<class 'test_condition_base.ABCondition'>: {'a': 1, 'b': 2}" == str(c)
+    assert "<class 'test_condition_base.ABCondition'>" in str(c)
+    assert "'a': 1" in str(c)
+    assert "'b': 2" in str(c)
