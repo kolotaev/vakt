@@ -27,5 +27,7 @@ def test_can_create_empty_request():
 
 def test_pretty_print():
     r = Request(resource='books:abc', action='view', context={'ip': '127.0.0.1'})
-    assert "<class 'vakt.guard.Request'>: {'resource': 'books:abc', 'action': 'view', " + \
-           "'subject': None, 'context': {'ip': '127.0.0.1'}}" == str(r)
+    assert "<class 'vakt.guard.Request'>" in str(r)
+    assert "'resource': 'books:abc'" in str(r)
+    assert "'action': 'view'" in str(r)
+    assert "'context': {'ip': '127.0.0.1'}" in str(r)
