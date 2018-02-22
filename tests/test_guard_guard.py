@@ -14,8 +14,10 @@ pm = MemoryManager()
 policies = [
     DefaultPolicy(
         id='1',
-        description="""Max, Peter, Zac, Ken are allowed to create, delete, get the resources 
-        only if the client IP matches and the request states that any of them is the resource owner""",
+        description="""
+        Max, Peter, Zac, Ken are allowed to create, delete, get the resources 
+        only if the client IP matches and the request states that any of them is the resource owner
+        """,
         effect=ALLOW_ACCESS,
         subjects=('Max', 'Peter', '<Zac|Ken>'),
         resources=('myrn:some.domain.com:resource:123', 'myrn:some.domain.com:resource:345', 'myrn:something:foo:<.+>'),
@@ -43,6 +45,14 @@ policies = [
     ),
     DefaultPolicy(
         id='4'
+    ),
+    DefaultPolicy(
+        id='5',
+        description='Allows Peter to update any resources that have only digits',
+        effect=ALLOW_ACCESS,
+        subjects=['Peter'],
+        actions=['update'],
+        resources=['<[\d]+>'],
     ),
 ]
 for p in policies:
@@ -169,6 +179,15 @@ for p in policies:
                 'owner': 'Peter',
                 'ip': '0.0.0.0'
             }
+        ),
+        False,
+    ),
+    (
+        'Policy #5 does not match - action is update, but subjects does not match',
+        Request(
+            subject='Sarah',
+            action='update',
+            resource='88',
         ),
         False,
     ),
