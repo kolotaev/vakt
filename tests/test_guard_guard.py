@@ -65,7 +65,16 @@ for p in policies:
         True,
     ),
     (
-        'Max, but not max is allowed to update anything',
+        'Max is allowed to update anything, even empty one',
+        Request(
+            subject='Max',
+            resource='',
+            action='update'
+        ),
+        True,
+    ),
+    (
+        'Max, but not max is allowed to update anything (case-sensitive comparison)',
         Request(
             subject='max',
             resource='myrn:some.domain.com:resource:123',
@@ -83,10 +92,57 @@ for p in policies:
         False,
     ),
     (
-        'Max is not allowed to print anything, even an empty resource',
+        'Max is not allowed to print anything, even if no resource is given',
         Request(
             subject='Max',
             action='print'
+        ),
+        False,
+    ),
+    (
+        'Max is not allowed to print anything, even an empty resource',
+        Request(
+            subject='Max',
+            action='print',
+            resource=''
+        ),
+        False,
+    ),
+    (
+        'Policy #1 matches and has allow-effect',
+        Request(
+            subject='Peter',
+            action='delete',
+            resource='myrn:some.domain.com:resource:123',
+            context={
+                'owner': 'Peter',
+                'ip': '127.0.0.1'
+            }
+        ),
+        True,
+    ),
+    (
+        'Policy #1 matches and has allow-effect. But one of the contexts was not found (misspelled)',
+        Request(
+            subject='Peter',
+            action='delete',
+            resource='myrn:some.domain.com:resource:123',
+            context={
+                'owner': 'Peter',
+                'IP': '127.0.0.1'
+            }
+        ),
+        False,
+    ),
+    (
+        'Policy #1 matches and has allow-effect. But one of the contexts is missing',
+        Request(
+            subject='Peter',
+            action='delete',
+            resource='myrn:some.domain.com:resource:123',
+            context={
+                'ip': '127.0.0.1'
+            }
         ),
         False,
     ),
