@@ -122,7 +122,7 @@ for p in policies:
         True,
     ),
     (
-        'Policy #1 matches and has allow-effect. But one of the contexts was not found (misspelled)',
+        'Policy #1 does not match - one of the contexts was not found (misspelled)',
         Request(
             subject='Peter',
             action='delete',
@@ -135,13 +135,39 @@ for p in policies:
         False,
     ),
     (
-        'Policy #1 matches and has allow-effect. But one of the contexts is missing',
+        'Policy #1 does not match - one of the contexts is missing',
         Request(
             subject='Peter',
             action='delete',
             resource='myrn:some.domain.com:resource:123',
             context={
                 'ip': '127.0.0.1'
+            }
+        ),
+        False,
+    ),
+    (
+        'Policy #1 does not match - context says that owner is Zac, not Peter',
+        Request(
+            subject='Peter',
+            action='delete',
+            resource='myrn:some.domain.com:resource:123',
+            context={
+                'owner': 'Zac',
+                'ip': '127.0.0.1'
+            }
+        ),
+        False,
+    ),
+    (
+        'Policy #1 does not match - context says IP is not in the allowed range',
+        Request(
+            subject='Peter',
+            action='delete',
+            resource='myrn:some.domain.com:resource:123',
+            context={
+                'owner': 'Peter',
+                'ip': '0.0.0.0'
             }
         ),
         False,
