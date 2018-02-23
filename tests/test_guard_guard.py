@@ -217,3 +217,8 @@ for p in policies:
 def test_is_allowed(desc, req, should_be_allowed):
     g = Guard(pm, RegexMatcher())
     assert should_be_allowed == g.is_allowed(req)
+
+
+def test_is_allowed_for_none_policies():
+    g = Guard(MemoryManager(), RegexMatcher())
+    assert not g.is_allowed(Request(subject='foo', action='bar', resource='baz'))
