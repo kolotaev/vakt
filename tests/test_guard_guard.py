@@ -15,12 +15,12 @@ policies = [
     DefaultPolicy(
         id='1',
         description="""
-        Max, Peter, Zac, Ken are allowed to create, delete, get the resources 
+        Max, Nina, Ben, Henry are allowed to create, delete, get the resources 
         only if the client IP matches and the request states that any of them is the resource owner
         """,
         effect=ALLOW_ACCESS,
-        subjects=('Max', 'Peter', '<Zac|Ken>'),
-        resources=('myrn:some.domain.com:resource:123', 'myrn:some.domain.com:resource:345', 'myrn:something:foo:<.+>'),
+        subjects=('Max', 'Nina', '<Ben|Henry>'),
+        resources=('myrn:example.com:resource:123', 'myrn:example.com:resource:345', 'myrn:something:foo:<.+>'),
         actions=('<create|delete>', 'get'),
         conditions={
             'ip': CIDRCondition('127.0.0.1/32'),
@@ -48,9 +48,9 @@ policies = [
     ),
     DefaultPolicy(
         id='5',
-        description='Allows Peter to update any resources that have only digits',
+        description='Allows Nina to update any resources that have only digits',
         effect=ALLOW_ACCESS,
-        subjects=['Peter'],
+        subjects=['Nina'],
         actions=['update'],
         resources=['<[\d]+>'],
     ),
@@ -69,7 +69,7 @@ for p in policies:
         'Max is allowed to update anything',
         Request(
             subject='Max',
-            resource='myrn:some.domain.com:resource:123',
+            resource='myrn:example.com:resource:123',
             action='update'
         ),
         True,
@@ -87,7 +87,7 @@ for p in policies:
         'Max, but not max is allowed to update anything (case-sensitive comparison)',
         Request(
             subject='max',
-            resource='myrn:some.domain.com:resource:123',
+            resource='myrn:example.com:resource:123',
             action='update'
         ),
         False,
@@ -96,7 +96,7 @@ for p in policies:
         'Max is not allowed to print anything',
         Request(
             subject='Max',
-            resource='myrn:some.domain.com:resource:123',
+            resource='myrn:example.com:resource:123',
             action='print',
         ),
         False,
@@ -121,11 +121,24 @@ for p in policies:
     (
         'Policy #1 matches and has allow-effect',
         Request(
-            subject='Peter',
+            subject='Nina',
             action='delete',
-            resource='myrn:some.domain.com:resource:123',
+            resource='myrn:example.com:resource:123',
             context={
-                'owner': 'Peter',
+                'owner': 'Nina',
+                'ip': '127.0.0.1'
+            }
+        ),
+        True,
+    ),
+    (
+        'Policy #1 matches - Henry is listed in the allowed subjects regexp',
+        Request(
+            subject='Henry',
+            action='get',
+            resource='myrn:example.com:resource:123',
+            context={
+                'owner': 'Henry',
                 'ip': '127.0.0.1'
             }
         ),
@@ -134,11 +147,11 @@ for p in policies:
     (
         'Policy #1 does not match - one of the contexts was not found (misspelled)',
         Request(
-            subject='Peter',
+            subject='Nina',
             action='delete',
-            resource='myrn:some.domain.com:resource:123',
+            resource='myrn:example.com:resource:123',
             context={
-                'owner': 'Peter',
+                'owner': 'Nina',
                 'IP': '127.0.0.1'
             }
         ),
@@ -147,9 +160,9 @@ for p in policies:
     (
         'Policy #1 does not match - one of the contexts is missing',
         Request(
-            subject='Peter',
+            subject='Nina',
             action='delete',
-            resource='myrn:some.domain.com:resource:123',
+            resource='myrn:example.com:resource:123',
             context={
                 'ip': '127.0.0.1'
             }
@@ -157,13 +170,13 @@ for p in policies:
         False,
     ),
     (
-        'Policy #1 does not match - context says that owner is Zac, not Peter',
+        'Policy #1 does not match - context says that owner is Ben, not Nina',
         Request(
-            subject='Peter',
+            subject='Nina',
             action='delete',
-            resource='myrn:some.domain.com:resource:123',
+            resource='myrn:example.com:resource:123',
             context={
-                'owner': 'Zac',
+                'owner': 'Ben',
                 'ip': '127.0.0.1'
             }
         ),
@@ -172,11 +185,11 @@ for p in policies:
     (
         'Policy #1 does not match - context says IP is not in the allowed range',
         Request(
-            subject='Peter',
+            subject='Nina',
             action='delete',
-            resource='myrn:some.domain.com:resource:123',
+            resource='myrn:example.com:resource:123',
             context={
-                'owner': 'Peter',
+                'owner': 'Nina',
                 'ip': '0.0.0.0'
             }
         ),
@@ -188,6 +201,15 @@ for p in policies:
             subject='Sarah',
             action='update',
             resource='88',
+        ),
+        False,
+    ),
+    (
+        'Policy #5 does not match - action is update, subject is Nina, but resource-name is not digits',
+        Request(
+            subject='Nina',
+            action='update',
+            resource='abcd',
         ),
         False,
     ),
