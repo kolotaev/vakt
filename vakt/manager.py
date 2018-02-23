@@ -22,9 +22,13 @@ class PolicyManager(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    # todo - maybe add a field on which to match?
     def find_by_request(self, request):
-        """Get potential policies for a given request"""
+        """
+        Get potential policies for a given request.
+        Managers are free to decide what policies to return based on the performance and implementation considerations.
+        In the worst case - all policies. In the best - policies matched on actions, subjects, resources.
+        Mediocre case - match on subject.
+        """
         pass
 
     @abstractmethod

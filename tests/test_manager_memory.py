@@ -47,12 +47,20 @@ def test_get_all(pm):
     assert 5 == len(pm.get_all(5, 4))
 
 
+def test_get_all_for_one(pm):
+    pm.create(DefaultPolicy('1', description='foo'))
+    assert 1 == len(pm.get_all(100, 0))
+    assert '1' == pm.get_all(100, 0)[0].id
+    assert 'foo' == pm.get_all(100, 0)[0].description
+
+
 def test_find_by_request(pm):
     pm.create(DefaultPolicy('1', subjects=['max', 'bob']))
     pm.create(DefaultPolicy('2', subjects=['sam', 'nina']))
     req = Request(subject='sam', action='get', resource='books')
-    assert 1 == len(pm.find_by_request(req))
-    assert '2' == pm.find_by_request(req)[0].id
+    found = pm.find_by_request(req)
+    assert 2 == len(found)
+    assert ['max', 'bob'] == found[0].subjects or ['max', 'bob'] == found[1].subjects
 
 
 def test_update(pm):

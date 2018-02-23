@@ -27,7 +27,7 @@ class MemoryManager(PolicyManager):
         return self.policies.get(id)
 
     def get_all(self, limit, offset):
-        result = [v for k, v in self.policies.items()]
+        result = [v for v in self.policies.values()]
         if limit + offset > len(result):
             limit = len(result)
             offset = 0
@@ -35,8 +35,7 @@ class MemoryManager(PolicyManager):
 
     def find_by_request(self, request):
         with self.lock:
-            # todo - no need in items()
-            return [p for i, p in self.policies.items() if request.subject in p.subjects]
+            return list(self.policies.values())
 
     def update(self, policy):
         self.policies[policy.id] = policy
