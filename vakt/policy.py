@@ -32,7 +32,7 @@ class DefaultPolicy(JsonDumper, PrettyPrint):
         try:
             props = json.loads(data)
         except ValueError as e:
-            log.exception("Error creating policy from json.", exc_info=True)
+            log.exception("Error creating policy from json.")
             raise e
         if 'id' not in props:
             log.exception("Error creating policy from json. 'id' attribute is required")

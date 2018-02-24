@@ -24,7 +24,7 @@ class Condition(JsonDumper, PrettyPrint, metaclass=ABCMeta):
         try:
             data = json.loads(json_data)
         except ValueError as e:
-            log.exception('Error creating Condition', exc_info=True)
+            log.exception('Error creating Condition')
             raise ConditionCreationError('Invalid JSON data. JSON error: %s' % e)
         if 'contents' not in data:
             log.exception('Error creating Condition. No "contents" key in JSON data found')

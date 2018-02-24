@@ -20,6 +20,6 @@ class CIDRCondition(Condition):
             ip = ipaddress.ip_address(what)
             net = ipaddress.ip_network(self.cidr)
         except ValueError:
-            log.exception('Error CIDRCondition satisfied', exc_info=True)
+            log.exception('Error CIDRCondition satisfied')
             return False
         return ip in net

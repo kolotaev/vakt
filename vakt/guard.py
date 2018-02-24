@@ -22,7 +22,7 @@ class Request(JsonDumper, PrettyPrint):
         try:
             props = json.loads(data)
         except ValueError as e:
-            log.exception("Error creating policy from json.", exc_info=True)
+            log.exception("Error creating policy from json.")
             raise e
 
         return cls(props.get('resource', ''),
@@ -51,7 +51,7 @@ class Guard:
                 # to decide what policies to return. So we need a more correct programmatically done check.
                 return self.check_policies_allow(request, policies)
         except Exception:
-            log.exception('Unexpected exception occurred while checking Request %s', request, exc_info=True)
+            log.exception('Unexpected exception occurred while checking Request %s', request)
             return False
 
     def check_policies_allow(self, request, policies):
