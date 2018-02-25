@@ -9,7 +9,6 @@ from .exceptions import InvalidPattern
 log = logging.getLogger(__name__)
 
 
-# todo - move to policy class or as a trait?
 class RegexMatcher:
     """Matcher that uses regular expressions."""
 
@@ -30,7 +29,6 @@ class RegexMatcher:
         return False
 
 
-# todo - move to policy class or as a trait?
 class StringMatcher(metaclass=ABCMeta):
     """Matcher that uses string equality."""
 
