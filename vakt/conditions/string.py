@@ -10,14 +10,14 @@ log = logging.getLogger(__name__)
 class StringEqualCondition(Condition):
     """Condition that is satisfied if the string value equals the specified property of this condition"""
 
-    def __init__(self, equals):
-        if not isinstance(equals, str):
-            log.error('StringEqualCondition creation. Equals property should be a string')
-            raise TypeError('equals property should be a string')
-        self.equals = equals
+    def __init__(self, val):
+        if not isinstance(val, str):
+            log.error('StringEqualCondition creation. Initial property should be a string')
+            raise TypeError('Initial property should be a string')
+        self.val = val
 
     def satisfied(self, what, request=None):
-        return isinstance(what, str) and what == self.equals
+        return isinstance(what, str) and what == self.val
 
 
 class StringPairsEqualCondition(Condition):

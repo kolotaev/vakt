@@ -6,7 +6,7 @@ from vakt.conditions.string import StringEqualCondition
 def test_string_equal_construct_fails():
     with pytest.raises(TypeError) as excinfo:
         StringEqualCondition(dict())
-    assert 'equals property should be a string' in str(excinfo.value)
+    assert 'Initial property should be a string' in str(excinfo.value)
 
 
 @pytest.mark.parametrize('arg, against, result', [
