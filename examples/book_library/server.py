@@ -11,7 +11,7 @@ from vakt.guard import Guard, Request
 
 from flask import Flask, request, session
 
-#             Set up vakt       #
+#          Set up vakt          #
 # ============================= #
 
 
@@ -118,11 +118,11 @@ def serve_book_request(action, book):
         resource='library:books:%s' % book,
         context={
             'ip': request.remote_addr,
-            'secret': session.get('secret-phrase', '')
+            'secret': session.get('secret', '')
         }
     )
     if guard.is_allowed(vakt_request):
-        return "Please, here is the book you requested: '{}'!".format(book), 200
+        return "Enjoy! Here is the book you requested: '{}'!".format(book), 200
     else:
         return 'Sorry, but you are not allowed to do this!', 401
 

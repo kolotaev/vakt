@@ -16,7 +16,7 @@ class Condition(JsonDumper, PrettyPrint, metaclass=ABCMeta):
 
     @abstractmethod
     def satisfied(self, what, request):
-        """Is the condition satisfied by the request"""
+        """Is condition satisfied by the request"""
         pass
 
     @classmethod
