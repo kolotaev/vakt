@@ -3,6 +3,14 @@ import pytest
 from vakt.guard import Request
 
 
+def test_default_values():
+    r = Request()
+    assert '' == r.subject
+    assert '' == r.action
+    assert '' == r.resource
+    assert {} == r.context
+
+
 def test_json_roundtrip():
     r = Request(resource='books:abc', action='view', subject='bobby', context={'ip': '127.0.0.1'})
     s = r.to_json()

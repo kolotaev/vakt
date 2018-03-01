@@ -12,10 +12,11 @@ class Request(JsonDumper, PrettyPrint):
     Is responsible to decisions is the requested intent allowed or not."""
 
     def __init__(self, resource=None, action=None, subject=None, context=None):
-        self.resource = resource
-        self.action = action
-        self.subject = subject
-        self.context = context
+        # explicitly assign empty strings instead of occasional None, (), etc.
+        self.resource = resource or ''
+        self.action = action or ''
+        self.subject = subject or ''
+        self.context = context or {}
 
     @classmethod
     def from_json(cls, data):
@@ -84,6 +85,7 @@ class Guard:
             try:
                 ctx_condition = request.context[key]
             except KeyError:
+                # todo - do we need it?
                 return False
             if not condition.satisfied(ctx_condition, request):
                 return False
