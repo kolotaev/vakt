@@ -129,4 +129,4 @@ def serve_book_request(action, book):
 
 if __name__ == '__main__':
     init()
-    app.run()
+    app.run(debug=True)
