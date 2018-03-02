@@ -4,10 +4,40 @@
 [![codecov.io](https://codecov.io/github/kolotaev/vakt/coverage.svg?branch=master)](https://codecov.io/github/kolotaev/vakt?branch=master)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/kolotaev/vakt/master/LICENSE)
 
-## WIP
+# WIP
+
+Access policies SDK for Python.
+
+## Documentation
+
+- [Description](#description)
+- [Install](#install)
+- [Concepts](#concepts)
+- [Managers](#managers)
+    - [Memory](#memory)
+- [Usage](#usage)
+- [Components](#components)
+	- [Policies](#policies)
+- [Development](#development)
 
 
-## Policy creation
+### Description
+
+### Install
+
+### Concepts
+
+### Managers
+
+#### Memory
+
+### Usage
+
+### Components
+
+#### Policies
+
+##### Policy creation
 
 Policies do support from/to JSON conversion.
 All you need is just run:
@@ -19,3 +49,13 @@ json_encoded_policies = DefaultPolicy.to_json(policies)
 ```
 
 The same goes for Conditions. But you are unlikely going to use Conditions separately.
+
+
+### Development
+
+
+## License
+
+Copyright © 2018 Egor Kolotaev.
+
+Distributed under the MIT License 1.0.
