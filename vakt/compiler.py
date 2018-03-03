@@ -9,6 +9,7 @@ __all__ = ['compile_regex']
 
 @lru_cache(maxsize=1024)
 def compile_regex(phrase, start_delimiter, end_delimiter):
+    """Compiles a string denoted by delimiters to a regular expression"""
     regex_vars = []
     pattern = '^'
     end = 0
@@ -28,6 +29,10 @@ def compile_regex(phrase, start_delimiter, end_delimiter):
 
 
 def get_delimiter_indices(string, start, end):
+    """
+    Find and return list of delimiter indices in the given string.
+    Raises exception if delimiters are not balanced (e.g. <<foo>)
+    """
     error_msg = 'Pattern %s has unbalanced braces'
     idx, level = 0, 0
     indices = []

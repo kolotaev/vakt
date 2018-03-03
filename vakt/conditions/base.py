@@ -33,10 +33,10 @@ class Condition(JsonDumper, PrettyPrint, metaclass=ABCMeta):
             log.exception('Error creating Condition. No "type" key in JSON data found')
             raise ConditionCreationError("No 'type' key in JSON data found")
         parts = data['type'].split('.')
-        m = importlib.import_module(".".join(parts[:-1]))
-        klass = getattr(m, parts[-1])
+        module = importlib.import_module(".".join(parts[:-1]))
+        klass = getattr(module, parts[-1])
 
-        o = klass.__new__(klass)
+        obj = klass.__new__(klass)
         given_args_len = len(data['contents'])
         expected_args_len = len(signature(klass.__init__).parameters)-1
         if given_args_len != expected_args_len:
@@ -44,8 +44,8 @@ class Condition(JsonDumper, PrettyPrint, metaclass=ABCMeta):
             raise ConditionCreationError(
                 'Number of arguments does not match. Given %d. Expected %d' % (given_args_len, expected_args_len))
         for k, v in data['contents'].items():
-            setattr(o, k, v)
-        return o
+            setattr(obj, k, v)
+        return obj
 
     def _data(self):
         return {

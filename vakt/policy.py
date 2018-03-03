@@ -1,7 +1,7 @@
 import json
 import logging
 
-from .effects import *
+from .effects import ALLOW_ACCESS, DENY_ACCESS
 from .exceptions import PolicyCreationError
 from .util import JsonDumper, PrettyPrint
 from .conditions.base import Condition

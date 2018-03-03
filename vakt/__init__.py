@@ -1,3 +1,7 @@
+"""
+Vakt is an SDK for access policies.
+"""
+
 import logging
 
 

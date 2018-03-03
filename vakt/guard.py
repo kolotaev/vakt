@@ -23,7 +23,7 @@ class Request(JsonDumper, PrettyPrint):
         try:
             props = json.loads(data)
         except ValueError as e:
-            log.exception("Error creating policy from json.")
+            log.exception("Error creating Request from json.")
             raise e
 
         return cls(props.get('resource', ''),

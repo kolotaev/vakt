@@ -43,7 +43,7 @@ storage.create(policy2)
 
 
 # You can use to_json() on custom and default policies.
-data = list(map(lambda x: x.to_json(), storage.get_all(1, 2)))
+data = list(map(lambda x: x.to_json(), storage.get_all(2, 0)))
 print(data)
 
 # You can use from_json() on custom and default policies.
