@@ -1,4 +1,3 @@
-import json
 import logging
 
 from .effects import ALLOW_ACCESS, DENY_ACCESS
@@ -29,11 +28,7 @@ class DefaultPolicy(JsonDumper, PrettyPrint):
 
     @classmethod
     def from_json(cls, data):
-        try:
-            props = json.loads(data)
-        except ValueError as e:
-            log.exception("Error creating policy from json.")
-            raise e
+        props = cls._parse(data)
         if 'id' not in props:
             log.exception("Error creating policy from json. 'id' attribute is required")
             raise PolicyCreationError("Error creating policy from json. 'id' attribute is required")
@@ -43,6 +38,7 @@ class DefaultPolicy(JsonDumper, PrettyPrint):
             for k, c in props['conditions'].items():
                 conditions[k] = Condition.from_json(c)
 
+        # todo - create class from dict
         return cls(props['id'],
                    props.get('description'),
                    props.get('subjects', ()),

@@ -1,5 +1,9 @@
 import json
+import logging
 from abc import abstractmethod
+
+
+log = logging.getLogger(__name__)
 
 
 class JsonDumper:
@@ -23,6 +27,15 @@ class JsonDumper:
         return json.dumps(self._data(),
                           sort_keys=True,
                           default=lambda o: o.to_json() if isinstance(o, JsonDumper) else vars(o))
+
+    @classmethod
+    def _parse(cls, data):
+        """Parse JSON string and return data"""
+        try:
+            return json.loads(data)
+        except ValueError as err:
+            log.exception('Error creating %s from json.' % cls.__name__)
+            raise err
 
     def _data(self):
         """

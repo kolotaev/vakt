@@ -1,4 +1,3 @@
-import json
 import logging
 
 from .util import JsonDumper, PrettyPrint
@@ -20,12 +19,7 @@ class Request(JsonDumper, PrettyPrint):
 
     @classmethod
     def from_json(cls, data):
-        try:
-            props = json.loads(data)
-        except ValueError as e:
-            log.exception("Error creating Request from json.")
-            raise e
-
+        props = cls._parse(data)
         return cls(props.get('resource', ''),
                    props.get('action', ''),
                    props.get('subject', ''),
