@@ -24,7 +24,7 @@ if __name__ == "__main__":
         version=__version__,
         author='Egor Kolotaev',
         author_email='ekolotaev@gmail.com',
-        license="MIT license",
+        license="Apache 2.0 license",
         url='https://github.com/kolotaev/vakt',
         py_modules=['vakt'],
         install_requires=install_reqs,
@@ -32,7 +32,7 @@ if __name__ == "__main__":
         packages=find_packages(exclude='tests'),
         classifiers=[
             'Intended Audience :: Developers',
-            'License :: OSI Approved :: MIT License',
+            'License :: OSI Approved :: Apache Software License',
             'Operating System :: OS Independent',
             'Programming Language :: Python',
             'Programming Language :: Python :: 3.3',
