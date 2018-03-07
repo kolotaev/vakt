@@ -222,3 +222,13 @@ def test_is_allowed(desc, req, should_be_allowed):
 def test_is_allowed_for_none_policies():
     g = Guard(MemoryManager(), RegexMatcher())
     assert not g.is_allowed(Request(subject='foo', action='bar', resource='baz'))
+
+
+def test_guard_if_unexpected_exception_raised():
+    # for testing unexpected exception
+    class BadMemoryManager(MemoryManager):
+        def get_all(self, limit, offset):
+            raise Exception('This is test class that raises errors')
+    pm = BadMemoryManager()
+    g = Guard(pm, RegexMatcher())
+    assert not g.is_allowed(Request(subject='foo', action='bar', resource='baz'))
