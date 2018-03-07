@@ -227,7 +227,7 @@ def test_is_allowed_for_none_policies():
 def test_guard_if_unexpected_exception_raised():
     # for testing unexpected exception
     class BadMemoryManager(MemoryManager):
-        def get_all(self, limit, offset):
+        def find_by_request(self, request=None):
             raise Exception('This is test class that raises errors')
     pm = BadMemoryManager()
     g = Guard(pm, RegexMatcher())
