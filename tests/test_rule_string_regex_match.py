@@ -1,11 +1,11 @@
 import pytest
 
-from vakt.conditions.string import RegexMatchCondition
+from vakt.rules.string import RegexMatchRule
 
 
 def test_regex_match_construct_fails():
     with pytest.raises(TypeError) as excinfo:
-        RegexMatchCondition('[lll')
+        RegexMatchRule('[lll')
     assert 'pattern should be a valid regexp string' in str(excinfo.value)
     assert 'unterminated character set at position 0' in str(excinfo.value) \
            or 'unexpected end of regular expression' in str(excinfo.value)
@@ -20,6 +20,6 @@ def test_regex_match_construct_fails():
     ('^python\?exe$', 'python?exe', True),
     ('^python?exe$', 'python?exe', False),
 ])
-def test_regex_match_condition_satisfied(arg, against, result):
-    c = RegexMatchCondition(arg)
+def test_regex_match_rule_satisfied(arg, against, result):
+    c = RegexMatchRule(arg)
     assert result == c.satisfied(against)

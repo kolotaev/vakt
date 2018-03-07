@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.conditions.string import StringPairsEqualCondition
+from vakt.rules.string import StringPairsEqualRule
 
 
 @pytest.mark.parametrize('against, result', [
@@ -20,5 +20,5 @@ from vakt.conditions.string import StringPairsEqualCondition
     ([['a', 'a'], ['b', 'c']], False),
 ])
 def test_string_pairs_equal_satisfied(against, result):
-    c = StringPairsEqualCondition()
+    c = StringPairsEqualRule()
     assert result == c.satisfied(against)

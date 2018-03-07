@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.conditions.net import CIDRCondition
+from vakt.rules.net import CIDRRule
 
 
 @pytest.mark.parametrize('cidr, ip, result', [
@@ -11,5 +11,5 @@ from vakt.conditions.net import CIDRCondition
     ('0.0.0.0/0', '192.168.2.56', True),
 ])
 def test_cidr_satisfied(cidr, ip, result):
-    c = CIDRCondition(cidr)
+    c = CIDRRule(cidr)
     assert result == c.satisfied(ip)

@@ -2,8 +2,8 @@ import os
 import logging
 
 from vakt.managers.memory import MemoryManager
-from vakt.conditions.net import CIDRCondition
-from vakt.conditions.string import StringEqualCondition
+from vakt.rules.net import CIDRRule
+from vakt.rules.string import StringEqualRule
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import DefaultPolicy
 from vakt.matcher import RegexMatcher
@@ -37,9 +37,9 @@ policies = [
         subjects=['<[\w]+ M[\w]+>'],
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
-        conditions={
-            'ip': CIDRCondition('192.168.2.0/24'),
-            # for local testing replace with CIDRCondition('127.0.0.1'),
+        rules={
+            'ip': CIDRRule('192.168.2.0/24'),
+            # for local testing replace with CIDRRule('127.0.0.1'),
         },
     ),
     DefaultPolicy(
@@ -49,8 +49,8 @@ policies = [
         subjects=('Edward Rooney', 'Florence Sparrow'),
         actions=['<.*>'],
         resources=['<.*>'],
-        conditions={
-            'secret': StringEqualCondition('i-am-a-teacher'),
+        rules={
+            'secret': StringEqualRule('i-am-a-teacher'),
         },
     ),
     DefaultPolicy(

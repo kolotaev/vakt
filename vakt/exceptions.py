@@ -8,8 +8,8 @@ class PolicyCreationError(Exception):
     pass
 
 
-class ConditionCreationError(Exception):
-    """Error during Condition creation occurred."""
+class RuleCreationError(Exception):
+    """Error during Rule creation occurred."""
     pass
 
 

@@ -62,8 +62,8 @@ class Guard:
             # Check for resources access
             if not self.matcher.matches(p, 'resources', request.resource):
                 continue
-            # Lastly check if the given request's context satisfies conditions of a policy
-            if not self.are_conditions_satisfied(p, request):
+            # Lastly check if the given request's context satisfies rules of a policy
+            if not self.are_rules_satisfied(p, request):
                 continue
             # If policy passed all matches - it's the right policy and all we need is to check its allow-effect.
             # If we have 2 or more matched policies and one of them has deny access - it's deny for all of them.
@@ -73,14 +73,14 @@ class Guard:
         return allow
 
     @staticmethod
-    def are_conditions_satisfied(policy, request):
-        """Check if conditions in the policy are satisfied for a given request's context"""
-        for key, condition in policy.conditions.items():
+    def are_rules_satisfied(policy, request):
+        """Check if rules in the policy are satisfied for a given request's context"""
+        for key, rule in policy.rules.items():
             try:
-                ctx_condition = request.context[key]
+                ctx_rule = request.context[key]
             except KeyError:
                 # todo - do we need it?
                 return False
-            if not condition.satisfied(ctx_condition, request):
+            if not rule.satisfied(ctx_rule, request):
                 return False
         return True

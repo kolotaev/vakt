@@ -3,52 +3,52 @@ import pytest
 from vakt.policy import DefaultPolicy
 from vakt.effects import *
 from vakt.exceptions import PolicyCreationError
-from vakt.conditions.net import CIDRCondition
-from vakt.conditions.string import StringEqualCondition
+from vakt.rules.net import CIDRRule
+from vakt.rules.string import StringEqualRule
 
 
 def test_properties():
     policy = DefaultPolicy('123', description='readme',
                     subjects=['user'], effect=ALLOW_ACCESS,
-                    resources='books:{\d+}', actions=['create', 'delete'], conditions={})
+                    resources='books:{\d+}', actions=['create', 'delete'], rules={})
     assert '123' == policy.id
     assert 'readme' == policy.description
     assert ['user'] == policy.subjects
     assert ALLOW_ACCESS == policy.effect
     assert 'books:{\d+}' == policy.resources
     assert ['create', 'delete'] == policy.actions
-    assert {} == policy.conditions
+    assert {} == policy.rules
 
 
-def test_exception_raised_when_conditions_is_not_dict():
+def test_exception_raised_when_rules_is_not_dict():
     with pytest.raises(PolicyCreationError):
-        DefaultPolicy('1', conditions=[StringEqualCondition('foo')])
+        DefaultPolicy('1', rules=[StringEqualRule('foo')])
 
 
 @pytest.mark.parametrize('data, expect', [
     ('{"id":123}',
-     '{"actions": [], "conditions": {}, "description": null, "effect": "deny", ' +
-     '"id": 123, "resources": [], "subjects": []}'),
+     '{"actions": [], "description": null, "effect": "deny", ' +
+     '"id": 123, "resources": [], "rules": {}, "subjects": []}'),
     ('{"id":123, "effect":"allow", "actions": ["create", "update"]}',
-     '{"actions": ["create", "update"], "conditions": {}, "description": null, "effect": "allow", "id": 123, ' +
-     '"resources": [], "subjects": []}'),
+     '{"actions": ["create", "update"], "description": null, "effect": "allow", "id": 123, ' +
+     '"resources": [], "rules": {}, "subjects": []}'),
 ])
 def test_json_roundtrip(data, expect):
     p = DefaultPolicy.from_json(data)
     assert expect == p.to_json()
 
 
-def test_json_roundtrip_of_a_policy_with_conditions():
-    p = DefaultPolicy('123', conditions={'ip': CIDRCondition('192.168.1.0/24'), 'sub': StringEqualCondition('test-me')})
+def test_json_roundtrip_of_a_policy_with_rules():
+    p = DefaultPolicy('123', rules={'ip': CIDRRule('192.168.1.0/24'), 'sub': StringEqualRule('test-me')})
     s = p.to_json()
     p1 = DefaultPolicy.from_json(s)
     assert '123' == p1.id
-    assert 2 == len(p1.conditions)
-    assert 'ip' in p1.conditions
-    assert 'sub' in p1.conditions
-    assert isinstance(p1.conditions['ip'], CIDRCondition)
-    assert isinstance(p1.conditions['sub'], StringEqualCondition)
-    assert p1.conditions['sub'].satisfied('test-me')
+    assert 2 == len(p1.rules)
+    assert 'ip' in p1.rules
+    assert 'sub' in p1.rules
+    assert isinstance(p1.rules['ip'], CIDRRule)
+    assert isinstance(p1.rules['sub'], StringEqualRule)
+    assert p1.rules['sub'].satisfied('test-me')
 
 
 @pytest.mark.parametrize('data, exception, msg', [
@@ -93,4 +93,4 @@ def test_pretty_print():
     assert "'effect': 'deny'" in str(p)
     assert "'resources': ()" in str(p)
     assert "'actions': ()" in str(p)
-    assert "'conditions': {}" in str(p)
+    assert "'rules': {}" in str(p)

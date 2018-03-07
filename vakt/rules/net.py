@@ -1,14 +1,14 @@
 import ipaddress
 import logging
 
-from ..conditions.base import Condition
+from ..rules.base import Rule
 
 
 log = logging.getLogger(__name__)
 
 
-class CIDRCondition(Condition):
-    """Condition that is satisfied when request's IP address is in the provided CIDR"""
+class CIDRRule(Rule):
+    """Rule that is satisfied when request's IP address is in the provided CIDR"""
 
     def __init__(self, cidr):
         self.cidr = cidr
@@ -20,6 +20,6 @@ class CIDRCondition(Condition):
             ip = ipaddress.ip_address(what)
             net = ipaddress.ip_network(self.cidr)
         except ValueError:
-            log.exception('Error CIDRCondition satisfied')
+            log.exception('Error %s satisfied', type(self).__name__)
             return False
         return ip in net

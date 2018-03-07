@@ -3,7 +3,7 @@ import logging
 from .effects import ALLOW_ACCESS, DENY_ACCESS
 from .exceptions import PolicyCreationError
 from .util import JsonDumper, PrettyPrint
-from .conditions.base import Condition
+from .rules.base import Rule
 
 
 log = logging.getLogger(__name__)
@@ -11,20 +11,20 @@ log = logging.getLogger(__name__)
 
 class DefaultPolicy(JsonDumper, PrettyPrint):
     """Represents a policy that regulates access and allowed actions of subjects
-    over some resources under a set of conditions."""
+    over some resources under a set of rules."""
 
-    def __init__(self, id, description=None, subjects=(), effect=DENY_ACCESS, resources=(), actions=(), conditions=None):
+    def __init__(self, id, description=None, subjects=(), effect=DENY_ACCESS, resources=(), actions=(), rules=None):
         self.id = id
         self.description = description
         self.subjects = subjects
         self.effect = effect
         self.resources = resources
         self.actions = actions
-        conditions = conditions or {}
-        if not isinstance(conditions, dict):
-            log.exception('Error creating Policy. Conditions must be a dictionary')
-            raise PolicyCreationError("Error creating Policy. Conditions must be a dictionary")
-        self.conditions = conditions
+        rules = rules or {}
+        if not isinstance(rules, dict):
+            log.exception('Error creating Policy. Rules must be a dictionary')
+            raise PolicyCreationError("Error creating Policy. Rules must be a dictionary")
+        self.rules = rules
 
     @classmethod
     def from_json(cls, data):
@@ -33,10 +33,10 @@ class DefaultPolicy(JsonDumper, PrettyPrint):
             log.exception("Error creating policy from json. 'id' attribute is required")
             raise PolicyCreationError("Error creating policy from json. 'id' attribute is required")
 
-        conditions = {}
-        if 'conditions' in props:
-            for k, c in props['conditions'].items():
-                conditions[k] = Condition.from_json(c)
+        rules = {}
+        if 'rules' in props:
+            for k, c in props['rules'].items():
+                rules[k] = Rule.from_json(c)
 
         # todo - create class from dict
         return cls(props['id'],
@@ -45,7 +45,7 @@ class DefaultPolicy(JsonDumper, PrettyPrint):
                    props.get('effect', DENY_ACCESS),
                    props.get('resources', ()),
                    props.get('actions', ()),
-                   conditions)
+                   rules)
 
     def allow_access(self):
         """Does policy imply allow-access?"""

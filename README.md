@@ -48,7 +48,7 @@ policies = (DefaultPolicy('1'), DefaultPolicy('1'))
 json_encoded_policies = DefaultPolicy.to_json(policies)
 ```
 
-The same goes for Conditions. But you are unlikely going to use Conditions separately.
+The same goes for Rules. But you are unlikely going to use Rules separately.
 
 
 ### Development

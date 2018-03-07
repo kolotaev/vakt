@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.conditions.request import SubjectEqualCondition
+from vakt.rules.request import SubjectEqualRule
 from vakt.guard import Request
 
 
@@ -15,5 +15,5 @@ from vakt.guard import Request
 ])
 def test_string_equal_satisfied(what, subject, result):
     r = Request(action='get', resource=None, subject=subject)
-    c = SubjectEqualCondition()
+    c = SubjectEqualRule()
     assert result == c.satisfied(what, r)

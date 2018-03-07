@@ -1,11 +1,11 @@
 import pytest
 
-from vakt.conditions.string import StringEqualCondition
+from vakt.rules.string import StringEqualRule
 
 
 def test_string_equal_construct_fails():
     with pytest.raises(TypeError) as excinfo:
-        StringEqualCondition(dict())
+        StringEqualRule(dict())
     assert 'Initial property should be a string' in str(excinfo.value)
 
 
@@ -17,5 +17,5 @@ def test_string_equal_construct_fails():
     ('', '', True),
 ])
 def test_string_equal_satisfied(arg, against, result):
-    c = StringEqualCondition(arg)
+    c = StringEqualRule(arg)
     assert result == c.satisfied(against)

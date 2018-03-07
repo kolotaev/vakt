@@ -1,11 +1,11 @@
 # This example shows how to extend Vakt functionality and use it in your code.
 
-import vakt.conditions.base
+import vakt.rules.base
 import vakt.policy
 import vakt.managers.memory
 
 
-class ABCondition(vakt.conditions.base.Condition):
+class ABRule(vakt.rules.base.Rule):
     def __init__(self, a, b):
         self.a = a
         self.b = b
@@ -26,14 +26,14 @@ class CustomDelimitersPolicy(vakt.policy.DefaultPolicy):
         return '='
 
 
-# You can use custom conditions in any policy.
+# You can use custom rules in any policy.
 policy1 = CustomDelimitersPolicy(1,
                                  description='some custom policy',
                                  subjects=('=[FGH]+[\w]+=', 'Max'),
-                                 conditions={'secret': ABCondition(10, 100)})
+                                 rules={'secret': ABRule(10, 100)})
 policy2 = vakt.policy.DefaultPolicy(2,
                                     description='some default policy',
-                                    conditions={'secret': ABCondition(1, 15)})
+                                    rules={'secret': ABRule(1, 15)})
 
 
 # You can add custom policies and default ones.

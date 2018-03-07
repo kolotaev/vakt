@@ -1,18 +1,18 @@
 import re
 import logging
 
-from ..conditions.base import Condition
+from ..rules.base import Rule
 
 
 log = logging.getLogger(__name__)
 
 
-class StringEqualCondition(Condition):
-    """Condition that is satisfied if the string value equals the specified property of this condition"""
+class StringEqualRule(Rule):
+    """Rule that is satisfied if the string value equals the specified property of this rule"""
 
     def __init__(self, val):
         if not isinstance(val, str):
-            log.error('StringEqualCondition creation. Initial property should be a string')
+            log.error('%s creation. Initial property should be a string', type(self).__name__)
             raise TypeError('Initial property should be a string')
         self.val = val
 
@@ -20,8 +20,8 @@ class StringEqualCondition(Condition):
         return isinstance(what, str) and what == self.val
 
 
-class StringPairsEqualCondition(Condition):
-    """Condition that is satisfied when given data is an array of pairs and
+class StringPairsEqualRule(Rule):
+    """Rule that is satisfied when given data is an array of pairs and
        those pairs are represented by equal to each other strings"""
 
     def satisfied(self, what, request=None):
@@ -37,8 +37,8 @@ class StringPairsEqualCondition(Condition):
         return True
 
 
-class RegexMatchCondition(Condition):
-    """Condition that is satisfied when given data matches the provided regular expression.
+class RegexMatchRule(Rule):
+    """Rule that is satisfied when given data matches the provided regular expression.
        Note, that you should provide syntactically valid regular-expression string."""
 
     def __init__(self, pattern):
@@ -46,7 +46,7 @@ class RegexMatchCondition(Condition):
             # todo - do we need escape?
             self.regex = re.compile(pattern)
         except Exception as e:
-            log.error('RegexMatchCondition creation. Failed to compile regexp %s', pattern)
+            log.error('%s creation. Failed to compile regexp %s', type(self).__name__, pattern)
             raise TypeError('pattern should be a valid regexp string. Error %s' % e)
 
     def satisfied(self, what, request=None):
