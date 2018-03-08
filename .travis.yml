@@ -9,9 +9,8 @@ python:
   - "nightly"
   - "pypy3"  # Pypy3 5.8.0-beta0
 install:
-  - pip install -r requirements.txt
-  - pip install pytest-cov
+  - pip install -e .[dev] -r requirements.txt
 script:
-  - python -m pytest . --cov-config .coveragerc --cov=./
+  - pytest --cov-config .coveragerc --cov=./
 after_success:
   - bash <(curl -s https://codecov.io/bash)

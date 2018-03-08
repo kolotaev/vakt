@@ -18,7 +18,7 @@ Access policies SDK for Python.
 - [Usage](#usage)
 - [Components](#components)
 	- [Policies](#policies)
-	- [JSON](#json)
+- [JSON](#json)
 - [Logging](#logging)
 - [Development](#development)
 
@@ -45,7 +45,7 @@ pip install vakt
 
 #### Policies
 
-#### JSON
+### JSON
 
 All Policies, Requests and Rules can be JSON-serialized and deserialized.
 
@@ -53,11 +53,15 @@ For example, for a Policy all you need is just run:
 ```python
 from vakt.policy import DefaultPolicy
 
-policy = DefaultPolicy.from_json(json_encoded_policy)
-policies = (DefaultPolicy('1'), DefaultPolicy('2'))
-json_encoded_policies = DefaultPolicy.to_json(policies)
+policy = DefaultPolicy('1')
 
-print(json_encoded_policies)
+json_policy = policy.to_json()
+print(json_policy)
+# {"actions": [], "description": null, "effect": "deny", "id": "1", "resources": [], "rules": {}, "subjects": []}
+
+policy = DefaultPolicy.from_json(json_policy)
+print(policy)
+# <vakt.policy.DefaultPolicy object at 0x1023ca198>
 ```
 
 The same goes for Rules, Requests.
@@ -68,8 +72,7 @@ If you do not derive from Vakt's classes, but want this option, you can mix-in `
 from vakt.util import JsonDumper
 
 class CustomRequest(JsonDumper):
-    def __init__(self, resource=None, action=None, subject=None, context=None):
-        pass
+    pass
 ```
 
 ### Logging

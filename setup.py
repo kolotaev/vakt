@@ -10,7 +10,7 @@ with open('README.md') as f:
 
 
 __location__ = os.path.join(os.getcwd(), os.path.dirname(inspect.getfile(inspect.currentframe())))
-install_reqs = [req for req in
+requirements = [req for req in
                 open(os.path.join(__location__, 'requirements.txt')).read().split('\\n')
                 if req != '']
 
@@ -20,15 +20,21 @@ if __name__ == "__main__":
         name='vakt',
         description='Python SDK for access policies',
         long_description=README,
-        keywords=(),
+        keywords='ACL RBAC access policy security',
         version=__version__,
         author='Egor Kolotaev',
         author_email='ekolotaev@gmail.com',
         license="Apache 2.0 license",
         url='https://github.com/kolotaev/vakt',
         py_modules=['vakt'],
-        install_requires=install_reqs,
-        tests_require=['pytest'],
+        install_requires=requirements,
+        extras_require={
+            'dev': [
+                'pytest',
+                'pytest-cov',
+                'pylint',
+            ]
+        },
         packages=find_packages(exclude='tests'),
         classifiers=[
             'Intended Audience :: Developers',
