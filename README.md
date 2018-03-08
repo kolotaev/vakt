@@ -18,12 +18,19 @@ Access policies SDK for Python.
 - [Usage](#usage)
 - [Components](#components)
 	- [Policies](#policies)
+	- [JSON](#json)
 - [Development](#development)
 
 
 ### Description
 
 ### Install
+
+Vakt runs on Python >= 3.3. Also PyPy implementation is supported.
+
+```bash
+pip install vakt
+```
 
 ### Concepts
 
@@ -37,10 +44,11 @@ Access policies SDK for Python.
 
 #### Policies
 
-##### Policy creation
+#### JSON
 
-Policies do support from/to JSON conversion.
-All you need is just run:
+All Policies, Requests, and Rules can be JSON-serialized and deserialized.
+
+For example, for a Policy all you need is just run:
 ```python
 policy = DefaultPolicy.from_json(json_encoded_policy)
 
@@ -48,7 +56,15 @@ policies = (DefaultPolicy('1'), DefaultPolicy('1'))
 json_encoded_policies = DefaultPolicy.to_json(policies)
 ```
 
-The same goes for Rules. But you are unlikely going to use Rules separately.
+The same goes for Rules, Requests.
+All custom classes derived from them support this functionality as well.
+If you do not derive from Vakt's classes, but want this option, you can mix-in `JsonDumper` trait.
+
+```python
+class CustomRequest(vakt.util.JsonDumper):
+    def __init__(self, resource=None, action=None, subject=None, context=None):
+        pass
+```
 
 
 ### Development
