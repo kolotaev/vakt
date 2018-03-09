@@ -27,7 +27,8 @@ Access policies SDK for Python.
 
 ### Install
 
-Vakt runs on Python >= 3.3. Also PyPy implementation is supported.
+Vakt runs on Python >= 3.3.
+PyPy implementation is supported as well.
 
 ```bash
 pip install vakt
@@ -80,3 +81,11 @@ class CustomRequest(JsonDumper):
 
 ### Development
 
+To hack Vakt locally run:
+
+```bash
+pip install -e .[dev] -r requirements.txt            # to install all dependencies
+pytest                                               # to run tests with coverage report
+pytest --cov-config .coveragerc --cov=vakt tests/    # to get coverage report
+pylint vakt                                          # to check code quality with PyLint
+```
