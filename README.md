@@ -79,8 +79,9 @@ class CustomInquiry(JsonDumper):
 ### Logging
 
 Vakt follows a common logging pattern for libraries:
+
 Its corresponding modules log all the events that happen but the log messages by default are handled by `NullHandler`.
-It's up to the outer code/application to provide a valid log-handler and a desired level of logging. For example:
+It's up to the outer code/application to provide desired log handlers, filters, levels, etc. For example:
 
 ```python
 import logging

@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 
 class Inquiry(JsonDumper, PrettyPrint):
-    """Inquiry object that holds all the information about the inquired resource intent.
+    """Holds all the information about the inquired intent.
     Is responsible to decisions is the inquired intent allowed or not."""
 
     def __init__(self, resource=None, action=None, subject=None, context=None):
