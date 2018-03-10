@@ -1,7 +1,7 @@
 import pytest
 
-from vakt.rules.request import SubjectEqualRule
-from vakt.guard import Request
+from vakt.rules.inquiry import SubjectEqualRule
+from vakt.guard import Inquiry
 
 
 @pytest.mark.parametrize('what, subject, result', [
@@ -14,6 +14,6 @@ from vakt.guard import Request
     ('', '', True),
 ])
 def test_string_equal_satisfied(what, subject, result):
-    r = Request(action='get', resource=None, subject=subject)
+    i = Inquiry(action='get', resource=None, subject=subject)
     c = SubjectEqualRule()
-    assert result == c.satisfied(what, r)
+    assert result == c.satisfied(what, i)

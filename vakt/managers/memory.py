@@ -33,7 +33,7 @@ class MemoryManager(PolicyManager):
             offset = 0
         return result[offset:limit + offset]
 
-    def find_by_request(self, request):
+    def find_by_inquiry(self, inquiry):
         with self.lock:
             return list(self.policies.values())
 

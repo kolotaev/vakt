@@ -6,9 +6,9 @@ from .util import JsonDumper, PrettyPrint
 log = logging.getLogger(__name__)
 
 
-class Request(JsonDumper, PrettyPrint):
-    """Request object that holds all the information about the requested resource intent.
-    Is responsible to decisions is the requested intent allowed or not."""
+class Inquiry(JsonDumper, PrettyPrint):
+    """Inquiry object that holds all the information about the inquired resource intent.
+    Is responsible to decisions is the inquired intent allowed or not."""
 
     def __init__(self, resource=None, action=None, subject=None, context=None):
         # explicitly assign empty strings instead of occasional None, (), etc.
@@ -29,41 +29,41 @@ class Request(JsonDumper, PrettyPrint):
 # todo - add info-level logging
 class Guard:
     """Executor of policy checks.
-       Given a manager and a matcher it can decide via `is_allowed` method if a given request allowed or not."""
+       Given a manager and a matcher it can decide via `is_allowed` method if a given inquiry allowed or not."""
 
     def __init__(self, manager, matcher):
         self.manager = manager
         self.matcher = matcher
 
-    def is_allowed(self, request):
-        """Is given request intent allowed or not?"""
+    def is_allowed(self, inquiry):
+        """Is given inquiry intent allowed or not?"""
         try:
-            policies = self.manager.find_by_request(request)
+            policies = self.manager.find_by_inquiry(inquiry)
             if not policies:
                 return False
             else:
                 # Manager is not obliged to do the exact policies match. It's up to the manager
                 # to decide what policies to return. So we need a more correct programmatically done check.
-                return self.check_policies_allow(request, policies)
+                return self.check_policies_allow(inquiry, policies)
         except Exception:
-            log.exception('Unexpected exception occurred while checking Request %s', request)
+            log.exception('Unexpected exception occurred while checking Inquiry %s', inquiry)
             return False
 
-    def check_policies_allow(self, request, policies):
-        """Check if any of a given policy allows a specified request"""
+    def check_policies_allow(self, inquiry, policies):
+        """Check if any of a given policy allows a specified inquiry"""
         allow = False
         for p in policies:
             # First we check if action is OK. Since usually action is the most used check.
-            if not self.matcher.matches(p, 'actions', request.action):
+            if not self.matcher.matches(p, 'actions', inquiry.action):
                 continue
             # Subject is a more quick check then resources, so we try it second.
-            if not self.matcher.matches(p, 'subjects', request.subject):
+            if not self.matcher.matches(p, 'subjects', inquiry.subject):
                 continue
             # Check for resources access
-            if not self.matcher.matches(p, 'resources', request.resource):
+            if not self.matcher.matches(p, 'resources', inquiry.resource):
                 continue
-            # Lastly check if the given request's context satisfies rules of a policy
-            if not self.are_rules_satisfied(p, request):
+            # Lastly check if the given inquiry's context satisfies rules of a policy
+            if not self.are_rules_satisfied(p, inquiry):
                 continue
             # If policy passed all matches - it's the right policy and all we need is to check its allow-effect.
             # If we have 2 or more matched policies and one of them has deny access - it's deny for all of them.
@@ -73,14 +73,14 @@ class Guard:
         return allow
 
     @staticmethod
-    def are_rules_satisfied(policy, request):
-        """Check if rules in the policy are satisfied for a given request's context"""
+    def are_rules_satisfied(policy, inquiry):
+        """Check if rules in the policy are satisfied for a given inquiry's context"""
         for key, rule in policy.rules.items():
             try:
-                ctx_rule = request.context[key]
+                ctx_rule = inquiry.context[key]
             except KeyError:
                 # todo - do we need it?
                 return False
-            if not rule.satisfied(ctx_rule, request):
+            if not rule.satisfied(ctx_rule, inquiry):
                 return False
         return True

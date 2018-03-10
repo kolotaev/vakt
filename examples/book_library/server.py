@@ -7,7 +7,7 @@ from vakt.rules.string import StringEqualRule
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import DefaultPolicy
 from vakt.matcher import RegexMatcher
-from vakt.guard import Guard, Request
+from vakt.guard import Guard, Inquiry
 
 from flask import Flask, request, session
 
@@ -100,8 +100,8 @@ def hello():
 @app.route('/login', methods=['POST'])
 def login():
     user = request.form['name']
-    vakt_request = Request(subject=user, action='login', context={'ip': request.remote_addr})
-    if guard.is_allowed(vakt_request):
+    inquiry = Inquiry(subject=user, action='login', context={'ip': request.remote_addr})
+    if guard.is_allowed(inquiry):
         # check password here
         session['fullname'] = user
         session['secret'] = request.form.get('secret', '')
@@ -111,8 +111,8 @@ def login():
 
 
 @app.route('/books/<action>/<book>')
-def serve_book_request(action, book):
-    vakt_request = Request(
+def serve_book(action, book):
+    inquiry = Inquiry(
         subject=session.get('fullname'),
         action=action,
         resource='library:books:%s' % book,
@@ -121,7 +121,7 @@ def serve_book_request(action, book):
             'secret': session.get('secret', '')
         }
     )
-    if guard.is_allowed(vakt_request):
+    if guard.is_allowed(inquiry):
         return "Enjoy! Here is the book you requested: '{}'!".format(book), 200
     else:
         return 'Sorry, but you are not allowed to do this!', 401

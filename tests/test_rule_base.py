@@ -11,7 +11,7 @@ class ABRule(Rule):
         self.a = a
         self.b = b
 
-    def satisfied(self, what=None, request=None):
+    def satisfied(self, what=None, inquiry=None):
         return self.a == self.b
 
 

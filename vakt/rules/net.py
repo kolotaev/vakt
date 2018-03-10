@@ -8,12 +8,12 @@ log = logging.getLogger(__name__)
 
 
 class CIDRRule(Rule):
-    """Rule that is satisfied when request's IP address is in the provided CIDR"""
+    """Rule that is satisfied when inquiry's IP address is in the provided CIDR"""
 
     def __init__(self, cidr):
         self.cidr = cidr
 
-    def satisfied(self, what, request=None):
+    def satisfied(self, what, inquiry=None):
         if not isinstance(what, str):
             return False
         try:

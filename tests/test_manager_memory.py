@@ -2,7 +2,7 @@ import pytest
 
 from vakt.managers.memory import MemoryManager
 from vakt.policy import DefaultPolicy
-from vakt.guard import Request
+from vakt.guard import Inquiry
 from vakt.exceptions import PolicyExists
 
 
@@ -54,11 +54,11 @@ def test_get_all_for_one(pm):
     assert 'foo' == pm.get_all(100, 0)[0].description
 
 
-def test_find_by_request(pm):
+def test_find_by_inquiry(pm):
     pm.create(DefaultPolicy('1', subjects=['max', 'bob']))
     pm.create(DefaultPolicy('2', subjects=['sam', 'nina']))
-    req = Request(subject='sam', action='get', resource='books')
-    found = pm.find_by_request(req)
+    inquiry = Inquiry(subject='sam', action='get', resource='books')
+    found = pm.find_by_inquiry(inquiry)
     assert 2 == len(found)
     assert ['max', 'bob'] == found[0].subjects or ['max', 'bob'] == found[1].subjects
 

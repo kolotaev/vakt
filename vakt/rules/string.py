@@ -16,7 +16,7 @@ class StringEqualRule(Rule):
             raise TypeError('Initial property should be a string')
         self.val = val
 
-    def satisfied(self, what, request=None):
+    def satisfied(self, what, inquiry=None):
         return isinstance(what, str) and what == self.val
 
 
@@ -24,7 +24,7 @@ class StringPairsEqualRule(Rule):
     """Rule that is satisfied when given data is an array of pairs and
        those pairs are represented by equal to each other strings"""
 
-    def satisfied(self, what, request=None):
+    def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
             return False
         for pair in what:
@@ -49,6 +49,6 @@ class RegexMatchRule(Rule):
             log.error('%s creation. Failed to compile regexp %s', type(self).__name__, pattern)
             raise TypeError('pattern should be a valid regexp string. Error %s' % e)
 
-    def satisfied(self, what, request=None):
+    def satisfied(self, what, inquiry=None):
         # todo - try match?
         return bool(self.regex.match(str(what)))

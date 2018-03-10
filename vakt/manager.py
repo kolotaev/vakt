@@ -22,9 +22,9 @@ class PolicyManager(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def find_by_request(self, request):
+    def find_by_inquiry(self, inquiry):
         """
-        Get potential policies for a given request.
+        Get potential policies for a given inquiry.
         Managers are free to decide what policies to return based on the performance and implementation considerations.
         In the worst case - all policies. In the best - policies matched on actions, subjects, resources.
         Mediocre case - match on subject.

@@ -15,8 +15,8 @@ class Rule(JsonDumper, PrettyPrint, metaclass=ABCMeta):
     """Basic Rule"""
 
     @abstractmethod
-    def satisfied(self, what, request):
-        """Is rule satisfied by the request"""
+    def satisfied(self, what, inquiry):
+        """Is rule satisfied by the inquiry"""
         pass
 
     @classmethod

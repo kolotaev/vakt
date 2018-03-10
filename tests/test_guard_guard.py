@@ -3,10 +3,10 @@ import pytest
 from vakt.matcher import RegexMatcher
 from vakt.managers.memory import MemoryManager
 from vakt.rules.net import CIDRRule
-from vakt.rules.request import SubjectEqualRule
+from vakt.rules.inquiry import SubjectEqualRule
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import DefaultPolicy
-from vakt.guard import Guard, Request
+from vakt.guard import Guard, Inquiry
 
 
 # Create all required test policies
@@ -16,7 +16,7 @@ policies = [
         id='1',
         description="""
         Max, Nina, Ben, Henry are allowed to create, delete, get the resources 
-        only if the client IP matches and the request states that any of them is the resource owner
+        only if the client IP matches and the inquiry states that any of them is the resource owner
         """,
         effect=ALLOW_ACCESS,
         subjects=('Max', 'Nina', '<Ben|Henry>'),
@@ -59,15 +59,15 @@ for p in policies:
     pm.create(p)
 
 
-@pytest.mark.parametrize('desc, req, should_be_allowed', [
+@pytest.mark.parametrize('desc, inquiry, should_be_allowed', [
     (
-        'Empty request carries no information, so nothing is allowed, even empty Policy #4',
-        Request(),
+        'Empty inquiry carries no information, so nothing is allowed, even empty Policy #4',
+        Inquiry(),
         False,
     ),
     (
         'Max is allowed to update anything',
-        Request(
+        Inquiry(
             subject='Max',
             resource='myrn:example.com:resource:123',
             action='update'
@@ -76,7 +76,7 @@ for p in policies:
     ),
     (
         'Max is allowed to update anything, even empty one',
-        Request(
+        Inquiry(
             subject='Max',
             resource='',
             action='update'
@@ -85,7 +85,7 @@ for p in policies:
     ),
     (
         'Max, but not max is allowed to update anything (case-sensitive comparison)',
-        Request(
+        Inquiry(
             subject='max',
             resource='myrn:example.com:resource:123',
             action='update'
@@ -94,7 +94,7 @@ for p in policies:
     ),
     (
         'Max is not allowed to print anything',
-        Request(
+        Inquiry(
             subject='Max',
             resource='myrn:example.com:resource:123',
             action='print',
@@ -103,7 +103,7 @@ for p in policies:
     ),
     (
         'Max is not allowed to print anything, even if no resource is given',
-        Request(
+        Inquiry(
             subject='Max',
             action='print'
         ),
@@ -111,7 +111,7 @@ for p in policies:
     ),
     (
         'Max is not allowed to print anything, even an empty resource',
-        Request(
+        Inquiry(
             subject='Max',
             action='print',
             resource=''
@@ -120,7 +120,7 @@ for p in policies:
     ),
     (
         'Policy #1 matches and has allow-effect',
-        Request(
+        Inquiry(
             subject='Nina',
             action='delete',
             resource='myrn:example.com:resource:123',
@@ -133,7 +133,7 @@ for p in policies:
     ),
     (
         'Policy #1 matches - Henry is listed in the allowed subjects regexp',
-        Request(
+        Inquiry(
             subject='Henry',
             action='get',
             resource='myrn:example.com:resource:123',
@@ -146,7 +146,7 @@ for p in policies:
     ),
     (
         'Policy #1 does not match - one of the contexts was not found (misspelled)',
-        Request(
+        Inquiry(
             subject='Nina',
             action='delete',
             resource='myrn:example.com:resource:123',
@@ -159,7 +159,7 @@ for p in policies:
     ),
     (
         'Policy #1 does not match - one of the contexts is missing',
-        Request(
+        Inquiry(
             subject='Nina',
             action='delete',
             resource='myrn:example.com:resource:123',
@@ -171,7 +171,7 @@ for p in policies:
     ),
     (
         'Policy #1 does not match - context says that owner is Ben, not Nina',
-        Request(
+        Inquiry(
             subject='Nina',
             action='delete',
             resource='myrn:example.com:resource:123',
@@ -184,7 +184,7 @@ for p in policies:
     ),
     (
         'Policy #1 does not match - context says IP is not in the allowed range',
-        Request(
+        Inquiry(
             subject='Nina',
             action='delete',
             resource='myrn:example.com:resource:123',
@@ -197,7 +197,7 @@ for p in policies:
     ),
     (
         'Policy #5 does not match - action is update, but subjects does not match',
-        Request(
+        Inquiry(
             subject='Sarah',
             action='update',
             resource='88',
@@ -206,7 +206,7 @@ for p in policies:
     ),
     (
         'Policy #5 does not match - action is update, subject is Nina, but resource-name is not digits',
-        Request(
+        Inquiry(
             subject='Nina',
             action='update',
             resource='abcd',
@@ -214,21 +214,21 @@ for p in policies:
         False,
     ),
 ])
-def test_is_allowed(desc, req, should_be_allowed):
+def test_is_allowed(desc, inquiry, should_be_allowed):
     g = Guard(pm, RegexMatcher())
-    assert should_be_allowed == g.is_allowed(req)
+    assert should_be_allowed == g.is_allowed(inquiry)
 
 
 def test_is_allowed_for_none_policies():
     g = Guard(MemoryManager(), RegexMatcher())
-    assert not g.is_allowed(Request(subject='foo', action='bar', resource='baz'))
+    assert not g.is_allowed(Inquiry(subject='foo', action='bar', resource='baz'))
 
 
 def test_guard_if_unexpected_exception_raised():
     # for testing unexpected exception
     class BadMemoryManager(MemoryManager):
-        def find_by_request(self, request=None):
+        def find_by_inquiry(self, inquiry=None):
             raise Exception('This is test class that raises errors')
     pm = BadMemoryManager()
     g = Guard(pm, RegexMatcher())
-    assert not g.is_allowed(Request(subject='foo', action='bar', resource='baz'))
+    assert not g.is_allowed(Inquiry(subject='foo', action='bar', resource='baz'))

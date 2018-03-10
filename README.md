@@ -48,7 +48,7 @@ pip install vakt
 
 ### JSON
 
-All Policies, Requests and Rules can be JSON-serialized and deserialized.
+All Policies, Inquiries and Rules can be JSON-serialized and deserialized.
 
 For example, for a Policy all you need is just run:
 ```python
@@ -65,18 +65,36 @@ print(policy)
 # <vakt.policy.DefaultPolicy object at 0x1023ca198>
 ```
 
-The same goes for Rules, Requests.
+The same goes for Rules, Inquiries.
 All custom classes derived from them support this functionality as well.
 If you do not derive from Vakt's classes, but want this option, you can mix-in `vakt.util.JsonDumper` trait.
 
 ```python
 from vakt.util import JsonDumper
 
-class CustomRequest(JsonDumper):
+class CustomInquiry(JsonDumper):
     pass
 ```
 
 ### Logging
+
+Vakt follows a common logging pattern for libraries:
+Its corresponding modules log all the events that happen but the log messages by default are handled by `NullHandler`.
+It's up to the outer code/application to provide a valid log-handler and a desired level of logging. For example:
+
+```python
+import logging
+
+root = logging.getLogger()
+root.setLevel(logging.INFO)
+root.addHandler(logging.StreamHandler())
+
+... # here go all the Vakt calls.
+```
+
+Vakt logs can be separated in 2 basic areas:
+1. Error/Exception level - inform about exceptions and errors during Vakt work.
+2. Info level - inform about incoming inquires and their resolution.
 
 
 ### Development

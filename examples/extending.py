@@ -10,7 +10,7 @@ class ABRule(vakt.rules.base.Rule):
         self.a = a
         self.b = b
 
-    def satisfied(self, what, request=None):
+    def satisfied(self, what, inquiry=None):
         return self.a < what < self.b
 
 
