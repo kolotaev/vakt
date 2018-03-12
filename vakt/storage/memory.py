@@ -1,21 +1,21 @@
 import threading
 import logging
 
-from ..manager import PolicyManager
+from ..storage.abc import Storage
 from ..exceptions import PolicyExists
 
 
 log = logging.getLogger(__name__)
 
 
-class MemoryManager(PolicyManager):
+class MemoryStorage(Storage):
     """Stores all policies in memory"""
 
     def __init__(self):
         self.policies = {}
         self.lock = threading.Lock()
 
-    def create(self, policy):
+    def add(self, policy):
         id = policy.id
         with self.lock:
             if id in self.policies:

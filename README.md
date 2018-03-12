@@ -13,11 +13,14 @@ Access policies SDK for Python.
 - [Description](#description)
 - [Install](#install)
 - [Concepts](#concepts)
-- [Managers](#managers)
+- [Storage](#storage)
     - [Memory](#memory)
 - [Usage](#usage)
 - [Components](#components)
-	- [Policies](#policies)
+	- [Policy](#policy)
+	- [Inquiry](#inquiry)
+	- [Rule](#rule)
+	- [Guard](#guard)
 - [JSON](#json)
 - [Logging](#logging)
 - [Development](#development)
@@ -36,7 +39,7 @@ pip install vakt
 
 ### Concepts
 
-### Managers
+### Storage
 
 #### Memory
 
@@ -44,7 +47,10 @@ pip install vakt
 
 ### Components
 
-#### Policies
+#### Policy
+#### Inquiry
+#### Rule
+#### Guard
 
 ### JSON
 
@@ -93,9 +99,9 @@ root.addHandler(logging.StreamHandler())
 ... # here go all the Vakt calls.
 ```
 
-Vakt logs can be separated in 2 basic areas:
-1. Error/Exception level - inform about exceptions and errors during Vakt work.
-2. Info level - inform about incoming inquires and their resolution.
+Vakt logs can be considered in 2 basic levels:
+1. Error/Exception - inform about exceptions and errors during Vakt work.
+2. Info - inform about incoming inquires and their resolution.
 
 
 ### Development

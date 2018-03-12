@@ -2,7 +2,7 @@
 
 import vakt.rules.base
 import vakt.policy
-import vakt.managers.memory
+import vakt.storage.memory
 
 
 class ABRule(vakt.rules.base.Rule):
@@ -37,9 +37,9 @@ policy2 = vakt.policy.DefaultPolicy(2,
 
 
 # You can add custom policies and default ones.
-storage = vakt.managers.memory.MemoryManager()
-storage.create(policy1)
-storage.create(policy2)
+storage = vakt.storage.memory.MemoryStorage()
+storage.add(policy1)
+storage.add(policy2)
 
 
 # You can use to_json() on custom and default policies.

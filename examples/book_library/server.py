@@ -1,7 +1,7 @@
 import os
 import logging
 
-from vakt.managers.memory import MemoryManager
+from vakt.storage.memory import MemoryStorage
 from vakt.rules.net import CIDRRule
 from vakt.rules.string import StringEqualRule
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
@@ -16,7 +16,7 @@ from flask import Flask, request, session
 
 
 # First of all we need to create Policies for our book library.
-# They can be added at any time via PolicyManager.
+# They can be added at any time via Storage.
 # Here comes the list of Policies:
 policies = [
     DefaultPolicy(
@@ -69,15 +69,15 @@ guard = None
 
 
 def init():
-    # Here we instantiate the Policy Manager.
-    # In this case it's just in-memory one, but we can opt to SQL-storage Manager, MongoDB-storage Manager, etc.
-    pm = MemoryManager()
+    # Here we instantiate the Policy Storage.
+    # In this case it's just in-memory one, but we can opt to SQL Storage, MongoDB Storage, etc.
+    st = MemoryStorage()
     # And persist all our Policies so that to start serving our library.
     for p in policies:
-        pm.create(p)
+        st.add(p)
     # Create global guard instance
     global guard
-    guard = Guard(pm, RegexMatcher())
+    guard = Guard(st, RegexMatcher())
     # Set up logger.
     root = logging.getLogger()
     root.setLevel(logging.INFO)

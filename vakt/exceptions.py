@@ -14,5 +14,5 @@ class RuleCreationError(Exception):
 
 
 class PolicyExists(Exception):
-    """Error when the already existing policy is attempted to be created by PolicyManager"""
+    """Error when the already existing policy is attempted to be created by Storage"""
     pass

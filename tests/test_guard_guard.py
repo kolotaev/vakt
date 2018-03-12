@@ -1,7 +1,7 @@
 import pytest
 
 from vakt.matcher import RegexMatcher
-from vakt.managers.memory import MemoryManager
+from vakt.storage.memory import MemoryStorage
 from vakt.rules.net import CIDRRule
 from vakt.rules.inquiry import SubjectEqualRule
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
@@ -10,7 +10,7 @@ from vakt.guard import Guard, Inquiry
 
 
 # Create all required test policies
-pm = MemoryManager()
+st = MemoryStorage()
 policies = [
     DefaultPolicy(
         id='1',
@@ -56,7 +56,7 @@ policies = [
     ),
 ]
 for p in policies:
-    pm.create(p)
+    st.add(p)
 
 
 @pytest.mark.parametrize('desc, inquiry, should_be_allowed', [
@@ -215,20 +215,19 @@ for p in policies:
     ),
 ])
 def test_is_allowed(desc, inquiry, should_be_allowed):
-    g = Guard(pm, RegexMatcher())
+    g = Guard(st, RegexMatcher())
     assert should_be_allowed == g.is_allowed(inquiry)
 
 
 def test_is_allowed_for_none_policies():
-    g = Guard(MemoryManager(), RegexMatcher())
+    g = Guard(MemoryStorage(), RegexMatcher())
     assert not g.is_allowed(Inquiry(subject='foo', action='bar', resource='baz'))
 
 
 def test_guard_if_unexpected_exception_raised():
     # for testing unexpected exception
-    class BadMemoryManager(MemoryManager):
+    class BadMemoryStorage(MemoryStorage):
         def find_by_inquiry(self, inquiry=None):
             raise Exception('This is test class that raises errors')
-    pm = BadMemoryManager()
-    g = Guard(pm, RegexMatcher())
+    g = Guard(BadMemoryStorage(), RegexMatcher())
     assert not g.is_allowed(Inquiry(subject='foo', action='bar', resource='baz'))

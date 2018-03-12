@@ -29,20 +29,20 @@ class Inquiry(JsonDumper, PrettyPrint):
 # todo - add info-level logging
 class Guard:
     """Executor of policy checks.
-       Given a manager and a matcher it can decide via `is_allowed` method if a given inquiry allowed or not."""
+       Given a storage and a matcher it can decide via `is_allowed` method if a given inquiry allowed or not."""
 
-    def __init__(self, manager, matcher):
-        self.manager = manager
+    def __init__(self, storage, matcher):
+        self.storage = storage
         self.matcher = matcher
 
     def is_allowed(self, inquiry):
         """Is given inquiry intent allowed or not?"""
         try:
-            policies = self.manager.find_by_inquiry(inquiry)
+            policies = self.storage.find_by_inquiry(inquiry)
             if not policies:
                 return False
             else:
-                # Manager is not obliged to do the exact policies match. It's up to the manager
+                # Storage is not obliged to do the exact policies match. It's up to the storage
                 # to decide what policies to return. So we need a more correct programmatically done check.
                 return self.check_policies_allow(inquiry, policies)
         except Exception:
