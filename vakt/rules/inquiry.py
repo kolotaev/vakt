@@ -8,6 +8,13 @@ class SubjectEqualRule(Rule):
         return isinstance(what, str) and what == inquiry.subject
 
 
+class ActionEqualRule(Rule):
+    """Rule that is satisfied if the string value equals the Inquiry's Action"""
+
+    def satisfied(self, what, inquiry):
+        return isinstance(what, str) and what == inquiry.action
+
+
 class ResourceInRule(Rule):
     """Rule that is satisfied if list contains the Inquiry's Resource"""
 

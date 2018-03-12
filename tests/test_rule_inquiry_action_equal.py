@@ -1,10 +1,10 @@
 import pytest
 
-from vakt.rules.inquiry import SubjectEqualRule
+from vakt.rules.inquiry import ActionEqualRule
 from vakt.guard import Inquiry
 
 
-@pytest.mark.parametrize('what, subject, result', [
+@pytest.mark.parametrize('what, action, result', [
     ('foo', 'foo', True),
     ('foo', 'bar', False),
     ('тест', 'нет', False),
@@ -13,7 +13,7 @@ from vakt.guard import Inquiry
     ('1', 1, False),
     ('', '', True),
 ])
-def test_subject_equal_satisfied(what, subject, result):
-    i = Inquiry(action='get', resource=None, subject=subject)
-    c = SubjectEqualRule()
+def test_action_equal_satisfied(what, action, result):
+    i = Inquiry(action=action, resource=None, subject=None)
+    c = ActionEqualRule()
     assert result == c.satisfied(what, i)
