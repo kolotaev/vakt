@@ -60,7 +60,7 @@ class StringExactMatcher(StringMatcher):
 
 class StringFuzzyMatcher(StringMatcher):
     """
-    Matcher that uses fuzzy substring string equality. Case-sensitive.
+    Matcher that uses fuzzy substring equality. Case-sensitive.
     E.g. 'sun' in 'sunny' - True
          'sun' in 'sun' - True
     """
