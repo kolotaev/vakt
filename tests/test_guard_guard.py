@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.matcher import RegexMatcher
+from vakt.checker import RegexChecker
 from vakt.storage.memory import MemoryStorage
 from vakt.rules.net import CIDRRule
 from vakt.rules.inquiry import SubjectEqualRule
@@ -215,12 +215,12 @@ for p in policies:
     ),
 ])
 def test_is_allowed(desc, inquiry, should_be_allowed):
-    g = Guard(st, RegexMatcher())
+    g = Guard(st, RegexChecker())
     assert should_be_allowed == g.is_allowed(inquiry)
 
 
 def test_is_allowed_for_none_policies():
-    g = Guard(MemoryStorage(), RegexMatcher())
+    g = Guard(MemoryStorage(), RegexChecker())
     assert not g.is_allowed(Inquiry(subject='foo', action='bar', resource='baz'))
 
 
@@ -229,5 +229,5 @@ def test_guard_if_unexpected_exception_raised():
     class BadMemoryStorage(MemoryStorage):
         def find_by_inquiry(self, inquiry=None):
             raise Exception('This is test class that raises errors')
-    g = Guard(BadMemoryStorage(), RegexMatcher())
+    g = Guard(BadMemoryStorage(), RegexChecker())
     assert not g.is_allowed(Inquiry(subject='foo', action='bar', resource='baz'))

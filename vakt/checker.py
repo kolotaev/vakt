@@ -9,10 +9,11 @@ from .exceptions import InvalidPattern
 log = logging.getLogger(__name__)
 
 
-class RegexMatcher:
-    """Matcher that uses regular expressions."""
+class RegexChecker:
+    """Checker that uses regular expressions."""
 
-    def matches(self, policy, field, what):
+    def fits(self, policy, field, what):
+        """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
         for i in where:
             if policy.start_delimiter not in i:  # check if 'where' item is written in a policy-defined-regex syntax.
@@ -29,16 +30,17 @@ class RegexMatcher:
         return False
 
 
-class StringMatcher(metaclass=ABCMeta):
-    """Matcher that uses string equality."""
+class StringChecker(metaclass=ABCMeta):
+    """Checker that uses string equality."""
 
-    def matches(self, policy, field, what):
+    def fits(self, policy, field, what):
+        """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
         for item in where:
             if policy.start_delimiter == item[0] and policy.end_delimiter == item[-1]:
                 item = item[1:-1]
             if self.compare(what, item):
-                    return True
+                return True
             continue
         return False
 
@@ -47,9 +49,9 @@ class StringMatcher(metaclass=ABCMeta):
         pass
 
 
-class StringExactMatcher(StringMatcher):
+class StringExactChecker(StringChecker):
     """
-    Matcher that uses exact string equality. Case-sensitive.
+    Checker that uses exact string equality. Case-sensitive.
     E.g. 'sun' in 'sunny' - False
          'sun' in 'sun' - True
     """
@@ -58,9 +60,9 @@ class StringExactMatcher(StringMatcher):
         return needle == haystack
 
 
-class StringFuzzyMatcher(StringMatcher):
+class StringFuzzyChecker(StringChecker):
     """
-    Matcher that uses fuzzy substring equality. Case-sensitive.
+    Checker that uses fuzzy substring equality. Case-sensitive.
     E.g. 'sun' in 'sunny' - True
          'sun' in 'sun' - True
     """

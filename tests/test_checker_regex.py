@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.matcher import RegexMatcher
+from vakt.checker import RegexChecker
 from vakt.policy import DefaultPolicy
 
 
@@ -19,5 +19,5 @@ from vakt.policy import DefaultPolicy
     (DefaultPolicy('1', resources=['<[\d]{1}>', '<[\d]{2}>']), 'resources', '12', True),
 ])
 def test_matches(policy, field, what, result):
-    m = RegexMatcher()
-    assert result == m.matches(policy, field, what)
+    c = RegexChecker()
+    assert result == c.fits(policy, field, what)

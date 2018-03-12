@@ -20,6 +20,7 @@ Access policies SDK for Python.
 	- [Policy](#policy)
 	- [Inquiry](#inquiry)
 	- [Rule](#rule)
+	- [Checker](#checker)
 	- [Guard](#guard)
 - [JSON](#json)
 - [Logging](#logging)
@@ -50,6 +51,7 @@ pip install vakt
 #### Policy
 #### Inquiry
 #### Rule
+#### Checker
 #### Guard
 
 ### JSON

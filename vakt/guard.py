@@ -29,11 +29,11 @@ class Inquiry(JsonDumper, PrettyPrint):
 # todo - add info-level logging
 class Guard:
     """Executor of policy checks.
-       Given a storage and a matcher it can decide via `is_allowed` method if a given inquiry allowed or not."""
+       Given a storage and a checker it can decide via `is_allowed` method if a given inquiry allowed or not."""
 
-    def __init__(self, storage, matcher):
+    def __init__(self, storage, checker):
         self.storage = storage
-        self.matcher = matcher
+        self.checker = checker
 
     def is_allowed(self, inquiry):
         """Is given inquiry intent allowed or not?"""
@@ -54,13 +54,13 @@ class Guard:
         allow = False
         for p in policies:
             # First we check if action is OK. Since usually action is the most used check.
-            if not self.matcher.matches(p, 'actions', inquiry.action):
+            if not self.checker.fits(p, 'actions', inquiry.action):
                 continue
-            # Subject is a more quick check then resources, so we try it second.
-            if not self.matcher.matches(p, 'subjects', inquiry.subject):
+            # Subject is a more quick check then resources, so we try it the second.
+            if not self.checker.fits(p, 'subjects', inquiry.subject):
                 continue
             # Check for resources access
-            if not self.matcher.matches(p, 'resources', inquiry.resource):
+            if not self.checker.fits(p, 'resources', inquiry.resource):
                 continue
             # Lastly check if the given inquiry's context satisfies rules of a policy
             if not self.are_rules_satisfied(p, inquiry):

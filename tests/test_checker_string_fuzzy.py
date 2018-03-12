@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.matcher import StringFuzzyMatcher
+from vakt.checker import StringFuzzyChecker
 from vakt.policy import DefaultPolicy
 
 
@@ -22,5 +22,5 @@ from vakt.policy import DefaultPolicy
     (DefaultPolicy('1', resources=['books:1', 'books:2']), 'resources', '3', False),
 ])
 def test_matches(policy, field, what, result):
-    m = StringFuzzyMatcher()
-    assert result == m.matches(policy, field, what)
+    c = StringFuzzyChecker()
+    assert result == c.fits(policy, field, what)

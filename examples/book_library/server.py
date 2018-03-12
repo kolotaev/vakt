@@ -6,7 +6,7 @@ from vakt.rules.net import CIDRRule
 from vakt.rules.string import StringEqualRule
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import DefaultPolicy
-from vakt.matcher import RegexMatcher
+from vakt.checker import RegexChecker
 from vakt.guard import Guard, Inquiry
 
 from flask import Flask, request, session
@@ -77,7 +77,7 @@ def init():
         st.add(p)
     # Create global guard instance
     global guard
-    guard = Guard(st, RegexMatcher())
+    guard = Guard(st, RegexChecker())
     # Set up logger.
     root = logging.getLogger()
     root.setLevel(logging.INFO)
