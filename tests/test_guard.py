@@ -224,6 +224,30 @@ def test_is_allowed_for_none_policies():
     assert not g.is_allowed(Inquiry(subject='foo', action='bar', resource='baz'))
 
 
+def test_not_allowed_when_similar_policies_have_at_least_one_deny_access():
+    st = MemoryStorage()
+    policies = (
+        DefaultPolicy(
+            id='1',
+            effect=ALLOW_ACCESS,
+            subjects=['foo'],
+            actions=['bar'],
+            resources=['baz'],
+        ),
+        DefaultPolicy(
+            id='2',
+            effect=DENY_ACCESS,
+            subjects=['foo'],
+            actions=['bar'],
+            resources=['baz'],
+        ),
+    )
+    for p in policies:
+        st.add(p)
+    g = Guard(st, RegexChecker())
+    assert not g.is_allowed(Inquiry(subject='foo', action='bar', resource='baz'))
+
+
 def test_guard_if_unexpected_exception_raised():
     # for testing unexpected exception
     class BadMemoryStorage(MemoryStorage):

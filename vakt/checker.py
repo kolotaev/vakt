@@ -10,7 +10,11 @@ log = logging.getLogger(__name__)
 
 
 class RegexChecker:
-    """Checker that uses regular expressions."""
+    """
+    Checker that uses regular expressions.
+    E.g. 'Dog', 'Doge', 'Dogs' fit <Dog[se]?>
+         'Dogger' doesn't fit <Dog[se]?>
+    """
 
     def fits(self, policy, field, what):
         """Does Policy fit the given 'what' value by its 'field' property"""
@@ -31,7 +35,10 @@ class RegexChecker:
 
 
 class StringChecker(metaclass=ABCMeta):
-    """Checker that uses string equality."""
+    """
+    Checker that uses string equality.
+    You have to redefine `compare` method.
+    """
 
     def fits(self, policy, field, what):
         """Does Policy fit the given 'what' value by its 'field' property"""
