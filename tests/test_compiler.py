@@ -1,7 +1,7 @@
 import pytest
 
 from vakt.compiler import compile_regex
-from vakt.exceptions import InvalidPattern
+from vakt.exceptions import InvalidPatternError
 
 
 @pytest.mark.parametrize('phrase, start, end, output', [
@@ -29,7 +29,7 @@ def test_compile_regex_compiles_correctly(phrase, start, end, output):
     ('[ab[c[[v]]c]', '[', ']'),
 ])
 def test_compile_regex_raises_exception_if_unbalanced(phrase, start, end):
-    with pytest.raises(InvalidPattern) as excinfo:
+    with pytest.raises(InvalidPatternError) as excinfo:
         compile_regex(phrase, start, end)
     assert phrase in str(excinfo.value)
     assert 'unbalanced braces' in str(excinfo.value)

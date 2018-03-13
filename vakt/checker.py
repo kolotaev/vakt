@@ -3,7 +3,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 
 from .compiler import compile_regex
-from .exceptions import InvalidPattern
+from .exceptions import InvalidPatternError
 
 
 log = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class RegexChecker:
                 continue
             try:
                 pattern = compile_regex(i, policy.start_delimiter, policy.end_delimiter)
-            except InvalidPattern:
+            except InvalidPatternError:
                 log.exception('Error matching policy, because of failed regex %s compilation', i)
                 return False
             if re.match(pattern, what):

@@ -3,7 +3,7 @@ import pytest
 from vakt.storage.memory import MemoryStorage
 from vakt.policy import DefaultPolicy
 from vakt.guard import Inquiry
-from vakt.exceptions import PolicyExists
+from vakt.exceptions import PolicyExistsError
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def test_add(st):
 
 def test_policy_create_existing(st):
     st.add(DefaultPolicy('1', description='foo'))
-    with pytest.raises(PolicyExists):
+    with pytest.raises(PolicyExistsError):
         st.add(DefaultPolicy('1', description='bar'))
 
 

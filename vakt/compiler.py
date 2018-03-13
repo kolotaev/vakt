@@ -1,7 +1,7 @@
 import re
 from functools import lru_cache
 
-from .exceptions import InvalidPattern
+from .exceptions import InvalidPatternError
 
 
 __all__ = ['compile_regex']
@@ -15,7 +15,7 @@ def compile_regex(phrase, start_delimiter, end_delimiter):
     end = 0
     try:
         indices = get_delimiter_indices(phrase, start_delimiter, end_delimiter)
-    except InvalidPattern as e:
+    except InvalidPatternError as e:
         raise e
     for i, idx in enumerate(indices[::2]):
         raw = phrase[end:idx]
@@ -47,8 +47,8 @@ def get_delimiter_indices(string, start, end):
                 indices.append(idx)
                 indices.append(i + 1)
             elif level < 0:
-                raise InvalidPattern(error_msg % string)
+                raise InvalidPatternError(error_msg % string)
 
     if level != 0:
-        raise InvalidPattern(error_msg % string)
+        raise InvalidPatternError(error_msg % string)
     return indices

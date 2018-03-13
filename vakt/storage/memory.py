@@ -2,7 +2,7 @@ import threading
 import logging
 
 from ..storage.abc import Storage
-from ..exceptions import PolicyExists
+from ..exceptions import PolicyExistsError
 
 
 log = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class MemoryStorage(Storage):
         with self.lock:
             if id in self.policies:
                 log.error('Error trying to create already existing policy with ID=%s', id)
-                raise PolicyExists
+                raise PolicyExistsError
             self.policies[id] = policy
 
     def get(self, id):

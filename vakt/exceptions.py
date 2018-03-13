@@ -1,4 +1,4 @@
-class InvalidPattern(Exception):
+class InvalidPatternError(Exception):
     """Invalid policy pattern"""
     pass
 
@@ -13,6 +13,6 @@ class RuleCreationError(Exception):
     pass
 
 
-class PolicyExists(Exception):
+class PolicyExistsError(Exception):
     """Error when the already existing policy is attempted to be created by Storage"""
     pass
