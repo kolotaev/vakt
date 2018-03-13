@@ -22,7 +22,7 @@ class Storage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def find_by_inquiry(self, inquiry):
+    def find_for_inquiry(self, inquiry):
         """
         Get potential policies for a given inquiry.
         Storage is free to decide what policies to return based on the performance and implementation considerations.

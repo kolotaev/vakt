@@ -54,11 +54,11 @@ def test_get_all_for_one(st):
     assert 'foo' == st.get_all(100, 0)[0].description
 
 
-def test_find_by_inquiry(st):
+def test_find_for_inquiry(st):
     st.add(DefaultPolicy('1', subjects=['max', 'bob']))
     st.add(DefaultPolicy('2', subjects=['sam', 'nina']))
     inquiry = Inquiry(subject='sam', action='get', resource='books')
-    found = st.find_by_inquiry(inquiry)
+    found = st.find_for_inquiry(inquiry)
     assert 2 == len(found)
     assert ['max', 'bob'] == found[0].subjects or ['max', 'bob'] == found[1].subjects
 

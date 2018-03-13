@@ -38,39 +38,30 @@ class Guard:
     def is_allowed(self, inquiry):
         """Is given inquiry intent allowed or not?"""
         try:
-            policies = self.storage.find_by_inquiry(inquiry)
-            if not policies:
-                return False
-            else:
-                # Storage is not obliged to do the exact policies match. It's up to the storage
-                # to decide what policies to return. So we need a more correct programmatically done check.
-                return self.check_policies_allow(inquiry, policies)
+            policies = self.storage.find_for_inquiry(inquiry)
+            # Storage is not obliged to do the exact policies match. It's up to the storage
+            # to decide what policies to return. So we need a more correct programmatically done check.
+            return self.check_policies_allow(inquiry, policies)
         except Exception:
             log.exception('Unexpected exception occurred while checking Inquiry %s', inquiry)
             return False
 
     def check_policies_allow(self, inquiry, policies):
         """Check if any of a given policy allows a specified inquiry"""
-        allow = False
-        for p in policies:
-            # First we check if action is OK. Since usually action is the most used check.
-            if not self.checker.fits(p, 'actions', inquiry.action):
-                continue
-            # Subject is a more quick check then resources, so we try it the second.
-            if not self.checker.fits(p, 'subjects', inquiry.subject):
-                continue
-            # Check for resources access
-            if not self.checker.fits(p, 'resources', inquiry.resource):
-                continue
-            # Lastly check if the given inquiry's context satisfies rules of a policy
-            if not self.are_rules_satisfied(p, inquiry):
-                continue
-            # If policy passed all matches - it's the right policy and all we need is to check its allow-effect.
-            # If we have 2 or more matched policies and one of them has deny access - it's deny for all of them.
-            if not p.allow_access():
-                return False
-            allow = True
-        return allow
+        # If no policies found or None is given -> deny access!
+        if not policies:
+            return False
+
+        # Filter policies that fit Inquiry by its attributes.
+        ps = [p for p in policies if
+              self.checker.fits(p, 'actions', inquiry.action) and
+              self.checker.fits(p, 'subjects', inquiry.subject) and
+              self.checker.fits(p, 'resources', inquiry.resource) and
+              self.are_rules_satisfied(p, inquiry)]
+
+        # no policies -> deny access!
+        # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
+        return len(ps) > 0 and all(p.allow_access() for p in ps)
 
     @staticmethod
     def are_rules_satisfied(policy, inquiry):
