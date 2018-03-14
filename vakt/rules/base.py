@@ -20,9 +20,9 @@ class Rule(JsonDumper, PrettyPrint, metaclass=ABCMeta):
         pass
 
     @classmethod
-    def from_json(cls, json_data):
+    def from_json(cls, data):
         try:
-            data = json.loads(json_data)
+            data = json.loads(data)
         except ValueError as e:
             log.exception('Error creating %s', cls.__name__)
             raise RuleCreationError('Invalid JSON data. JSON error: %s' % e)

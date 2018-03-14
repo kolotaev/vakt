@@ -34,7 +34,7 @@ class JsonDumper:
         try:
             return json.loads(data)
         except ValueError as err:
-            log.exception('Error creating %s from json.' % cls.__name__)
+            log.exception('Error creating %s from json.', cls.__name__)
             raise err
 
     def _data(self):

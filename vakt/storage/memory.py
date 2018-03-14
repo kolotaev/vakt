@@ -16,15 +16,15 @@ class MemoryStorage(Storage):
         self.lock = threading.Lock()
 
     def add(self, policy):
-        id = policy.id
+        id_value = policy.id
         with self.lock:
-            if id in self.policies:
-                log.error('Error trying to create already existing policy with ID=%s', id)
+            if id_value in self.policies:
+                log.error('Error trying to create already existing policy with ID=%s', id_value)
                 raise PolicyExistsError
-            self.policies[id] = policy
+            self.policies[id_value] = policy
 
-    def get(self, id):
-        return self.policies.get(id)
+    def get(self, id_value):
+        return self.policies.get(id_value)
 
     def get_all(self, limit, offset):
         result = [v for v in self.policies.values()]
@@ -40,6 +40,6 @@ class MemoryStorage(Storage):
     def update(self, policy):
         self.policies[policy.id] = policy
 
-    def delete(self, id):
-        if id in self.policies:
-            del self.policies[id]
+    def delete(self, id_value):
+        if id_value in self.policies:
+            del self.policies[id_value]

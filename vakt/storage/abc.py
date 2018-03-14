@@ -2,9 +2,11 @@ from abc import ABCMeta, abstractmethod
 
 
 class Storage(metaclass=ABCMeta):
-    """Interface for any storage that persists policies.
+    """
+    Interface for any storage that persists policies.
     Every storage should implement all the specified methods, but how, it's up to it to decide:
-    it can be in-memory storage, SQL database, NoSQL solution, etc."""
+    it can be in-memory storage, SQL database, NoSQL solution, etc.
+    """
 
     @abstractmethod
     def add(self, policy):
@@ -12,7 +14,7 @@ class Storage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get(self, id):
+    def get(self, id_value):
         """Retrieve specific policy"""
         pass
 
@@ -37,6 +39,6 @@ class Storage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def delete(self, id):
+    def delete(self, id_value):
         """Delete a policy"""
         pass
