@@ -23,7 +23,6 @@ class Inquiry(JsonDumper, PrettyPrint):
         return cls(**props)
 
 
-# todo - add info-level logging
 class Guard:
     """Executor of policy checks.
        Given a storage and a checker it can decide via `is_allowed` method if a given inquiry allowed or not."""
@@ -38,10 +37,17 @@ class Guard:
             policies = self.storage.find_for_inquiry(inquiry)
             # Storage is not obliged to do the exact policies match. It's up to the storage
             # to decide what policies to return. So we need a more correct programmatically done check.
-            return self.check_policies_allow(inquiry, policies)
+            answer = self.check_policies_allow(inquiry, policies)
         except Exception:
             log.exception('Unexpected exception occurred while checking Inquiry %s', inquiry)
-            return False
+            answer = False
+
+        if answer:
+            log.info('Incoming Inquiry allowed. Data: %s', inquiry)
+        else:
+            log.info('Incoming Inquiry rejected. Data: %s', inquiry)
+
+        return answer
 
     def check_policies_allow(self, inquiry, policies):
         """Check if any of a given policy allows a specified inquiry"""
