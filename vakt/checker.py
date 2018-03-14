@@ -20,10 +20,12 @@ class RegexChecker:
         """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
         for i in where:
-            if policy.start_tag not in i:  # check if 'where' item is written in a policy-defined-regex syntax.
-                if i == what:  # it's a single string match
-                    return True
-                continue
+            # check if 'where' item is not written in a policy-defined-regex syntax.
+            if policy.start_tag not in i and policy.end_tag not in i:
+                if i != what:
+                    continue       # continue if it's not a string match
+                else:
+                    return True    # we've found a string match - policy fits by simple string value
             try:
                 pattern = compile_regex(i, policy.start_tag, policy.end_tag)
             except InvalidPatternError:
@@ -48,7 +50,6 @@ class StringChecker(metaclass=ABCMeta):
                 item = item[1:-1]
             if self.compare(what, item):
                 return True
-            continue
         return False
 
     @abstractmethod

@@ -102,8 +102,8 @@ root.addHandler(logging.StreamHandler())
 ```
 
 Vakt logs can be considered in 2 basic levels:
-1. Error/Exception - inform about exceptions and errors during Vakt work.
-2. Info - inform about incoming inquires and their resolution.
+1. Error/Exception - informs about exceptions and errors during Vakt work.
+2. Info - informs about incoming inquires and their resolution.
 
 
 ### Development
