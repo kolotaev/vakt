@@ -14,24 +14,24 @@ class ABRule(vakt.rules.base.Rule):
         return self.a < what < self.b
 
 
-class CustomDelimitersPolicy(vakt.policy.DefaultPolicy):
+class CustomTagsPolicy(vakt.policy.Policy):
     @property
-    def start_delimiter(self):
+    def start_tag(self):
         """Policy expression start tag"""
         return '='
 
     @property
-    def end_delimiter(self):
+    def end_tag(self):
         """Policy expression end tag"""
         return '='
 
 
 # You can use custom rules in any policy.
-policy1 = CustomDelimitersPolicy(1,
+policy1 = CustomTagsPolicy(1,
                                  description='some custom policy',
                                  subjects=('=[FGH]+[\w]+=', 'Max'),
                                  rules={'secret': ABRule(10, 100)})
-policy2 = vakt.policy.DefaultPolicy(2,
+policy2 = vakt.policy.Policy(2,
                                     description='some default policy',
                                     rules={'secret': ABRule(1, 15)})
 
@@ -47,5 +47,5 @@ data = list(map(lambda x: x.to_json(), storage.get_all(2, 0)))
 print(data)
 
 # You can use from_json() on custom and default policies.
-data = list(map(vakt.policy.DefaultPolicy.from_json, data))
+data = list(map(vakt.policy.Policy.from_json, data))
 print(data)

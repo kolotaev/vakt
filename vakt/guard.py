@@ -20,10 +20,7 @@ class Inquiry(JsonDumper, PrettyPrint):
     @classmethod
     def from_json(cls, data):
         props = cls._parse(data)
-        return cls(props.get('resource'),
-                   props.get('action'),
-                   props.get('subject'),
-                   props.get('context'))
+        return cls(**props)
 
 
 # todo - add info-level logging

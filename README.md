@@ -60,17 +60,17 @@ All Policies, Inquiries and Rules can be JSON-serialized and deserialized.
 
 For example, for a Policy all you need is just run:
 ```python
-from vakt.policy import DefaultPolicy
+from vakt.policy import Policy
 
-policy = DefaultPolicy('1')
+policy = Policy('1')
 
 json_policy = policy.to_json()
 print(json_policy)
 # {"actions": [], "description": null, "effect": "deny", "id": "1", "resources": [], "rules": {}, "subjects": []}
 
-policy = DefaultPolicy.from_json(json_policy)
+policy = Policy.from_json(json_policy)
 print(policy)
-# <vakt.policy.DefaultPolicy object at 0x1023ca198>
+# <vakt.policy.Policy object at 0x1023ca198>
 ```
 
 The same goes for Rules, Inquiries.

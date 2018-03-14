@@ -8,13 +8,13 @@ __all__ = ['compile_regex']
 
 
 @lru_cache(maxsize=1024)
-def compile_regex(phrase, start_delimiter, end_delimiter):
-    """Compiles a string denoted by delimiters to a regular expression"""
+def compile_regex(phrase, start_tag, end_tag):
+    """Compiles a string denoted by tags to a regular expression"""
     regex_vars = []
     pattern = '^'
     end = 0
     try:
-        indices = get_delimiter_indices(phrase, start_delimiter, end_delimiter)
+        indices = get_tag_indices(phrase, start_tag, end_tag)
     except InvalidPatternError as e:
         raise e
     for i, idx in enumerate(indices[::2]):
@@ -28,10 +28,10 @@ def compile_regex(phrase, start_delimiter, end_delimiter):
     return re.compile('%s%s$' % (pattern, re.escape(raw)))
 
 
-def get_delimiter_indices(string, start, end):
+def get_tag_indices(string, start, end):
     """
-    Find and return list of delimiter indices in the given string.
-    Raises exception if delimiters are not balanced (e.g. <<foo>)
+    Find and return list of tag indices in the given string.
+    Raises exception if tags are not balanced (e.g. <<foo>)
     """
     error_msg = 'Pattern %s has unbalanced braces'
     idx, level = 0, 0

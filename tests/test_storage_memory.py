@@ -1,7 +1,7 @@
 import pytest
 
 from vakt.storage.memory import MemoryStorage
-from vakt.policy import DefaultPolicy
+from vakt.policy import Policy
 from vakt.guard import Inquiry
 from vakt.exceptions import PolicyExistsError
 
@@ -12,21 +12,21 @@ def st():
 
 
 def test_add(st):
-    st.add(DefaultPolicy('1', description='foo'))
+    st.add(Policy('1', description='foo'))
     assert '1' == st.get('1').id
     assert 'foo' == st.get('1').description
 
 
 def test_policy_create_existing(st):
-    st.add(DefaultPolicy('1', description='foo'))
+    st.add(Policy('1', description='foo'))
     with pytest.raises(PolicyExistsError):
-        st.add(DefaultPolicy('1', description='bar'))
+        st.add(Policy('1', description='bar'))
 
 
 def test_get(st):
-    st.add(DefaultPolicy('1'))
-    st.add(DefaultPolicy(2, description='some text'))
-    assert isinstance(st.get('1'), DefaultPolicy)
+    st.add(Policy('1'))
+    st.add(Policy(2, description='some text'))
+    assert isinstance(st.get('1'), Policy)
     assert '1' == st.get('1').id
     assert 2 == st.get(2).id
     assert 'some text' == st.get(2).description
@@ -34,7 +34,7 @@ def test_get(st):
 
 def test_get_all(st):
     for i in range(200):
-        st.add(DefaultPolicy(str(i)))
+        st.add(Policy(str(i)))
     assert 200 == len(st.get_all(500, 0))
     assert 200 == len(st.get_all(500, 50))
     assert 200 == len(st.get_all(200, 0))
@@ -48,15 +48,15 @@ def test_get_all(st):
 
 
 def test_get_all_for_one(st):
-    st.add(DefaultPolicy('1', description='foo'))
+    st.add(Policy('1', description='foo'))
     assert 1 == len(st.get_all(100, 0))
     assert '1' == st.get_all(100, 0)[0].id
     assert 'foo' == st.get_all(100, 0)[0].description
 
 
 def test_find_for_inquiry(st):
-    st.add(DefaultPolicy('1', subjects=['max', 'bob']))
-    st.add(DefaultPolicy('2', subjects=['sam', 'nina']))
+    st.add(Policy('1', subjects=['max', 'bob']))
+    st.add(Policy('2', subjects=['sam', 'nina']))
     inquiry = Inquiry(subject='sam', action='get', resource='books')
     found = st.find_for_inquiry(inquiry)
     assert 2 == len(found)
@@ -64,7 +64,7 @@ def test_find_for_inquiry(st):
 
 
 def test_update(st):
-    policy = DefaultPolicy('1')
+    policy = Policy('1')
     st.add(policy)
     assert '1' == st.get('1').id
     assert None is st.get('1').description
@@ -75,7 +75,7 @@ def test_update(st):
 
 
 def test_delete(st):
-    policy = DefaultPolicy('1')
+    policy = Policy('1')
     st.add(policy)
     assert '1' == st.get('1').id
     st.delete('1')

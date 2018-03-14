@@ -5,7 +5,7 @@ from vakt.storage.memory import MemoryStorage
 from vakt.rules.net import CIDRRule
 from vakt.rules.string import StringEqualRule
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
-from vakt.policy import DefaultPolicy
+from vakt.policy import Policy
 from vakt.checker import RegexChecker
 from vakt.guard import Guard, Inquiry
 
@@ -19,7 +19,7 @@ from flask import Flask, request, session
 # They can be added at any time via Storage.
 # Here comes the list of Policies:
 policies = [
-    DefaultPolicy(
+    Policy(
         id='1',
         description="Allow everyone to log-in",
         effect=ALLOW_ACCESS,
@@ -27,7 +27,7 @@ policies = [
         resources=['<.*>'],
         actions=['login'],
     ),
-    DefaultPolicy(
+    Policy(
         id='2',
         description="""
         Allow all readers of the book library whose surnames start with M get and read any book or magazine,
@@ -42,7 +42,7 @@ policies = [
             # for local testing replace with CIDRRule('127.0.0.1'),
         },
     ),
-    DefaultPolicy(
+    Policy(
         id='3',
         description='Allow mr. Rooney and ms. Sparrow to do anything with the books',
         effect=ALLOW_ACCESS,
@@ -53,7 +53,7 @@ policies = [
             'secret': StringEqualRule('i-am-a-teacher'),
         },
     ),
-    DefaultPolicy(
+    Policy(
         id='4',
         description='Disallow Ferris Bueller to do anything inside library. Even to log-in',
         effect=DENY_ACCESS,

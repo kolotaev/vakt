@@ -5,14 +5,14 @@ from vakt.storage.memory import MemoryStorage
 from vakt.rules.net import CIDRRule
 from vakt.rules.inquiry import SubjectEqualRule
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
-from vakt.policy import DefaultPolicy
+from vakt.policy import Policy
 from vakt.guard import Guard, Inquiry
 
 
 # Create all required test policies
 st = MemoryStorage()
 policies = [
-    DefaultPolicy(
+    Policy(
         id='1',
         description="""
         Max, Nina, Ben, Henry are allowed to create, delete, get the resources 
@@ -27,7 +27,7 @@ policies = [
             'owner': SubjectEqualRule(),
         },
     ),
-    DefaultPolicy(
+    Policy(
         id='2',
         description='Allows Max to update any resource',
         effect=ALLOW_ACCESS,
@@ -35,7 +35,7 @@ policies = [
         actions=['update'],
         resources=['<.*>'],
     ),
-    DefaultPolicy(
+    Policy(
         id='3',
         description='Max is not allowed to print any resource',
         effect=DENY_ACCESS,
@@ -43,10 +43,10 @@ policies = [
         actions=['print'],
         resources=['<.*>'],
     ),
-    DefaultPolicy(
+    Policy(
         id='4'
     ),
-    DefaultPolicy(
+    Policy(
         id='5',
         description='Allows Nina to update any resources that have only digits',
         effect=ALLOW_ACCESS,
@@ -227,14 +227,14 @@ def test_is_allowed_for_none_policies():
 def test_not_allowed_when_similar_policies_have_at_least_one_deny_access():
     st = MemoryStorage()
     policies = (
-        DefaultPolicy(
+        Policy(
             id='1',
             effect=ALLOW_ACCESS,
             subjects=['foo'],
             actions=['bar'],
             resources=['baz'],
         ),
-        DefaultPolicy(
+        Policy(
             id='2',
             effect=DENY_ACCESS,
             subjects=['foo'],

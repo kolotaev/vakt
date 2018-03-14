@@ -20,12 +20,12 @@ class RegexChecker:
         """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
         for i in where:
-            if policy.start_delimiter not in i:  # check if 'where' item is written in a policy-defined-regex syntax.
+            if policy.start_tag not in i:  # check if 'where' item is written in a policy-defined-regex syntax.
                 if i == what:  # it's a single string match
                     return True
                 continue
             try:
-                pattern = compile_regex(i, policy.start_delimiter, policy.end_delimiter)
+                pattern = compile_regex(i, policy.start_tag, policy.end_tag)
             except InvalidPatternError:
                 log.exception('Error matching policy, because of failed regex %s compilation', i)
                 return False
@@ -44,7 +44,7 @@ class StringChecker(metaclass=ABCMeta):
         """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
         for item in where:
-            if policy.start_delimiter == item[0] and policy.end_delimiter == item[-1]:
+            if policy.start_tag == item[0] and policy.end_tag == item[-1]:
                 item = item[1:-1]
             if self.compare(what, item):
                 return True
