@@ -16,6 +16,7 @@ install:
 
 script:
   - python -m pytest --cov-config .coveragerc --cov=./
+  - python benchmark.py
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

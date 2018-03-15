@@ -68,4 +68,4 @@ if __name__ == '__main__':
     print('Number of unique Policies in DB: {:,}'.format(POLICIES_NUMBER))
     print('Are Policies defined in Regex syntax?: %s' % USE_REGEXP_POLICIES)
     print('Single Inquiry decision took: %0.4f seconds' % (stop - start))
-    print('Inquiry allowed? %s' % allowed)
+    print('Inquiry passed the guard? %s' % allowed)
