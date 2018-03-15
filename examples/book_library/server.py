@@ -1,5 +1,6 @@
 import os
 import logging
+import uuid
 
 from vakt.storage.memory import MemoryStorage
 from vakt.rules.net import CIDRRule
@@ -20,7 +21,7 @@ from flask import Flask, request, session
 # Here comes the list of Policies:
 policies = [
     Policy(
-        id='1',
+        id=str(uuid.uuid4()),
         description="Allow everyone to log-in",
         effect=ALLOW_ACCESS,
         subjects=['<.*>'],
@@ -28,7 +29,7 @@ policies = [
         actions=['login'],
     ),
     Policy(
-        id='2',
+        id=str(uuid.uuid4()),
         description="""
         Allow all readers of the book library whose surnames start with M get and read any book or magazine,
         but only when they connect from local library's computer
@@ -43,7 +44,7 @@ policies = [
         },
     ),
     Policy(
-        id='3',
+        id=str(uuid.uuid4()),
         description='Allow mr. Rooney and ms. Sparrow to do anything with the books',
         effect=ALLOW_ACCESS,
         subjects=('Edward Rooney', 'Florence Sparrow'),
@@ -54,7 +55,7 @@ policies = [
         },
     ),
     Policy(
-        id='4',
+        id=str(uuid.uuid4()),
         description='Disallow Ferris Bueller to do anything inside library. Even to log-in',
         effect=DENY_ACCESS,
         subjects=['Ferris Bueller'],

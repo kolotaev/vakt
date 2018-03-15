@@ -24,6 +24,7 @@ Access policies SDK for Python.
 	- [Guard](#guard)
 - [JSON](#json)
 - [Logging](#logging)
+- [Benchmark](#benchmark)
 - [Development](#development)
 
 
@@ -66,7 +67,8 @@ policy = Policy('1')
 
 json_policy = policy.to_json()
 print(json_policy)
-# {"actions": [], "description": null, "effect": "deny", "id": "1", "resources": [], "rules": {}, "subjects": []}
+# {"actions": [], "description": null, "effect": "deny", "id": "1",
+# "resources": [], "rules": {}, "subjects": []}
 
 policy = Policy.from_json(json_policy)
 print(policy)
@@ -75,7 +77,7 @@ print(policy)
 
 The same goes for Rules, Inquiries.
 All custom classes derived from them support this functionality as well.
-If you do not derive from Vakt's classes, but want this option, you can mix-in `vakt.util.JsonDumper` trait.
+If you do not derive from Vakt's classes, but want this option, you can mix-in `vakt.util.JsonDumper` class.
 
 ```python
 from vakt.util import JsonDumper
@@ -104,6 +106,28 @@ root.addHandler(logging.StreamHandler())
 Vakt logs can be considered in 2 basic levels:
 1. Error/Exception - informs about exceptions and errors during Vakt work.
 2. Info - informs about incoming inquires and their resolution.
+
+
+### Benchmark
+
+You can see how much time it takes a single Inquiry to be processed given we have a number of unique Policies in Memory
+Store.
+
+Example:
+
+```bash
+python3 benchmark.py 1000 no
+
+Output is:
+# Number of unique Policies in DB: 1,000
+# Are Policies defined in Regex syntax?: False
+# Single Inquiry decision took: 0.0041 seconds
+# Inquiry allowed? False
+```
+
+Script arguments:
+1. Int - Number of unique Policies generated and put into Storage (Default: 100,000)
+2. 'no/yes' - Should Policies be generated using regex syntax rules or not? (Default: yes)
 
 
 ### Development
