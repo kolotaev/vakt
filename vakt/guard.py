@@ -73,7 +73,6 @@ class Guard:
             try:
                 ctx_rule = inquiry.context[key]
             except KeyError:
-                # todo - do we need it?
                 return False
             if not rule.satisfied(ctx_rule, inquiry):
                 return False

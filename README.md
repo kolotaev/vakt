@@ -104,14 +104,15 @@ root.addHandler(logging.StreamHandler())
 ```
 
 Vakt logs can be considered in 2 basic levels:
-1. Error/Exception - informs about exceptions and errors during Vakt work.
-2. Info - informs about incoming inquires and their resolution.
+1. *Error/Exception* - informs about exceptions and errors during Vakt work.
+2. *Info* - informs about incoming inquires and their resolution.
 
 
 ### Benchmark
 
 You can see how much time it takes a single Inquiry to be processed given we have a number of unique Policies in Memory
-Store. Generally speaking, it measures only the runtime of a decision-making process when the worst-case
+Store.
+Generally speaking, it measures only the runtime of a decision-making process when the worst-case
 storage ([MemoryStorage](#memory)) returns all the existing Policies and [Guard's](#guard)
 code iterates the whole list of Policies to decide is Inquiry allowed or not. In case of other storages the mileage
 may vary since other storages generally tend to return a smaller subset of Policies that fit the given Inquiry - this
@@ -123,13 +124,12 @@ Example:
 python3 benchmark.py 1000 no
 ```
 
-```
 Output is:
-# Number of unique Policies in DB: 1,000
-# Are Policies defined in Regex syntax?: False
-# Single Inquiry decision took: 0.0041 seconds
-# Inquiry allowed? False
-```
+> Number of unique Policies in DB: 1,000
+> Are Policies defined in Regex syntax?: False
+> START BENCHMARK!
+> Decision for 1 Inquiry took: 0.0041 seconds
+> Inquiry allowed? False
 
 Script arguments:
 1. Int - Number of unique Policies generated and put into Storage (Default: 100,000)
