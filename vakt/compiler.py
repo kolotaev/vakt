@@ -10,9 +10,7 @@ __all__ = ['compile_regex']
 @lru_cache(maxsize=1024)
 def compile_regex(phrase, start_tag, end_tag):
     """Compiles a string denoted by tags to a regular expression"""
-    regex_vars = []
-    pattern = '^'
-    end = 0
+    regex_vars, pattern, end = [], '', 0
     try:
         indices = get_tag_indices(phrase, start_tag, end_tag)
     except InvalidPatternError as e:
@@ -25,7 +23,7 @@ def compile_regex(phrase, start_tag, end_tag):
         pattern = pattern + '%s(%s)' % (re.escape(raw), pt)
         regex_vars.insert(i//2, re.compile('^%s$' % pt))
     raw = phrase[end:]
-    return re.compile('%s%s$' % (pattern, re.escape(raw)))
+    return re.compile('^%s%s$' % (pattern, re.escape(raw)))
 
 
 def get_tag_indices(string, start, end):
@@ -47,8 +45,8 @@ def get_tag_indices(string, start, end):
                 indices.append(idx)
                 indices.append(i + 1)
             elif level < 0:
-                raise InvalidPatternError(error_msg % string)
+                raise InvalidPatternError(error_msg, string)
 
     if level != 0:
-        raise InvalidPatternError(error_msg % string)
+        raise InvalidPatternError(error_msg, string)
     return indices
