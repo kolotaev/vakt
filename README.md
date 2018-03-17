@@ -111,12 +111,12 @@ Vakt logs can be considered in 2 basic levels:
 ### Benchmark
 
 You can see how much time it takes a single Inquiry to be processed given we have a number of unique Policies in Memory
-Store.
+Store.<br />
 Generally speaking, it measures only the runtime of a decision-making process when the worst-case
 storage ([MemoryStorage](#memory)) returns all the existing Policies and [Guard's](#guard)
-code iterates the whole list of Policies to decide is Inquiry allowed or not. In case of other storages the mileage
-may vary since other storages generally tend to return a smaller subset of Policies that fit the given Inquiry - this
-of course adds the time to perform database lookup.
+code iterates the whole list of Policies to decide if Inquiry is allowed or not. In case of other storages the mileage
+may vary since other storages generally tend to return a smaller subset of Policies that fit the given Inquiry.<br />
+Real-world storage of course adds the time to perform database lookup and IO operations.
 
 Example:
 
@@ -125,15 +125,19 @@ python3 benchmark.py 1000 no
 ```
 
 Output is:
-> Number of unique Policies in DB: 1,000
-> Are Policies defined in Regex syntax?: False
-> START BENCHMARK!
-> Decision for 1 Inquiry took: 0.0041 seconds
-> Inquiry allowed? False
+> Populating MemoryStorage with Policies<br />
+> ......................<br />
+> START BENCHMARK!<br />
+> Number of unique Policies in DB: 1,000<br />
+> Among them there are Policies with the same regexp pattern: 0<br />
+> Are Policies defined in Regexp syntax?: True<br />
+> Decision for 1 Inquiry took: 0.0041 seconds<br />
+> Inquiry allowed? False<br />
 
 Script arguments:
 1. Int - Number of unique Policies generated and put into Storage (Default: 100,000)
 2. String (yes/no) - Should Policies be generated using regex syntax rules or not? (Default: yes)
+3. Int - Number of Policies with the same regexp pattern (Default: 0)
 
 
 ### Development

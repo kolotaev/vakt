@@ -2,7 +2,7 @@ import re
 import logging
 from abc import ABCMeta, abstractmethod
 
-from .compiler import compile_regex
+from .parser import compile_regex
 from .exceptions import InvalidPatternError
 
 

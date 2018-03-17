@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.compiler import compile_regex
+from vakt.parser import compile_regex
 from vakt.exceptions import InvalidPatternError
 
 
