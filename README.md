@@ -91,7 +91,9 @@ class CustomInquiry(JsonDumper):
 Vakt follows a common logging pattern for libraries:
 
 Its corresponding modules log all the events that happen but the log messages by default are handled by `NullHandler`.
-It's up to the outer code/application to provide desired log handlers, filters, levels, etc. For example:
+It's up to the outer code/application to provide desired log handlers, filters, levels, etc.
+
+For example:
 
 ```python
 import logging
@@ -116,12 +118,12 @@ Generally speaking, it measures only the runtime of a decision-making process wh
 storage ([MemoryStorage](#memory)) returns all the existing Policies and [Guard's](#guard)
 code iterates the whole list of Policies to decide if Inquiry is allowed or not. In case of other storages the mileage
 may vary since other storages generally tend to return a smaller subset of Policies that fit the given Inquiry.<br />
-Real-world storage of course adds the time to perform database lookup and IO operations.
+Don't forget that the real-world storage of course adds some time penalty to perform I/O operations.
 
 Example:
 
 ```bash
-python3 benchmark.py 1000 no
+python3 benchmark.py 1000 yes
 ```
 
 Output is:
@@ -131,7 +133,7 @@ Output is:
 > Number of unique Policies in DB: 1,000<br />
 > Among them there are Policies with the same regexp pattern: 0<br />
 > Are Policies defined in Regexp syntax?: True<br />
-> Decision for 1 Inquiry took: 0.0041 seconds<br />
+> Decision for 1 Inquiry took: 0.4451 seconds<br />
 > Inquiry allowed? False<br />
 
 Script arguments:

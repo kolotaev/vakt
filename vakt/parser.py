@@ -1,5 +1,4 @@
 import re
-from functools import lru_cache
 
 from .exceptions import InvalidPatternError
 
@@ -7,7 +6,6 @@ from .exceptions import InvalidPatternError
 __all__ = ['compile_regex']
 
 
-@lru_cache(maxsize=1024)
 def compile_regex(phrase, start_tag, end_tag):
     """Compiles a string denoted by tags to a regular expression"""
     regex_vars, pattern, end = [], '', 0

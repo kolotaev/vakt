@@ -1,5 +1,6 @@
 import re
 import logging
+from functools import lru_cache
 from abc import ABCMeta, abstractmethod
 
 from .parser import compile_regex
@@ -16,6 +17,10 @@ class RegexChecker:
          'Dogger' doesn't fit <Dog[se]?>
     """
 
+    def __init__(self, cache_size=1024):
+        """Set up LRU-cache size for compiled regular expressions."""
+        self.compile = lru_cache(maxsize=cache_size)(compile_regex)
+
     def fits(self, policy, field, what):
         """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
@@ -27,7 +32,7 @@ class RegexChecker:
                 else:
                     return True    # we've found a string match - policy fits by simple string value
             try:
-                pattern = compile_regex(i, policy.start_tag, policy.end_tag)
+                pattern = self.compile(i, policy.start_tag, policy.end_tag)
             except InvalidPatternError:
                 log.exception('Error matching policy, because of failed regex %s compilation', i)
                 return False
