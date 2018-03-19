@@ -17,6 +17,8 @@ POLICIES_NUMBER = int(sys.argv[1]) if len(sys.argv) > 1 else 100000
 USE_REGEXP_POLICIES = False if len(sys.argv) > 2 and sys.argv[2] == 'no' else True
 # Grab number of similar regexps in policy
 SAME_REGEX_POLICIES_NUMBER = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+# Grab number of LRU-cache for RegexChecker
+CACHE_SIZE = int(sys.argv[4]) if len(sys.argv) > 4 else None
 
 
 def rand_string():
@@ -90,7 +92,8 @@ def single_inquiry_benchmark():
 overall_policies_created = 0
 similar_regexp_policies_created = 0
 store = MemoryStorage()
-guard = Guard(store, RegexChecker())
+checker = RegexChecker(CACHE_SIZE) if CACHE_SIZE else RegexChecker()
+guard = Guard(store, checker)
 inq = Inquiry(action='get', subject='xo', resource='library:books:1234', context={'ip': '127.0.0.1'})
 
 

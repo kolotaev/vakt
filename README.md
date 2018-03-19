@@ -140,6 +140,7 @@ Script arguments:
 1. Int - Number of unique Policies generated and put into Storage (Default: 100,000)
 2. String (yes/no) - Should Policies be generated using regex syntax rules or not? (Default: yes)
 3. Int - Number of Policies with the same regexp pattern (Default: 0)
+3. Int - Cache size for RegexChecker (Default: 1024)
 
 
 ### Development
