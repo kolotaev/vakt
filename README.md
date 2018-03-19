@@ -148,8 +148,8 @@ Script arguments:
 To hack Vakt locally run:
 
 ```bash
-pip install -e .[dev] -r requirements.txt            # to install all dependencies
-pytest                                               # to run tests with coverage report
-pytest --cov-config .coveragerc --cov=vakt tests/    # to get coverage report
-pylint vakt                                          # to check code quality with PyLint
+$ pip install -e .[dev] -r requirements.txt            # to install all dependencies
+$ pytest                                               # to run tests with coverage report
+$ pytest --cov=vakt tests/                             # to get coverage report
+$ pylint vakt                                          # to check code quality with PyLint
 ```
