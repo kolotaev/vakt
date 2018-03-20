@@ -6,7 +6,7 @@
 
 # WIP
 
-Access policies SDK for Python.
+Policy-based access control SDK for Python.
 
 ## Documentation
 
@@ -29,6 +29,19 @@ Access policies SDK for Python.
 
 
 ### Description
+
+Vakt is an access control toolkit based on policies. It stands somewhere in-between RBAC and ACL models, giving you
+a fine-grained control on definition of the rules that restrict an access to resources.
+It highly resembles [IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md).
+
+Giving you have some set of resources you can define a number of policies that will describe access to them
+answering the following questions:
+
+* What resources(resources) are being requested?
+* Who is requesting the resource?
+* What actions(action) are requested to be done on the asked resources?
+* What are the rules that should be satisfied in the context of the request itself?
+* What is resulting effect of the answer on the above questions?
 
 ### Install
 

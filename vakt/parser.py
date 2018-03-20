@@ -11,8 +11,8 @@ def compile_regex(phrase, start_tag, end_tag):
     regex_vars, pattern, end = [], '', 0
     try:
         indices = get_tag_indices(phrase, start_tag, end_tag)
-    except InvalidPatternError as e:
-        raise e
+    except InvalidPatternError:
+        raise
     for i, idx in enumerate(indices[::2]):
         raw = phrase[end:idx]
         end = indices[i+1]
