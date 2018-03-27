@@ -1,18 +1,10 @@
 from setuptools import setup, find_packages
-import os
-import inspect
 
 __version__ = '0.0.1'
 
 
 with open('README.md') as f:
     README = f.read()
-
-
-__location__ = os.path.join(os.getcwd(), os.path.dirname(inspect.getfile(inspect.currentframe())))
-requirements = [req for req in
-                open(os.path.join(__location__, 'requirements.txt')).read().split('\\n')
-                if req != '']
 
 
 if __name__ == "__main__":
@@ -27,7 +19,7 @@ if __name__ == "__main__":
         license="Apache 2.0 license",
         url='https://github.com/kolotaev/vakt',
         py_modules=['vakt'],
-        install_requires=requirements,
+        install_requires=[],
         extras_require={
             'dev': [
                 'pytest',

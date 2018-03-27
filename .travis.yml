@@ -12,7 +12,7 @@ python:
   - "pypy3"  # Pypy3 5.8.0-beta0
 
 install:
-  - pip install -e .[dev] -r requirements.txt
+  - pip install -e .[dev]
 
 script:
   - python -m pytest --cov-config .coveragerc --cov=./

@@ -24,6 +24,7 @@ class JsonDumper:
         """
         Get JSON representation of an object
         """
+        # todo - pretty-print=false for performance
         return json.dumps(self._data(),
                           sort_keys=True,
                           default=lambda o: o.to_json() if isinstance(o, JsonDumper) else vars(o))

@@ -37,11 +37,11 @@ It highly resembles [IAM Policies](https://github.com/awsdocs/iam-user-guide/blo
 Giving you have some set of resources you can define a number of policies that will describe access to them
 answering the following questions:
 
-* What resources(resources) are being requested?
-* Who is requesting the resource?
-* What actions(action) are requested to be done on the asked resources?
-* What are the rules that should be satisfied in the context of the request itself?
-* What is resulting effect of the answer on the above questions?
+- *What resources(resources) are being requested?*
+- *Who is requesting the resource?*
+- *What actions(action) are requested to be done on the asked resources?*
+- *What are the rules that should be satisfied in the context of the request itself?*
+- *What is resulting effect of the answer on the above questions?*
 
 ### Install
 
@@ -161,8 +161,9 @@ Script arguments:
 To hack Vakt locally run:
 
 ```bash
-$ pip install -e .[dev] -r requirements.txt            # to install all dependencies
-$ pytest                                               # to run tests with coverage report
-$ pytest --cov=vakt tests/                             # to get coverage report
-$ pylint vakt                                          # to check code quality with PyLint
+$ ...                              # activate virtual environment w/ preferred method (optional)
+$ pip install -e .[dev]            # to install all dependencies
+$ pytest                           # to run tests with coverage report
+$ pytest --cov=vakt tests/         # to get coverage report
+$ pylint vakt                      # to check code quality with PyLint
 ```
