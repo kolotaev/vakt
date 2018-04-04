@@ -14,7 +14,7 @@ class Storage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get(self, id_value):
+    def get(self, uid):
         """Retrieve specific policy"""
         pass
 
@@ -39,6 +39,6 @@ class Storage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def delete(self, id_value):
+    def delete(self, uid):
         """Delete a policy"""
         pass

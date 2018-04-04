@@ -13,8 +13,8 @@ class Policy(JsonDumper, PrettyPrint):
     """Represents a policy that regulates access and allowed actions of subjects
     over some resources under a set of rules."""
 
-    def __init__(self, id, description=None, subjects=(), effect=DENY_ACCESS, resources=(), actions=(), rules=None):
-        self.id = id
+    def __init__(self, uid, description=None, subjects=(), effect=DENY_ACCESS, resources=(), actions=(), rules=None):
+        self.uid = uid
         self.description = description
         self.subjects = subjects
         self.effect = effect or DENY_ACCESS
@@ -29,9 +29,9 @@ class Policy(JsonDumper, PrettyPrint):
     @classmethod
     def from_json(cls, data):
         props = cls._parse(data)
-        if 'id' not in props:
-            log.exception("Error creating policy from json. 'id' attribute is required")
-            raise PolicyCreationError("Error creating policy from json. 'id' attribute is required")
+        if 'uid' not in props:
+            log.exception("Error creating policy from json. 'uid' attribute is required")
+            raise PolicyCreationError("Error creating policy from json. 'uid' attribute is required")
 
         rules = {}
         if 'rules' in props:

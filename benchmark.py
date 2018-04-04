@@ -53,7 +53,7 @@ def populate_storage():
             subjects = (rand_string(), rand_string())
 
         policy = Policy(
-            id=gen_id(),
+            uid=gen_id(),
             effect=ALLOW_ACCESS if rand_true() else DENY_ACCESS,
             subjects=subjects,
             resources=('library:books:<.+>', 'office:magazines:<.+>'),

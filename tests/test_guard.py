@@ -13,7 +13,7 @@ from vakt.guard import Guard, Inquiry
 st = MemoryStorage()
 policies = [
     Policy(
-        id='1',
+        uid='1',
         description="""
         Max, Nina, Ben, Henry are allowed to create, delete, get the resources 
         only if the client IP matches and the inquiry states that any of them is the resource owner
@@ -28,7 +28,7 @@ policies = [
         },
     ),
     Policy(
-        id='2',
+        uid='2',
         description='Allows Max to update any resource',
         effect=ALLOW_ACCESS,
         subjects=['Max'],
@@ -36,7 +36,7 @@ policies = [
         resources=['<.*>'],
     ),
     Policy(
-        id='3',
+        uid='3',
         description='Max is not allowed to print any resource',
         effect=DENY_ACCESS,
         subjects=['Max'],
@@ -44,10 +44,10 @@ policies = [
         resources=['<.*>'],
     ),
     Policy(
-        id='4'
+        uid='4'
     ),
     Policy(
-        id='5',
+        uid='5',
         description='Allows Nina to update any resources that have only digits',
         effect=ALLOW_ACCESS,
         subjects=['Nina'],
@@ -228,14 +228,14 @@ def test_not_allowed_when_similar_policies_have_at_least_one_deny_access():
     st = MemoryStorage()
     policies = (
         Policy(
-            id='1',
+            uid='1',
             effect=ALLOW_ACCESS,
             subjects=['foo'],
             actions=['bar'],
             resources=['baz'],
         ),
         Policy(
-            id='2',
+            uid='2',
             effect=DENY_ACCESS,
             subjects=['foo'],
             actions=['bar'],

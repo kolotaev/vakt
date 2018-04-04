@@ -11,7 +11,7 @@ def test_properties():
     policy = Policy('123', description='readme',
                     subjects=['user'], effect=ALLOW_ACCESS,
                     resources='books:{\d+}', actions=['create', 'delete'], rules={})
-    assert '123' == policy.id
+    assert '123' == policy.uid
     assert 'readme' == policy.description
     assert ['user'] == policy.subjects
     assert ALLOW_ACCESS == policy.effect
@@ -26,12 +26,12 @@ def test_exception_raised_when_rules_is_not_dict():
 
 
 @pytest.mark.parametrize('data, expect', [
-    ('{"id":123}',
+    ('{"uid":123}',
      '{"actions": [], "description": null, "effect": "deny", ' +
-     '"id": 123, "resources": [], "rules": {}, "subjects": []}'),
-    ('{"id":123, "effect":"allow", "actions": ["create", "update"]}',
-     '{"actions": ["create", "update"], "description": null, "effect": "allow", "id": 123, ' +
-     '"resources": [], "rules": {}, "subjects": []}'),
+     '"resources": [], "rules": {}, "subjects": [], "uid": 123}'),
+    ('{"effect":"allow", "actions": ["create", "update"], "uid":123}',
+     '{"actions": ["create", "update"], "description": null, "effect": "allow", ' +
+     '"resources": [], "rules": {}, "subjects": [], "uid": 123}'),
 ])
 def test_json_roundtrip(data, expect):
     p = Policy.from_json(data)
@@ -39,11 +39,11 @@ def test_json_roundtrip(data, expect):
 
 
 @pytest.mark.parametrize('data, effect', [
-    ('{"id":123}', DENY_ACCESS),
-    ('{"id":123, "effect":""}', DENY_ACCESS),
-    ('{"id":123, "effect":"deny"}', DENY_ACCESS),
-    ('{"id":123, "effect":null}', DENY_ACCESS),
-    ('{"id":123, "effect":"allow"}', ALLOW_ACCESS),
+    ('{"uid":123}', DENY_ACCESS),
+    ('{"uid":123, "effect":""}', DENY_ACCESS),
+    ('{"uid":123, "effect":"deny"}', DENY_ACCESS),
+    ('{"uid":123, "effect":null}', DENY_ACCESS),
+    ('{"uid":123, "effect":"allow"}', ALLOW_ACCESS),
 ])
 def test_json_default_effect_is_set_correctly_when_from_json(data, effect):
     p = Policy.from_json(data)
@@ -54,7 +54,7 @@ def test_json_roundtrip_of_a_policy_with_rules():
     p = Policy('123', rules={'ip': CIDRRule('192.168.1.0/24'), 'sub': StringEqualRule('test-me')})
     s = p.to_json()
     p1 = Policy.from_json(s)
-    assert '123' == p1.id
+    assert '123' == p1.uid
     assert 2 == len(p1.rules)
     assert 'ip' in p1.rules
     assert 'sub' in p1.rules
@@ -64,8 +64,8 @@ def test_json_roundtrip_of_a_policy_with_rules():
 
 
 @pytest.mark.parametrize('data, exception, msg', [
-    ('{}', PolicyCreationError, "'id'"),
-    ('{"id":}', ValueError, ''),
+    ('{}', PolicyCreationError, "'uid'"),
+    ('{"uid":}', ValueError, ''),
     ('', ValueError, ''),
 ])
 def test_json_roundtrip_not_create_policy(data, exception, msg):
@@ -99,7 +99,7 @@ def test_end_tag():
 def test_pretty_print():
     p = Policy('1', description='readme', subjects=['user'])
     assert "<class 'vakt.policy.Policy'>" in str(p)
-    assert "'id': '1'" in str(p)
+    assert "'uid': '1'" in str(p)
     assert "'description': 'readme'" in str(p)
     assert "'subjects': ['user']" in str(p)
     assert "'effect': 'deny'" in str(p)

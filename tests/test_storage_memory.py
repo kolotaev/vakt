@@ -13,7 +13,7 @@ def st():
 
 def test_add(st):
     st.add(Policy('1', description='foo'))
-    assert '1' == st.get('1').id
+    assert '1' == st.get('1').uid
     assert 'foo' == st.get('1').description
 
 
@@ -27,8 +27,8 @@ def test_get(st):
     st.add(Policy('1'))
     st.add(Policy(2, description='some text'))
     assert isinstance(st.get('1'), Policy)
-    assert '1' == st.get('1').id
-    assert 2 == st.get(2).id
+    assert '1' == st.get('1').uid
+    assert 2 == st.get(2).uid
     assert 'some text' == st.get(2).description
 
 
@@ -50,7 +50,7 @@ def test_get_all(st):
 def test_get_all_for_one(st):
     st.add(Policy('1', description='foo'))
     assert 1 == len(st.get_all(100, 0))
-    assert '1' == st.get_all(100, 0)[0].id
+    assert '1' == st.get_all(100, 0)[0].uid
     assert 'foo' == st.get_all(100, 0)[0].description
 
 
@@ -66,18 +66,18 @@ def test_find_for_inquiry(st):
 def test_update(st):
     policy = Policy('1')
     st.add(policy)
-    assert '1' == st.get('1').id
+    assert '1' == st.get('1').uid
     assert None is st.get('1').description
     policy.description = 'foo'
     st.update(policy)
-    assert '1' == st.get('1').id
+    assert '1' == st.get('1').uid
     assert 'foo' == st.get('1').description
 
 
 def test_delete(st):
     policy = Policy('1')
     st.add(policy)
-    assert '1' == st.get('1').id
+    assert '1' == st.get('1').uid
     st.delete('1')
     assert None is st.get('1')
     st.delete('1000000')

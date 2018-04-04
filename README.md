@@ -80,7 +80,7 @@ policy = Policy('1')
 
 json_policy = policy.to_json()
 print(json_policy)
-# {"actions": [], "description": null, "effect": "deny", "id": "1",
+# {"actions": [], "description": null, "effect": "deny", "uid": "1",
 # "resources": [], "rules": {}, "subjects": []}
 
 policy = Policy.from_json(json_policy)
