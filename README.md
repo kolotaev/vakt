@@ -6,17 +6,17 @@
 
 # WIP
 
-Policy-based access control SDK for Python.
+Attribute-based access control (ABAC) SDK for Python.
 
 ## Documentation
 
 - [Description](#description)
-- [Install](#install)
 - [Concepts](#concepts)
-- [Storage](#storage)
-    - [Memory](#memory)
+- [Install](#install)
 - [Usage](#usage)
 - [Components](#components)
+    - [Storage](#storage)
+        - [Memory](#memory)
 	- [Policy](#policy)
 	- [Inquiry](#inquiry)
 	- [Rule](#rule)
@@ -30,18 +30,28 @@ Policy-based access control SDK for Python.
 
 ### Description
 
-Vakt is an access control toolkit based on policies. It stands somewhere in-between RBAC and ACL models, giving you
-a fine-grained control on definition of the rules that restrict an access to resources.
-It highly resembles [IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md).
+Vakt is an attribute-based access control ([ABAC](https://en.wikipedia.org/wiki/Attribute-based_access_control))
+toolkit that is based on policies, also sometimes referred as PBAC.
+ABAC stands aside of RBAC and ACL models, giving you
+a fine-grained control on definition of the rules that restrict an access to resources and is generally considered a
+"next generation" authorization model.
+It highly resembles [IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md)
+implementation.
 
-Giving you have some set of resources you can define a number of policies that will describe access to them
+See [concepts](#concepts) section for more details.
+
+
+### Concepts
+
+Given you have some set of resources, you can define a number of policies that will describe access to them
 answering the following questions:
 
-- *What resources(resources) are being requested?*
+- *What resources (resource) are being requested?*
 - *Who is requesting the resource?*
-- *What actions(action) are requested to be done on the asked resources?*
+- *What actions (action) are requested to be done on the asked resources?*
 - *What are the rules that should be satisfied in the context of the request itself?*
 - *What is resulting effect of the answer on the above questions?*
+
 
 ### Install
 
@@ -52,16 +62,11 @@ PyPy implementation is supported as well.
 pip install vakt
 ```
 
-### Concepts
-
-### Storage
-
-#### Memory
-
 ### Usage
 
 ### Components
-
+#### Storage
+##### Memory
 #### Policy
 #### Inquiry
 #### Rule
