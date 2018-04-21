@@ -35,7 +35,7 @@ def test_exception_raised_when_rules_is_not_dict():
 ])
 def test_json_roundtrip(data, expect):
     p = Policy.from_json(data)
-    assert expect == p.to_json()
+    assert expect == p.to_json(sort=True)
 
 
 @pytest.mark.parametrize('data, effect', [

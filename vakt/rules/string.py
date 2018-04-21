@@ -50,5 +50,4 @@ class RegexMatchRule(Rule):
             raise TypeError('pattern should be a valid regexp string. Error %s' % e)
 
     def satisfied(self, what, inquiry=None):
-        # todo - try match?
         return bool(self.regex.match(str(what)))

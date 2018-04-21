@@ -20,13 +20,12 @@ class JsonDumper:
         """
         pass
 
-    def to_json(self):
+    def to_json(self, sort=False):
         """
         Get JSON representation of an object
         """
-        # todo - pretty-print=false for performance
         return json.dumps(self._data(),
-                          sort_keys=True,
+                          sort_keys=sort,
                           default=lambda o: o.to_json() if isinstance(o, JsonDumper) else vars(o))
 
     @classmethod

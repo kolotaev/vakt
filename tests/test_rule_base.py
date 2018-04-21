@@ -25,8 +25,8 @@ def test_to_json():
         ABRule(1, 2),
         ABRule('x', 'y'),
     ]
-    assert '{"contents": {"a": 1, "b": 2}, "type": "test_rule_base.ABRule"}' == rules[0].to_json()
-    assert '{"contents": {"a": "x", "b": "y"}, "type": "test_rule_base.ABRule"}' == rules[1].to_json()
+    assert '{"contents": {"a": 1, "b": 2}, "type": "test_rule_base.ABRule"}' == rules[0].to_json(sort=True)
+    assert '{"contents": {"a": "x", "b": "y"}, "type": "test_rule_base.ABRule"}' == rules[1].to_json(sort=True)
 
 
 def test_from_json():

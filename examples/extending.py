@@ -27,13 +27,14 @@ class CustomTagsPolicy(vakt.policy.Policy):
 
 
 # You can use custom rules in any policy.
-policy1 = CustomTagsPolicy(1,
-                                 description='some custom policy',
-                                 subjects=('=[FGH]+[\w]+=', 'Max'),
-                                 rules={'secret': ABRule(10, 100)})
-policy2 = vakt.policy.Policy(2,
-                                    description='some default policy',
-                                    rules={'secret': ABRule(1, 15)})
+policy1 = CustomTagsPolicy(uid=1,
+                           description='some custom policy',
+                           subjects=('=[FGH]+[\w]+=', 'Max'),
+                           rules={'secret': ABRule(10, 100)})
+
+policy2 = vakt.policy.Policy(uid=2,
+                             description='some default policy',
+                             rules={'secret': ABRule(1, 15)})
 
 
 # You can add custom policies and default ones.
