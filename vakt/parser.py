@@ -9,10 +9,7 @@ __all__ = ['compile_regex']
 def compile_regex(phrase, start_tag, end_tag):
     """Compiles a string denoted by tags to a regular expression"""
     regex_vars, pattern, end = [], '', 0
-    try:
-        indices = get_tag_indices(phrase, start_tag, end_tag)
-    except InvalidPatternError:
-        raise
+    indices = get_tag_indices(phrase, start_tag, end_tag)
     for i, idx in enumerate(indices[::2]):
         raw = phrase[end:idx]
         end = indices[i+1]
