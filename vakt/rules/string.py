@@ -43,7 +43,6 @@ class RegexMatchRule(Rule):
 
     def __init__(self, pattern):
         try:
-            # todo - do we need escape?
             self.regex = re.compile(pattern)
         except Exception as e:
             log.error('%s creation. Failed to compile regexp %s', type(self).__name__, pattern)

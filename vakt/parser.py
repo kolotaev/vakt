@@ -14,7 +14,6 @@ def compile_regex(phrase, start_tag, end_tag):
         raw = phrase[end:idx]
         end = indices[i+1]
         pt = phrase[idx+1:end-1]
-        # todo - de we need escape?
         pattern = pattern + '%s(%s)' % (re.escape(raw), pt)
         regex_vars.insert(i//2, re.compile('^%s$' % pt))
     raw = phrase[end:]
