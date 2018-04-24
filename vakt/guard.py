@@ -1,3 +1,8 @@
+""""
+Main module that serves as an entry point for Vakt decisions.
+Also contains Inquiry class.
+"""
+
 import logging
 
 from .util import JsonDumper, PrettyPrint

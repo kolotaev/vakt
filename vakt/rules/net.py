@@ -1,3 +1,7 @@
+"""
+All Rules relevant to networking context
+"""
+
 import ipaddress
 import logging
 

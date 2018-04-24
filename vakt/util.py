@@ -1,3 +1,7 @@
+"""
+Utility functions and classes for Vakt.
+"""
+
 import json
 import logging
 from abc import abstractmethod

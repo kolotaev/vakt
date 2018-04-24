@@ -1,3 +1,7 @@
+"""
+Base Rule. Should be extended be concrete ones.
+"""
+
 import json
 import logging
 import importlib

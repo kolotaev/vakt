@@ -1,3 +1,7 @@
+"""
+All Rules relevant to Inquiry context
+"""
+
 from ..rules.base import Rule
 
 

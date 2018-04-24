@@ -1,3 +1,7 @@
+"""
+Contains interfaces that all Storages should implement.
+"""
+
 from abc import ABCMeta, abstractmethod
 
 

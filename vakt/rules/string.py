@@ -1,3 +1,8 @@
+"""
+All Rules relevant to contexts that work with strings.
+It may be subject, object, etc.
+"""
+
 import re
 import logging
 

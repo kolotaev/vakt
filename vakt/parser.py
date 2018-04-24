@@ -1,3 +1,7 @@
+"""
+Functions for parsing and analyzing regex or mixed regex defined rules for Actions and Resources,
+"""
+
 import re
 
 from .exceptions import InvalidPatternError

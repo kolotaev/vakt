@@ -1,3 +1,7 @@
+"""
+Namespace for a basic Policy class.
+"""
+
 import logging
 
 from .effects import ALLOW_ACCESS, DENY_ACCESS

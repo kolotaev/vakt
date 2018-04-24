@@ -1,3 +1,7 @@
+"""
+Module for various checkers.
+"""
+
 import re
 import logging
 from functools import lru_cache

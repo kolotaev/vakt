@@ -1,3 +1,7 @@
+"""
+Memory storage.
+"""
+
 import threading
 import logging
 

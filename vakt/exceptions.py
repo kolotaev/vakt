@@ -1,3 +1,7 @@
+"""
+Exceptions relevant for Vakt workflow.
+"""
+
 class InvalidPatternError(Exception):
     """Invalid policy pattern"""
     pass
