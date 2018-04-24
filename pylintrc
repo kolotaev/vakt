@@ -4,3 +4,5 @@ max-line-length=120
 
 [REPORTS]
 output-format=colorized
+
+good-names=log, ip, e, k, v, i

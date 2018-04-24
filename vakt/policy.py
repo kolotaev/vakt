@@ -39,8 +39,8 @@ class Policy(JsonDumper, PrettyPrint):
 
         rules = {}
         if 'rules' in props:
-            for k, c in props['rules'].items():
-                rules[k] = Rule.from_json(c)
+            for k, clazz in props['rules'].items():
+                rules[k] = Rule.from_json(clazz)
         props['rules'] = rules
 
         return cls(**props)

@@ -61,15 +61,15 @@ class Guard:
             return False
 
         # Filter policies that fit Inquiry by its attributes.
-        ps = [p for p in policies if
-              self.checker.fits(p, 'actions', inquiry.action) and
-              self.checker.fits(p, 'subjects', inquiry.subject) and
-              self.checker.fits(p, 'resources', inquiry.resource) and
-              self.are_rules_satisfied(p, inquiry)]
+        filtered = [p for p in policies if
+                    self.checker.fits(p, 'actions', inquiry.action) and
+                    self.checker.fits(p, 'subjects', inquiry.subject) and
+                    self.checker.fits(p, 'resources', inquiry.resource) and
+                    self.are_rules_satisfied(p, inquiry)]
 
         # no policies -> deny access!
         # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
-        return len(ps) > 0 and all(p.allow_access() for p in ps)
+        return len(filtered) > 0 and all(p.allow_access() for p in filtered)
 
     @staticmethod
     def are_rules_satisfied(policy, inquiry):

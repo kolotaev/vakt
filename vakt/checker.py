@@ -63,6 +63,7 @@ class StringChecker(metaclass=ABCMeta):
 
     @abstractmethod
     def compare(self, needle, haystack):
+        """Compares two string values. Override it in a subclass"""
         pass
 
 
