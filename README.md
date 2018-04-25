@@ -46,11 +46,13 @@ See [concepts](#concepts) section for more details.
 Given you have some set of resources, you can define a number of policies that will describe access to them
 answering the following questions:
 
-- *What resources (resource) are being requested?*
-- *Who is requesting the resource?*
-- *What actions (action) are requested to be done on the asked resources?*
-- *What are the rules that should be satisfied in the context of the request itself?*
-- *What is resulting effect of the answer on the above questions?*
+1. *What resources (resource) are being requested?*
+1. *Who is requesting the resource?*
+1. *What actions (action) are requested to be done on the asked resources?*
+1. *What are the rules that should be satisfied in the context of the request itself?*
+1. *What is resulting effect of the answer on the above questions?*
+
+For example of usage see [examples folder](examples).
 
 
 ### Install
@@ -66,8 +68,64 @@ pip install vakt
 
 ### Components
 #### Storage
+Storage is a component that gives an interface for manipulating [Policies](#policy) persistence in various places.
+
+It provides the following methods:
+```python
+add(policy)                 # Store a Policy
+get(uid)                    # Retrieve a Policy by its ID
+get_all(limit, offset)      # Retrieve all stored Policies (with pagination)
+update(policy)              # Store an updated Policy
+delete(uid)                 # Delete Policy from storage by its ID
+find_for_inquiry(inquiry)   # Retrieve Policies that match the given Inquiry
+```
+
+Storage may have various backend implementations (RDBMS, NoSQL databases, etc.). Vakt ships some Storage implementations
+out of the box. See below.
+
 ##### Memory
+Implementation that stores Policies in memory. It's not baccked by any file or something, so every restart of your
+application will swipe out everithing that was stored. Useful for testing.
+
 #### Policy
+Policy is a main object for defining rules for accessing resources.
+The main parts reflect questions described in [Concepts](#concepts) section:
+
+* resources - a list of resources. Answers: what is asked?
+* subjects  - a list of subjects. Answers: who asks access to resources?
+* actions - a list of actions. Answers: what actions are asked to be performed on resources?
+* rules - a list of context rules that should be satisfied in the given inquiry. See [Rule](#rule)
+* effect - If policy matches all the above conditions, what effect it implies?
+can be any either `vakt.effects.ALLOW_ACCESS` or `vakt.effects.DENY_ACCESS`
+
+All `resources`, `subjects`, `actions` can be described by a simple string or a regex. See [Checker](#checker) for more.
+
+```python
+p = Policy(
+        uid=str(uuid.uuid4()),
+        description="""
+        Allow all readers of the book library whose surnames start with M get and read any book or magazine,
+        but only when they connect from local library's computer
+        """,
+        effect=ALLOW_ACCESS,
+        subjects=['<[\w]+ M[\w]+>'],
+        resources=('library:books:<.+>', 'office:magazines:<.+>'),
+        actions=['<read|get>'],
+        rules={
+            'ip': CIDRRule('192.168.2.0/24'),
+        }
+    )
+```
+
+Basically you want to create some set of Policies that encompass access rules for your domain and store them for
+making future decisions by the [Guard](#guard) component.
+
+```python
+st = MemoryStorage()
+for p in policies:
+    st.add(p)
+```
+
 #### Inquiry
 #### Rule
 #### Checker

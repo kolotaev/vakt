@@ -14,7 +14,7 @@ class Storage(metaclass=ABCMeta):
 
     @abstractmethod
     def add(self, policy):
-        """Create a policy"""
+        """Store a policy"""
         pass
 
     @abstractmethod
