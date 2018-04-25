@@ -4,8 +4,6 @@
 [![codecov.io](https://codecov.io/github/kolotaev/vakt/coverage.svg?branch=master)](https://codecov.io/github/kolotaev/vakt?branch=master)
 [![Apache 2.0 licensed](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://raw.githubusercontent.com/kolotaev/vakt/master/LICENSE)
 
-# WIP
-
 Attribute-based access control (ABAC) SDK for Python.
 
 ## Documentation
@@ -84,8 +82,8 @@ Storage may have various backend implementations (RDBMS, NoSQL databases, etc.).
 out of the box. See below.
 
 ##### Memory
-Implementation that stores Policies in memory. It's not baccked by any file or something, so every restart of your
-application will swipe out everithing that was stored. Useful for testing.
+Implementation that stores Policies in memory. It's not backed by any file or something, so every restart of your
+application will swipe out everything that was stored. Useful for testing.
 
 #### Policy
 Policy is a main object for defining rules for accessing resources.
