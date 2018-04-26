@@ -125,9 +125,59 @@ for p in policies:
 ```
 
 #### Inquiry
+Inquiry is an object that serves as a mediator between Vakt and outer world request for resource access. All you need
+to do is take any kind of incoming request (REST request, SOAP, etc.) and build an `Inquiry` out of it in order to
+feed it to Vakt. There are no concrete builders for Inquiry from various request types, since it's a very meticulous
+process and you have hands on control for doing it by yourself. Let's see an example:
+
+```python
+from vakt.guard import Inquiry
+from flask import Flask, request, session
+
+...
+
+user = request.form['username']
+action = request.form['action']
+inquiry = Inquiry(subject=user, action=action, context={'ip': request.remote_addr})
+```
+
+Here we are taking form params from Flask request and additional request information. Then we transform them
+to Inquiry. That's it.
+
+Inquiry has several constructor arguments:
+
+* resource - string. What resource is being asked to be accessed?
+* action - string. What is being asked to be done on the resource?
+* subject - string. Who asks for it?
+* context - dictionary. The context of the request. Eventually it should be resolved to [Rule](#rule)
+
+If you are observant enough you might have noticed that Policy is resembles Policy, where Policy describes multiple
+variants of resource access from the owner side and Policy describes aon concrete access scenario from consumer side.
+
+
 #### Rule
 #### Checker
+
+
 #### Guard
+Guard component is a main entry point for Vakt to make a decision. It has one method `is_allowed` that passed an
+[Inquiry](#inquiry) gives you a boolean answer: is that Inquiry allowed or not.
+
+Guard is constructed with [Storage](#storage) and [Checker](#checker)
+
+```python
+st = MemoryStorage()
+# And persist all our Policies so that to start serving our library.
+for p in policies:
+    st.add(p)
+
+guard = Guard(st, RegexChecker(2048))
+
+if guard.is_allowed(inquiry):
+    return "You've been logged-in", 200
+else:
+    return "Go away, you violator!", 401
+```
 
 ### JSON
 
