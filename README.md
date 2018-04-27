@@ -151,17 +151,46 @@ Inquiry has several constructor arguments:
 * subject - string. Who asks for it?
 * context - dictionary. The context of the request. Eventually it should be resolved to [Rule](#rule)
 
-If you are observant enough you might have noticed that Policy is resembles Policy, where Policy describes multiple
-variants of resource access from the owner side and Policy describes aon concrete access scenario from consumer side.
+If you are observant enough you might have noticed that Inquiry resembles Policy, where Policy describes multiple
+variants of resource access from the owner side and Inquiry describes an concrete access scenario from consumer side.
 
 
 #### Rule
 #### Checker
+Checker allows you to check whether Policy matches Inquiry by concrete field (`subject`, `action`, etc.). It's used
+internally by [Guard](#guard), but you should be aware of Checker types:
+
+* RegexChecker - universal type that checks match by regex test. This means that all you Policies and Inquiries
+can be defined in regex syntax (but if no regex defined in Policy falls back to simple string equality test)
+- it gives you great flexibility, but carries a burden of relatively slow performance. You can configure a LRU cache
+size to adjust performance to your needs:
+
+```python
+ch = RegexChecker(2048)
+ch2 = RegexChecker(512)
+# etc.
+```
+See [performance](#performance) for more details.
+* StringExactChecker - most quick checker:
+```
+Checker that uses exact string equality. Case-sensitive.
+E.g. 'sun' in 'sunny' - False
+     'sun' in 'sun' - True
+```
+* StringFuzzyChecker - quick checker with some extent of flexibility:
+```
+Checker that uses fuzzy substring equality. Case-sensitive.
+E.g. 'sun' in 'sunny' - True
+     'sun' in 'sun' - True
+```
+
+Also note, that some [Storage](#storage) handlers can already perform that Policy matches Inquiry in
+`find_for_inquiry()` method. So Checker is the last row of control before Vakt makes a decision.
 
 
 #### Guard
 Guard component is a main entry point for Vakt to make a decision. It has one method `is_allowed` that passed an
-[Inquiry](#inquiry) gives you a boolean answer: is that Inquiry allowed or not.
+[Inquiry](#inquiry) gives you a boolean answer: is that Inquiry allowed or not?
 
 Guard is constructed with [Storage](#storage) and [Checker](#checker)
 
