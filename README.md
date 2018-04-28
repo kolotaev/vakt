@@ -156,13 +156,30 @@ variants of resource access from the owner side and Inquiry describes an concret
 
 
 #### Rule
+Rules allow you to make additional checks apart of Policy's `action`, `subject`, `resource`.
+Vakt takes additional context information from Inquiry and checks if it satisfies the defined Rules set described
+in the Policy that is being matched. If Rule is not satisfied Inquiry is rejected by given Policy.
+There are a number of different Rule types:
+
+1. Inquiry-related
+  * SubjectEqualRule
+  * ActionEqualRule
+  * ResourceInRule
+1. Network-related
+  * CIDRRule
+1. String-related
+  * StringEqualRule
+  * StringPairsEqualRule
+  * RegexMatchRule
+
+
 #### Checker
 Checker allows you to check whether Policy matches Inquiry by concrete field (`subject`, `action`, etc.). It's used
 internally by [Guard](#guard), but you should be aware of Checker types:
 
-* RegexChecker - universal type that checks match by regex test. This means that all you Policies and Inquiries
-can be defined in regex syntax (but if no regex defined in Policy falls back to simple string equality test)
-- it gives you great flexibility, but carries a burden of relatively slow performance. You can configure a LRU cache
+* RegexChecker - universal type that checks match by regex test. This means that all you Policies
+can be defined in regex syntax (but if no regex defined in Policy falls back to simple string equality test) - it
+gives you a great flexibility, but carries a burden of relatively slow performance. You can configure a LRU cache
 size to adjust performance to your needs:
 
 ```python
@@ -170,7 +187,17 @@ ch = RegexChecker(2048)
 ch2 = RegexChecker(512)
 # etc.
 ```
-See [performance](#performance) for more details.
+See [benchmark](#benchmark) for more details.
+
+Syntax for description of Policy fields is:
+```
+ '<foo.*>'
+ 'foo<[abc]{2}>bar'
+ 'foo<\w+>'
+```
+Where `<>` are delimiters of a regular expression boundaries part. Custom Policy can redefine them by overriding
+`start_tag` and `end_tag` properties. Generally you always want to use the first variant: `<foo.*>`.
+
 * StringExactChecker - most quick checker:
 ```
 Checker that uses exact string equality. Case-sensitive.
@@ -184,7 +211,7 @@ E.g. 'sun' in 'sunny' - True
      'sun' in 'sun' - True
 ```
 
-Also note, that some [Storage](#storage) handlers can already perform that Policy matches Inquiry in
+Also note, that some [Storage](#storage) handlers can already check if Policy fits Inquiry in
 `find_for_inquiry()` method. So Checker is the last row of control before Vakt makes a decision.
 
 
