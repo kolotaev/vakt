@@ -165,12 +165,14 @@ There are a number of different Rule types:
   * SubjectEqualRule
   * ActionEqualRule
   * ResourceInRule
-1. Network-related
+2. Network-related
   * CIDRRule
-1. String-related
+3. String-related
   * StringEqualRule
   * StringPairsEqualRule
   * RegexMatchRule
+
+See class documentation for more.
 
 
 #### Checker
