@@ -1,8 +1,7 @@
 """
-Memory storage for Policies.
+MongoDB storage for Policies.
 """
 
-import threading
 import logging
 
 from ..storage.abc import Storage
@@ -12,12 +11,11 @@ from ..exceptions import PolicyExistsError
 log = logging.getLogger(__name__)
 
 
-class MemoryStorage(Storage):
-    """Stores all policies in memory"""
+class MongoStorage(Storage):
+    """Stores all policies in MongoDB"""
 
     def __init__(self):
-        self.policies = {}
-        self.lock = threading.Lock()
+        pass
 
     def add(self, policy):
         uid = policy.uid

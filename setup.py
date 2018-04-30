@@ -21,7 +21,9 @@ if __name__ == "__main__":
         long_description=long_description,
         long_description_content_type='text/markdown',
         py_modules=['vakt'],
-        install_requires=[],
+        install_requires=[
+            'pymongo'
+        ],
         extras_require={
             'dev': [
                 'pytest',
