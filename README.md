@@ -88,6 +88,19 @@ out of the box. See below.
 Implementation that stores Policies in memory. It's not backed by any file or something, so every restart of your
 application will swipe out everything that was stored. Useful for testing.
 
+##### Mongo
+MongoDB is chosen as a most popular NO-SQL database.
+
+
+```python
+from pymongo import MongoClient
+from vakt.storage.mongo import MongoStorage
+
+client = MongoClient('localhost', 27017)
+storage = MongoStorage(client)
+```
+
+
 #### Policy
 Policy is a main object for defining rules for accessing resources.
 The main parts reflect questions described in [Concepts](#concepts) section:

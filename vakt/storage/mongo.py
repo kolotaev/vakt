@@ -8,22 +8,25 @@ from ..storage.abc import Storage
 from ..exceptions import PolicyExistsError
 
 
+DEFAULT_COLLECTION = 'vakt'
+
 log = logging.getLogger(__name__)
 
 
 class MongoStorage(Storage):
     """Stores all policies in MongoDB"""
 
-    def __init__(self):
-        pass
+    def __init__(self, client, collection=DEFAULT_COLLECTION):
+        self.client = client
+        self.db = self.client[collection]
 
     def add(self, policy):
         uid = policy.uid
-        with self.lock:
-            if uid in self.policies:
-                log.error('Error trying to create already existing policy with UID=%s', uid)
-                raise PolicyExistsError
-            self.policies[uid] = policy
+        try:
+            self.db.insert_one(policy.to_json())
+        except Exception:
+            log.error('Error trying to create already existing policy with UID=%s', uid)
+            raise PolicyExistsError
 
     def get(self, uid):
         return self.policies.get(uid)

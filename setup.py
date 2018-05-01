@@ -22,7 +22,7 @@ if __name__ == "__main__":
         long_description_content_type='text/markdown',
         py_modules=['vakt'],
         install_requires=[
-            'pymongo'
+            'pymongo==3.5.1'
         ],
         extras_require={
             'dev': [
