@@ -20,18 +20,21 @@ log = logging.getLogger(__name__)
 class MongoStorage(Storage):
     """Stores all policies in MongoDB"""
 
-    def __init__(self, client, db_name, collection=DEFAULT_COLLECTION):
+    def __init__(self, client, db_name, collection=DEFAULT_COLLECTION, use_regex=True):
         self.client = client
         self.db = self.client[db_name]
         self.collection = self.db[collection]
+        # todo - add non-regex check
+        self.use_regex = use_regex
 
     def add(self, policy):
         policy._id = policy.uid
         try:
+            # todo - add dict inheritance
             self.collection.insert_one(json.loads(policy.to_json()))
         except DuplicateKeyError:
             log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
-            raise PolicyExistsError('Conflicting ID = %s', policy.uid)
+            raise PolicyExistsError(policy.uid)
 
     def get(self, uid):
         ret = self.collection.find_one(uid)

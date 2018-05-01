@@ -24,7 +24,7 @@ class MemoryStorage(Storage):
         with self.lock:
             if uid in self.policies:
                 log.error('Error trying to create already existing policy with UID=%s', uid)
-                raise PolicyExistsError
+                raise PolicyExistsError(uid)
             self.policies[uid] = policy
 
     def get(self, uid):
