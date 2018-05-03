@@ -13,10 +13,9 @@ from vakt.exceptions import PolicyExistsError
 
 @pytest.fixture()
 def st():
-    db_name = 'my_app'
-    collection_name = 'vakt'
-    user, password = 'root', 'example'
-    uri = 'mongodb://%s:%s@%s' % (quote_plus(user), quote_plus(password), 'localhost:27017')
+    db_name, collection_name = 'my_app', 'vakt'
+    user, password, host = 'root', 'example', 'localhost:27017'
+    uri = 'mongodb://%s:%s@%s' % (quote_plus(user), quote_plus(password), host)
     client = MongoClient(uri, socketTimeoutMS=5*1000)
     yield MongoStorage(client, db_name, collection=collection_name)
     client[db_name][collection_name].remove()
@@ -62,10 +61,19 @@ def test_policy_create_existing(st):
         st.add(st.add(Policy(id, description='bar')))
 
 
-# def test_get(st):
-#     pass
-#
-#
+def test_get(st):
+    st.add(Policy('1'))
+    st.add(Policy(2, description='some text'))
+    assert isinstance(st.get('1'), Policy)
+    assert '1' == st.get('1').uid
+    assert 2 == st.get(2).uid
+    assert 'some text' == st.get(2).description
+
+
+def test_get_nonexistent(st):
+    assert None is st.get(123456789)
+
+
 # def test_get_all(st):
 #     pass
 #
