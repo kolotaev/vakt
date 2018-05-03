@@ -11,18 +11,16 @@ from vakt.rules.string import StringEqualRule
 from vakt.exceptions import PolicyExistsError
 
 
-# Mongo connection
-connection = None
-
-
-@pytest.fixture
+@pytest.fixture()
 def st():
-    global connection
-    uri = 'mongodb://%s:%s@%s' % (quote_plus('root'), quote_plus('example'), 'localhost:27017')
-    client = MongoClient(uri, socketTimeoutMS=20*1000)
-    if not connection:
-        connection = MongoStorage(client, 'my_app')
-    return connection
+    db_name = 'my_app'
+    collection_name = 'vakt'
+    user, password = 'root', 'example'
+    uri = 'mongodb://%s:%s@%s' % (quote_plus(user), quote_plus(password), 'localhost:27017')
+    client = MongoClient(uri, socketTimeoutMS=5*1000)
+    yield MongoStorage(client, db_name, collection=collection_name)
+    client[db_name][collection_name].remove()
+    client.close()
 
 
 def test_add(st):
