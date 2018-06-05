@@ -1,17 +1,11 @@
 from setuptools import setup, find_packages
 
-__version__ = '0.0.1'
-
-
-with open('README.md') as f:
-    README = f.read()
-
+__version__ = '1.0.2'
 
 if __name__ == "__main__":
     setup(
         name='vakt',
-        description='Python SDK for access policies',
-        long_description=README,
+        description='Attribute-based access control (ABAC) SDK for Python',
         keywords='ACL RBAC access policy security',
         version=__version__,
         author='Egor Kolotaev',

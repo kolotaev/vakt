@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/kolotaev/vakt.svg?branch=master)](https://travis-ci.org/kolotaev/vakt)
 [![codecov.io](https://codecov.io/github/kolotaev/vakt/coverage.svg?branch=master)](https://codecov.io/github/kolotaev/vakt?branch=master)
+[![PyPI version](https://badge.fury.io/py/vakt.svg)](https://badge.fury.io/py/vakt)
 [![Apache 2.0 licensed](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://raw.githubusercontent.com/kolotaev/vakt/master/LICENSE)
 
 Attribute-based access control (ABAC) SDK for Python.
@@ -22,8 +23,8 @@ Attribute-based access control (ABAC) SDK for Python.
 	- [Guard](#guard)
 - [JSON](#json)
 - [Logging](#logging)
-- [Benchmark](#benchmark)
 - [Acknowledgements](#acknowledgements)
+- [Benchmark](#benchmark)
 - [Development](#development)
 - [License](#license)
 
@@ -294,6 +295,13 @@ Vakt logs can be considered in 2 basic levels:
 2. *Info* - informs about incoming inquires and their resolution.
 
 
+### Acknowledgements
+
+Code ideas of Vakt are based on
+[Amazon IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md) and
+[Ladon](https://github.com/ory/ladon) Policies SDK as its reference implementation.
+
+
 ### Benchmark
 
 You can see how much time it takes a single Inquiry to be processed given we have a number of unique Policies in Memory
@@ -325,13 +333,6 @@ Script arguments:
 2. String (yes/no) - Should Policies be generated using regex syntax rules or not? (Default: yes)
 3. Int - Number of Policies with the same regexp pattern (Default: 0)
 3. Int - Cache size for RegexChecker (Default: 1024)
-
-
-### Acknowledgements
-
-Code ideas of Vakt are based on
-[Amazon IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md) and
-[Ladon](https://github.com/ory/ladon) Policies SDK as its reference implementation.
 
 
 ### Development
