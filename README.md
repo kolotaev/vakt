@@ -23,7 +23,9 @@ Attribute-based access control (ABAC) SDK for Python.
 - [JSON](#json)
 - [Logging](#logging)
 - [Benchmark](#benchmark)
+- [Acknowledgements](#acknowledgements)
 - [Development](#development)
+- [License](#license)
 
 
 ### Description
@@ -325,6 +327,13 @@ Script arguments:
 3. Int - Cache size for RegexChecker (Default: 1024)
 
 
+### Acknowledgements
+
+Code ideas of Vakt are based on
+[Amazon IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md) and
+[Ladon](https://github.com/ory/ladon) Policies SDK as its reference implementation.
+
+
 ### Development
 
 To hack Vakt locally run:
@@ -336,3 +345,7 @@ $ pytest                           # to run tests with coverage report
 $ pytest --cov=vakt tests/         # to get coverage report
 $ pylint vakt                      # to check code quality with PyLint
 ```
+
+### License
+
+The source code is licensed under Apache License Version 2.0
