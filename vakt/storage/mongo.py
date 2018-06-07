@@ -38,6 +38,8 @@ class MongoStorage(Storage):
 
     def get(self, uid):
         ret = self.collection.find_one(uid)
+        if not ret:
+            return None
         del ret['_id']
         return Policy.from_json(json.dumps(ret))
 
