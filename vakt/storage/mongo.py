@@ -53,4 +53,4 @@ class MongoStorage(Storage):
         pass
 
     def delete(self, uid):
-        pass
+        self.collection.delete_one({'_id': uid})

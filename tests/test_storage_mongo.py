@@ -88,7 +88,16 @@ def test_get_nonexistent(st):
 #
 # def test_update(st):
 #     pass
-#
-#
-# def test_delete(st):
-#     pass
+
+
+def test_delete(st):
+    policy = Policy('1')
+    st.add(policy)
+    assert '1' == st.get('1').uid
+    st.delete('1')
+    assert None is st.get('1')
+
+
+def test_delete_nonexistent(st):
+    uid = str(ObjectId())
+    st.delete(uid)
