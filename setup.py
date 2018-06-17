@@ -21,15 +21,16 @@ if __name__ == "__main__":
         long_description=long_description,
         long_description_content_type='text/markdown',
         py_modules=['vakt'],
-        install_requires=[
-            'pymongo==3.5.1'
-        ],
+        install_requires=[],
         extras_require={
             'dev': [
                 'pytest',
                 'pytest-cov',
                 'pylint',
-            ]
+            ],
+            'mongo': [
+                'pymongo>=3.5',
+            ],
         },
         packages=find_packages(exclude='tests'),
         classifiers=[

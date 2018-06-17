@@ -101,3 +101,4 @@ def test_delete(st):
 def test_delete_nonexistent(st):
     uid = str(ObjectId())
     st.delete(uid)
+    assert None is st.get(uid)
