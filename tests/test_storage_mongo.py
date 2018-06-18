@@ -84,10 +84,29 @@ def test_get_nonexistent(st):
 #
 # def test_find_for_inquiry(st):
 #     pass
-#
-#
-# def test_update(st):
-#     pass
+
+
+def test_update(st):
+    id = str(uuid.uuid4())
+    policy = Policy(id)
+    st.add(policy)
+    assert id == st.get(id).uid
+    assert None is st.get(id).description
+    assert [] is st.get(id).actions
+    policy.description = 'foo'
+    policy.actions = ['a', 'b', 'c']
+    st.update(policy)
+    assert id == st.get(id).uid
+    assert 'foo' == st.get(id).description
+    assert ['a', 'b', 'c'] == st.get(id).actions
+
+
+def test_update_non_existing(st):
+    id = str(uuid.uuid4())
+    st.update(Policy(id, actions=['get'], description='bar'))
+    assert id != st.get(id).uid
+    assert 'bar' != st.get(id).description
+    assert ['get'] != st.get(id).actions
 
 
 def test_delete(st):

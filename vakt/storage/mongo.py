@@ -30,8 +30,7 @@ class MongoStorage(Storage):
     def add(self, policy):
         policy._id = policy.uid
         try:
-            # todo - add dict inheritance
-            self.collection.insert_one(json.loads(policy.to_json()))
+            self.collection.insert_one(self._prepare_doc(policy))
         except DuplicateKeyError:
             log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
             raise PolicyExistsError(policy.uid)
@@ -50,7 +49,16 @@ class MongoStorage(Storage):
         pass
 
     def update(self, policy):
-        pass
+        uid = policy.uid
+        self.collection.update_one(
+            {'_id': uid},
+            self._prepare_doc(policy),
+            upsert=False)
 
     def delete(self, uid):
         self.collection.delete_one({'_id': uid})
+
+    @staticmethod
+    def _prepare_doc(policy):
+        # todo - add dict inheritance
+        return json.loads(policy.to_json())
