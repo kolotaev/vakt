@@ -355,9 +355,20 @@ To hack Vakt locally run:
 ```bash
 $ ...                              # activate virtual environment w/ preferred method (optional)
 $ pip install -e .[dev]            # to install all dependencies
-$ pytest                           # to run tests with coverage report
+$ pytest -m "not integration"      # to run non-integration tests with coverage report
 $ pytest --cov=vakt tests/         # to get coverage report
 $ pylint vakt                      # to check code quality with PyLint
+```
+
+To run integration tests (for Storage adapters other than `MemoryStorage`):
+
+```bash
+$ docker run --rm -d  \
+  -e MONGO_INITDB_ROOT_USERNAME='root' \
+  -e MONGO_INITDB_ROOT_PASSWORD='example' \
+  -p 27017:27017 mongo
+
+$ pytest -m integration
 ```
 
 ### License
