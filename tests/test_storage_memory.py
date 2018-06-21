@@ -42,6 +42,8 @@ def test_get_all(st):
     assert 199 == len(st.get_all(199, 0))
     assert 200 == len(st.get_all(200, 50))
 
+    assert 0 == len(st.get_all(0, 0))
+
     assert 1 == len(st.get_all(1, 0))
 
     assert 5 == len(st.get_all(5, 4))
@@ -52,6 +54,16 @@ def test_get_all_for_one(st):
     assert 1 == len(st.get_all(100, 0))
     assert '1' == st.get_all(100, 0)[0].uid
     assert 'foo' == st.get_all(100, 0)[0].description
+
+
+def test_get_all_with_incorrect_args(st):
+    with pytest.raises(ValueError) as e:
+        st.get_all(-1, 90)
+    assert "Limit can't be negative" == str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        st.get_all(0, -34)
+    assert "Offset can't be negative" == str(e.value)
 
 
 def test_find_for_inquiry(st):

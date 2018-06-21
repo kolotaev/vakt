@@ -31,11 +31,15 @@ class MemoryStorage(Storage):
         return self.policies.get(uid)
 
     def get_all(self, limit, offset):
+        if limit < 0:
+            raise ValueError("Limit can't be negative")
+        if offset < 0:
+            raise ValueError("Offset can't be negative")
         result = [v for v in self.policies.values()]
         if limit + offset > len(result):
             limit = len(result)
             offset = 0
-        return result[offset:limit + offset]
+        return result[offset:limit+offset]
 
     def find_for_inquiry(self, inquiry):
         with self.lock:
