@@ -88,7 +88,7 @@ class TestMongoStorage(object):
         st.add(policy)
         assert id == st.get(id).uid
         assert None is st.get(id).description
-        assert [] is st.get(id).actions
+        assert [] == st.get(id).actions
         policy.description = 'foo'
         policy.actions = ['a', 'b', 'c']
         st.update(policy)
@@ -96,12 +96,10 @@ class TestMongoStorage(object):
         assert 'foo' == st.get(id).description
         assert ['a', 'b', 'c'] == st.get(id).actions
 
-    def test_update_non_existing(self, st):
+    def test_update_non_existing_does_not_create_anything(self, st):
         id = str(uuid.uuid4())
         st.update(Policy(id, actions=['get'], description='bar'))
-        assert id != st.get(id).uid
-        assert 'bar' != st.get(id).description
-        assert ['get'] != st.get(id).actions
+        assert st.get(id) is None
 
     def test_delete(self, st):
         policy = Policy('1')

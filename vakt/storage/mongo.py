@@ -52,7 +52,7 @@ class MongoStorage(Storage):
         uid = policy.uid
         self.collection.update_one(
             {'_id': uid},
-            self._prepare_doc(policy),
+            {"$set": self._prepare_doc(policy)},
             upsert=False)
 
     def delete(self, uid):

@@ -360,7 +360,7 @@ $ pytest --cov=vakt tests/         # to get coverage report
 $ pylint vakt                      # to check code quality with PyLint
 ```
 
-To run integration tests (for Storage adapters other than `MemoryStorage`):
+To run only integration tests (for Storage adapters other than `MemoryStorage`):
 
 ```bash
 $ docker run --rm -d  \
