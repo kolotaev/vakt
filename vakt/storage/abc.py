@@ -24,7 +24,11 @@ class Storage(metaclass=ABCMeta):
 
     @abstractmethod
     def get_all(self, limit, offset):
-        """Retrieve all the policies within a window"""
+        """
+        Retrieve all the policies within a window.
+
+        Returns List of Policies
+        """
         pass
 
     @abstractmethod
@@ -34,6 +38,8 @@ class Storage(metaclass=ABCMeta):
         Storage is free to decide what policies to return based on the performance and implementation considerations.
         In the worst case - all policies. In the best - policies matched on actions, subjects, resources.
         Mediocre case - match on subject.
+
+        Returns List of Policies
         """
         pass
 
@@ -46,3 +52,10 @@ class Storage(metaclass=ABCMeta):
     def delete(self, uid):
         """Delete a policy"""
         pass
+
+    @staticmethod
+    def _check_limit_and_offset(limit, offset):
+        if limit < 0:
+            raise ValueError("Limit can't be negative")
+        if offset < 0:
+            raise ValueError("Offset can't be negative")
