@@ -1,5 +1,6 @@
 from urllib.parse import quote_plus
 import uuid
+import random
 
 import pytest
 from pymongo import MongoClient
@@ -37,7 +38,6 @@ class TestMongoStorage(object):
             },
         )
         st.add(p)
-
         back = st.get(id)
         assert id == back.uid
         assert 'foo bar баз' == back.description
@@ -71,15 +71,58 @@ class TestMongoStorage(object):
     def test_get_nonexistent(self, st):
         assert None is st.get(123456789)
 
-    # def test_get_all(st):
-    #     pass
+    @pytest.mark.parametrize('limit, offset, result', [
+        (500, 0, 200),
+        (101, 1, 101),
+        (500, 50, 150),
+        (200, 0, 200),
+        (200, 1, 199),
+        (199, 0, 199),
+        (200, 50, 150),
+        (0, 0, 200),
+        (1, 0, 1),
+        (5, 4, 5),
+    ])
+    def test_get_all(self, st, limit, offset, result):
+        for i in range(200):
+            desc = ''.join(random.choice('abcde') for _ in range(30))
+            st.add(Policy(str(i), description=desc))
+        policies = st.get_all(limit=limit, offset=offset)
+        assert result == len(policies)
+
+    def test_get_all_check_policy_properties(self, st):
+        p = Policy(
+            uid='1',
+            description='foo bar баз',
+            subjects=('Edward Rooney', 'Florence Sparrow'),
+            actions=['<.*>'],
+            resources=['<.*>'],
+            rules={
+                'secret': StringEqualRule('i-am-a-teacher'),
+            },
+        )
+        st.add(p)
+        policies = st.get_all(100, 0)
+        assert 1 == len(policies)
+        assert '1' == policies[0].uid
+        assert 'foo bar баз' == policies[0].description
+        assert ['Edward Rooney', 'Florence Sparrow'] == policies[0].subjects
+        assert ['<.*>'] == policies[0].actions
+        assert ['<.*>'] == policies[0].resources
+        assert isinstance(policies[0].rules['secret'], StringEqualRule)
+
+    def test_get_all_with_incorrect_args(self, st):
+        for i in range(10):
+            st.add(Policy(str(i), description='foo'))
+        with pytest.raises(ValueError) as e:
+            st.get_all(-1, 9)
+        assert "Limit can't be negative" == str(e.value)
+        with pytest.raises(ValueError) as e:
+            st.get_all(0, -3)
+        assert "Offset can't be negative" == str(e.value)
+
     #
-    #
-    # def test_get_all_for_one(st):
-    #     pass
-    #
-    #
-    # def test_find_for_inquiry(st):
+    # def test_find_for_inquiry(self, st):
     #     pass
 
     def test_update(self, st):

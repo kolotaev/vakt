@@ -30,7 +30,7 @@ class MongoStorage(Storage):
     def add(self, policy):
         policy._id = policy.uid
         try:
-            self.collection.insert_one(self._prepare_doc(policy))
+            self.collection.insert_one(self.__prepare_doc(policy))
         except DuplicateKeyError:
             log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
             raise PolicyExistsError(policy.uid)
@@ -39,11 +39,12 @@ class MongoStorage(Storage):
         ret = self.collection.find_one(uid)
         if not ret:
             return None
-        del ret['_id']
-        return Policy.from_json(json.dumps(ret))
+        return self.__prepare_from_doc(ret)
 
     def get_all(self, limit, offset):
-        pass
+        self._check_limit_and_offset(limit, offset)
+        cur = self.collection.find(limit=limit, skip=offset)
+        return [self.__prepare_from_doc(d) for d in cur]
 
     def find_for_inquiry(self, inquiry):
         pass
@@ -52,13 +53,19 @@ class MongoStorage(Storage):
         uid = policy.uid
         self.collection.update_one(
             {'_id': uid},
-            {"$set": self._prepare_doc(policy)},
+            {"$set": self.__prepare_doc(policy)},
             upsert=False)
 
     def delete(self, uid):
         self.collection.delete_one({'_id': uid})
 
     @staticmethod
-    def _prepare_doc(policy):
+    def __prepare_doc(policy):
         # todo - add dict inheritance
         return json.loads(policy.to_json())
+
+    @staticmethod
+    def __prepare_from_doc(doc):
+        # todo - add dict inheritance
+        del doc['_id']
+        return Policy.from_json(json.dumps(doc))
