@@ -39,7 +39,7 @@ class MemoryStorage(Storage):
             limit = len(result)
         return result[offset:limit+offset]
 
-    def find_for_inquiry(self, inquiry):
+    def find_for_inquiry(self, inquiry, checker=None):
         with self.lock:
             return list(self.policies.values())
 

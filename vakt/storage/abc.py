@@ -32,12 +32,16 @@ class Storage(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def find_for_inquiry(self, inquiry):
+    def find_for_inquiry(self, inquiry, checker=None):
         """
         Get potential policies for a given inquiry.
         Storage is free to decide what policies to return based on the performance and implementation considerations.
         In the worst case - all policies. In the best - policies matched on actions, subjects, resources.
         Mediocre case - match on subject.
+
+        Checker is argument based on the class of provided vakt.checker.*
+        This internal checker is responsible for generating the correct type of query to the Storage:
+        e.g. RegexChecker, StringExactChecker will result in different queries.
 
         Returns List of Policies
         """
