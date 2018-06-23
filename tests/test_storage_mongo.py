@@ -9,7 +9,9 @@ from bson.objectid import ObjectId
 from vakt.storage.mongo import MongoStorage
 from vakt.policy import Policy
 from vakt.rules.string import StringEqualRule
-from vakt.exceptions import PolicyExistsError
+from vakt.exceptions import PolicyExistsError, UnknownCheckerType
+from vakt.guard import Inquiry
+from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker
 
 
 @pytest.mark.integration
@@ -17,7 +19,7 @@ class TestMongoStorage(object):
 
     @pytest.fixture()
     def st(self):
-        db_name, collection_name = 'my_app', 'vakt'
+        db_name, collection_name = 'vakt_test', 'vakt'
         user, password, host = 'root', 'example', 'localhost:27017'
         uri = 'mongodb://%s:%s@%s' % (quote_plus(user), quote_plus(password), host)
         client = MongoClient(uri, socketTimeoutMS=5*1000)
@@ -121,9 +123,49 @@ class TestMongoStorage(object):
             st.get_all(0, -3)
         assert "Offset can't be negative" == str(e.value)
 
-    #
-    # def test_find_for_inquiry(self, st):
-    #     pass
+    @pytest.mark.parametrize('checker', [
+        None,
+        RegexChecker(256),
+    ])
+    def test_find_for_inquiry_with_regex_or_none_checker_specified_return_all__existing_policies(self, st, checker):
+        st.add(Policy('1', subjects=['max', 'bob']))
+        st.add(Policy('2', subjects=['sam', 'foo']))
+        st.add(Policy('3', subjects=['bar']))
+        inquiry = Inquiry(subject='Jim', action='delete', resource='server')
+        found = st.find_for_inquiry(inquiry, checker)
+        assert 3 == len(found)
+
+    def test_find_for_inquiry_with_exact_string_checker(self, st):
+        st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['books', 'comics', 'magazines']))
+        st.add(Policy('2', subjects=['maxim'], actions=['get'], resources=['books', 'comics', 'magazines']))
+        st.add(Policy('3', subjects=['sam', 'nina']))
+        inquiry = Inquiry(subject='max', action='get', resource='books')
+        found = st.find_for_inquiry(inquiry, StringExactChecker())
+        assert 1 == len(found)
+        assert '1' == found[0].uid
+
+    def test_find_for_inquiry_with_fuzzy_string_checker(self, st):
+        st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['books', 'comics', 'magazines']))
+        st.add(Policy('2', subjects=['maxim'], actions=['get'], resources=['books', 'foos']))
+        st.add(Policy('3', subjects=['Max'], actions=['get'], resources=['books', 'comics']))
+        st.add(Policy('4', subjects=['sam', 'nina']))
+        inquiry = Inquiry(subject='max', action='et', resource='oo')
+        found = st.find_for_inquiry(inquiry, StringFuzzyChecker())
+        assert 2 == len(found)
+        ids = [found[0].uid, found[1].uid]
+        assert '1' in ids
+        assert '2' in ids
+        inquiry = Inquiry(subject='Max', action='get', resource='comics')
+        found = st.find_for_inquiry(inquiry, StringFuzzyChecker())
+        assert 1 == len(found)
+        assert '3' == found[0].uid
+
+    def test_find_for_inquiry_with_unknown_checker(self, st):
+        st.add(Policy('1'))
+        inquiry = Inquiry(subject='sam', action='get', resource='books')
+        with pytest.raises(UnknownCheckerType) as e:
+            st.find_for_inquiry(inquiry, Inquiry())
+        assert "Can't determine Checker type. Given: Inquiry" == str(e.value)
 
     def test_update(self, st):
         id = str(uuid.uuid4())
