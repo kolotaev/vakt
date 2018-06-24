@@ -27,7 +27,7 @@ class Storage(metaclass=ABCMeta):
         """
         Retrieve all the policies within a window.
 
-        Returns List of Policies
+        Returns Iterable
         """
         pass
 
@@ -43,7 +43,7 @@ class Storage(metaclass=ABCMeta):
         This internal checker is responsible for generating the correct type of query to the Storage:
         e.g. RegexChecker, StringExactChecker will result in different queries.
 
-        Returns List of Policies
+        Returns Iterable
         """
         pass
 

@@ -1,6 +1,7 @@
 from urllib.parse import quote_plus
 import uuid
 import random
+import types
 
 import pytest
 from pymongo import MongoClient
@@ -15,7 +16,7 @@ from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker
 
 
 @pytest.mark.integration
-class TestMongoStorage(object):
+class TestMongoStorage:
 
     @pytest.fixture()
     def st(self):
@@ -89,7 +90,7 @@ class TestMongoStorage(object):
         for i in range(200):
             desc = ''.join(random.choice('abcde') for _ in range(30))
             st.add(Policy(str(i), description=desc))
-        policies = st.get_all(limit=limit, offset=offset)
+        policies = list(st.get_all(limit=limit, offset=offset))
         assert result == len(policies)
 
     def test_get_all_check_policy_properties(self, st):
@@ -104,7 +105,7 @@ class TestMongoStorage(object):
             },
         )
         st.add(p)
-        policies = st.get_all(100, 0)
+        policies = list(st.get_all(100, 0))
         assert 1 == len(policies)
         assert '1' == policies[0].uid
         assert 'foo bar баз' == policies[0].description
@@ -117,11 +118,21 @@ class TestMongoStorage(object):
         for i in range(10):
             st.add(Policy(str(i), description='foo'))
         with pytest.raises(ValueError) as e:
-            st.get_all(-1, 9)
+            list(st.get_all(-1, 9))
         assert "Limit can't be negative" == str(e.value)
         with pytest.raises(ValueError) as e:
-            st.get_all(0, -3)
+            list(st.get_all(0, -3))
         assert "Offset can't be negative" == str(e.value)
+
+    def test_get_all_returns_generator(self, st):
+        st.add(Policy('1'))
+        st.add(Policy('2'))
+        found = st.get_all(500, 0)
+        assert isinstance(found, types.GeneratorType)
+        l = []
+        for p in found:
+            l.append(p.uid)
+        assert 2 == len(l)
 
     @pytest.mark.parametrize('checker', [
         None,
@@ -133,6 +144,7 @@ class TestMongoStorage(object):
         st.add(Policy('3', subjects=['bar']))
         inquiry = Inquiry(subject='Jim', action='delete', resource='server')
         found = st.find_for_inquiry(inquiry, checker)
+        found = list(found)
         assert 3 == len(found)
 
     def test_find_for_inquiry_with_exact_string_checker(self, st):
@@ -141,6 +153,7 @@ class TestMongoStorage(object):
         st.add(Policy('3', subjects=['sam', 'nina']))
         inquiry = Inquiry(subject='max', action='get', resource='books')
         found = st.find_for_inquiry(inquiry, StringExactChecker())
+        found = list(found)
         assert 1 == len(found)
         assert '1' == found[0].uid
 
@@ -151,20 +164,33 @@ class TestMongoStorage(object):
         st.add(Policy('4', subjects=['sam', 'nina']))
         inquiry = Inquiry(subject='max', action='et', resource='oo')
         found = st.find_for_inquiry(inquiry, StringFuzzyChecker())
+        found = list(found)
         assert 2 == len(found)
         ids = [found[0].uid, found[1].uid]
         assert '1' in ids
         assert '2' in ids
         inquiry = Inquiry(subject='Max', action='get', resource='comics')
         found = st.find_for_inquiry(inquiry, StringFuzzyChecker())
+        found = list(found)
         assert 1 == len(found)
         assert '3' == found[0].uid
+
+    def test_find_for_inquiry_returns_generator(self, st):
+        st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
+        st.add(Policy('2', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
+        inquiry = Inquiry(subject='max', action='get', resource='comics')
+        found = st.find_for_inquiry(inquiry)
+        assert isinstance(found, types.GeneratorType)
+        l = []
+        for p in found:
+            l.append(p.uid)
+        assert 2 == len(l)
 
     def test_find_for_inquiry_with_unknown_checker(self, st):
         st.add(Policy('1'))
         inquiry = Inquiry(subject='sam', action='get', resource='books')
         with pytest.raises(UnknownCheckerType) as e:
-            st.find_for_inquiry(inquiry, Inquiry())
+            list(st.find_for_inquiry(inquiry, Inquiry()))
         assert "Can't determine Checker type. Given: Inquiry" == str(e.value)
 
     def test_update(self, st):
@@ -197,3 +223,18 @@ class TestMongoStorage(object):
         uid = str(ObjectId())
         st.delete(uid)
         assert None is st.get(uid)
+
+    def test_returned_condition(self, st):
+        uid = str(uuid.uuid4())
+        p = Policy(
+            uid=uid,
+            rules={
+                'secret': StringEqualRule('i-am-a-teacher'),
+                'secret2': StringEqualRule('i-am-a-husband'),
+
+            },
+        )
+        st.add(p)
+        rules = st.get(uid).rules
+        assert rules['secret'].satisfied('i-am-a-teacher')
+        assert rules['secret2'].satisfied('i-am-a-husband')

@@ -47,10 +47,12 @@ class MongoStorage(Storage):
     def get_all(self, limit, offset):
         self._check_limit_and_offset(limit, offset)
         cur = self.collection.find(limit=limit, skip=offset)
-        return [self.__prepare_from_doc(d) for d in cur]
+        for doc in cur:
+            yield self.__prepare_from_doc(doc)
 
     def find_for_inquiry(self, inquiry, checker=None):
         if isinstance(checker, StringFuzzyChecker):
+            # todo - use index. fts.
             q_filter = self.__string_query_on_conditions('$regex', lambda f: getattr(inquiry, f))
         elif isinstance(checker, StringExactChecker):
             q_filter = self.__string_query_on_conditions('$eq', lambda f: getattr(inquiry, f))
@@ -63,8 +65,8 @@ class MongoStorage(Storage):
         else:
             raise UnknownCheckerType(checker)
         cur = self.collection.find(q_filter)
-        # todo - make lazy
-        return [self.__prepare_from_doc(d) for d in cur]
+        for doc in cur:
+            yield self.__prepare_from_doc(doc)
 
     def update(self, policy):
         uid = policy.uid
@@ -77,6 +79,9 @@ class MongoStorage(Storage):
         self.collection.delete_one({'_id': uid})
 
     def __string_query_on_conditions(self, operator, fn):
+        """
+        Construct MongoDB query.
+        """
         conditions = []
         for f in self.condition_fields:
             conditions.append(
