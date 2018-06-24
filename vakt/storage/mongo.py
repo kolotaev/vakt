@@ -47,8 +47,7 @@ class MongoStorage(Storage):
     def get_all(self, limit, offset):
         self._check_limit_and_offset(limit, offset)
         cur = self.collection.find(limit=limit, skip=offset)
-        for doc in cur:
-            yield self.__prepare_from_doc(doc)
+        return self.__generator(cur)
 
     def find_for_inquiry(self, inquiry, checker=None):
         if isinstance(checker, StringFuzzyChecker):
@@ -56,17 +55,15 @@ class MongoStorage(Storage):
             q_filter = self.__string_query_on_conditions('$regex', lambda f: getattr(inquiry, f))
         elif isinstance(checker, StringExactChecker):
             q_filter = self.__string_query_on_conditions('$eq', lambda f: getattr(inquiry, f))
-        # opt to RegexChecker if None or unknown.
         # We do not use Reverse-regexp match since it's not implemented yet in MongoDB.
         # Doing it via Javascript function gives no benefits over Vakt final Guard check.
         # See: https://jira.mongodb.org/browse/SERVER-11947
-        elif isinstance(checker, RegexChecker) or not checker:
+        elif isinstance(checker, RegexChecker) or not checker:  # opt to RegexChecker as default.
             q_filter = {}
         else:
             raise UnknownCheckerType(checker)
         cur = self.collection.find(q_filter)
-        for doc in cur:
-            yield self.__prepare_from_doc(doc)
+        return self.__generator(cur)
 
     def update(self, policy):
         uid = policy.uid
@@ -113,3 +110,7 @@ class MongoStorage(Storage):
         # todo - add dict inheritance
         del doc['_id']
         return Policy.from_json(json.dumps(doc))
+
+    def __generator(self, cursor):
+        for doc in cursor:
+            yield self.__prepare_from_doc(doc)
