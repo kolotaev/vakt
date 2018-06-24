@@ -189,9 +189,8 @@ class TestMongoStorage:
     def test_find_for_inquiry_with_unknown_checker(self, st):
         st.add(Policy('1'))
         inquiry = Inquiry(subject='sam', action='get', resource='books')
-        with pytest.raises(UnknownCheckerType) as e:
+        with pytest.raises(UnknownCheckerType):
             list(st.find_for_inquiry(inquiry, Inquiry()))
-        assert "Can't determine Checker type. Given: Inquiry" == str(e.value)
 
     def test_update(self, st):
         id = str(uuid.uuid4())
