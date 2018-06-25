@@ -3,8 +3,8 @@ MongoDB storage for Policies.
 """
 
 import logging
-import json
 
+import bson.json_util as b_json
 from pymongo.errors import DuplicateKeyError
 
 from ..storage.abc import Storage
@@ -98,7 +98,7 @@ class MongoStorage(Storage):
         Prepare Policy object as a document for insertion.
         """
         # todo - add dict inheritance
-        doc = json.loads(policy.to_json())
+        doc = b_json.loads(policy.to_json())
         doc['_id'] = policy.uid
         return doc
 
@@ -109,7 +109,7 @@ class MongoStorage(Storage):
         """
         # todo - add dict inheritance
         del doc['_id']
-        return Policy.from_json(json.dumps(doc))
+        return Policy.from_json(b_json.dumps(doc))
 
     def __feed_policies(self, cursor):
         """
