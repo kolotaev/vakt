@@ -8,14 +8,14 @@ import importlib
 from abc import ABCMeta, abstractmethod
 from inspect import signature
 
-from ..util import JsonDumper, PrettyPrint
+from ..util import JsonSerializer, PrettyPrint
 from ..exceptions import RuleCreationError
 
 
 log = logging.getLogger(__name__)
 
 
-class Rule(JsonDumper, PrettyPrint, metaclass=ABCMeta):
+class Rule(JsonSerializer, PrettyPrint, metaclass=ABCMeta):
     """Basic Rule"""
 
     @abstractmethod

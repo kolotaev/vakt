@@ -285,12 +285,12 @@ print(policy)
 
 The same goes for Rules, Inquiries.
 All custom classes derived from them support this functionality as well.
-If you do not derive from Vakt's classes, but want this option, you can mix-in `vakt.util.JsonDumper` class.
+If you do not derive from Vakt's classes, but want this option, you can mix-in `vakt.util.JsonSerializer` class.
 
 ```python
-from vakt.util import JsonDumper
+from vakt.util import JsonSerializer
 
-class CustomInquiry(JsonDumper):
+class CustomInquiry(JsonSerializer):
     pass
 ```
 

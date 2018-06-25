@@ -23,8 +23,8 @@ class MongoStorage(Storage):
 
     def __init__(self, client, db_name, collection=DEFAULT_COLLECTION):
         self.client = client
-        self.db = self.client[db_name]
-        self.collection = self.db[collection]
+        self.database = self.client[db_name]
+        self.collection = self.database[collection]
         self.condition_fields = [
             'actions',
             'subjects',
@@ -47,14 +47,14 @@ class MongoStorage(Storage):
     def get_all(self, limit, offset):
         self._check_limit_and_offset(limit, offset)
         cur = self.collection.find(limit=limit, skip=offset)
-        return self.__generator(cur)
+        return self.__feed_policies(cur)
 
     def find_for_inquiry(self, inquiry, checker=None):
         if isinstance(checker, StringFuzzyChecker):
             # todo - use index. fts.
-            q_filter = self.__string_query_on_conditions('$regex', lambda f: getattr(inquiry, f))
+            q_filter = self.__string_query_on_conditions('$regex', lambda field: getattr(inquiry, field))
         elif isinstance(checker, StringExactChecker):
-            q_filter = self.__string_query_on_conditions('$eq', lambda f: getattr(inquiry, f))
+            q_filter = self.__string_query_on_conditions('$eq', lambda field: getattr(inquiry, field))
         # We do not use Reverse-regexp match since it's not implemented yet in MongoDB.
         # Doing it via Javascript function gives no benefits over Vakt final Guard check.
         # See: https://jira.mongodb.org/browse/SERVER-11947
@@ -63,7 +63,7 @@ class MongoStorage(Storage):
         else:
             raise UnknownCheckerType(checker)
         cur = self.collection.find(q_filter)
-        return self.__generator(cur)
+        return self.__feed_policies(cur)
 
     def update(self, policy):
         uid = policy.uid
@@ -75,17 +75,17 @@ class MongoStorage(Storage):
     def delete(self, uid):
         self.collection.delete_one({'_id': uid})
 
-    def __string_query_on_conditions(self, operator, fn):
+    def __string_query_on_conditions(self, operator, get_value):
         """
         Construct MongoDB query.
         """
         conditions = []
-        for f in self.condition_fields:
+        for field in self.condition_fields:
             conditions.append(
                 {
-                    f: {
+                    field: {
                         '$elemMatch': {
-                            operator: fn(f.rstrip('s'))
+                            operator: get_value(field.rstrip('s'))
                         }
                     }
                 }
@@ -111,6 +111,9 @@ class MongoStorage(Storage):
         del doc['_id']
         return Policy.from_json(json.dumps(doc))
 
-    def __generator(self, cursor):
+    def __feed_policies(self, cursor):
+        """
+        Yields Policies from the given cursor.
+        """
         for doc in cursor:
             yield self.__prepare_from_doc(doc)

@@ -5,13 +5,13 @@ Also contains Inquiry class.
 
 import logging
 
-from .util import JsonDumper, PrettyPrint
+from .util import JsonSerializer, PrettyPrint
 
 
 log = logging.getLogger(__name__)
 
 
-class Inquiry(JsonDumper, PrettyPrint):
+class Inquiry(JsonSerializer, PrettyPrint):
     """Holds all the information about the inquired intent.
     Is responsible to decisions is the inquired intent allowed or not."""
 
