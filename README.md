@@ -16,6 +16,8 @@ Attribute-based access control (ABAC) SDK for Python.
 - [Components](#components)
     - [Storage](#storage)
         - [Memory](#memory)
+        - [MongoDB](#mongodb)
+    - [Manager](#manager)
 	- [Policy](#policy)
 	- [Inquiry](#inquiry)
 	- [Rule](#rule)
@@ -88,8 +90,8 @@ out of the box. See below.
 Implementation that stores Policies in memory. It's not backed by any file or something, so every restart of your
 application will swipe out everything that was stored. Useful for testing.
 
-##### Mongo
-MongoDB is chosen as a most popular NO-SQL database.
+##### MongoDB
+MongoDB is chosen as the most popular and widespread NO-SQL database.
 
 
 ```python
@@ -99,6 +101,14 @@ from vakt.storage.mongo import MongoStorage
 client = MongoClient('localhost', 27017)
 storage = MongoStorage(client)
 ```
+
+#### Manager
+
+Manager is a component that is useful in the context of the [Storage](#storage). It allows you to manage storage.
+For example run migrations, create indices, etc. It's recommended to favor it over manual actions on DB schema/data
+since it's aware of Vakt requirements to Policies data. But it's not mandatory, anyway.
+It's up to a particular Storage to decide whether it needs manager or not (or some of its methods).
+Should be located inside particular storage module and implement `storage.abc.Manager`.
 
 
 #### Policy
