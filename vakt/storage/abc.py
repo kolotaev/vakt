@@ -67,15 +67,15 @@ class Storage(metaclass=ABCMeta):
 
 class Migration(metaclass=ABCMeta):
     """
-    Manager for maintaining various actions of the storage: migrations, indices, et al.
+    Manager for maintaining various migration actions of the storage: schema, indices, etc
     """
 
     @abstractmethod
-    def migrate_up(self):
+    def up(self):
         """ Migrate DB schema up """
         pass
 
     @abstractmethod
-    def migrate_down(self):
+    def down(self):
         """ Migrate DB schema down """
         pass

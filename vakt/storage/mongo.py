@@ -128,14 +128,15 @@ class MongoStorage(Storage):
 
 class Migration0To1x0x3(Migration):
     """
-    Migration from version 0 to 1.0.3
+    Migration between versions 0 and 1.0.3
     """
 
     def __init__(self, storage):
         self.storage = storage
+        self.index_name = 'vakt_index'
 
-    def migrate_up(self):
-        pass
+    def up(self):
+        self.storage.collection.create_index(name=self.index_name)
 
-    def migrate_down(self):
-        pass
+    def down(self):
+        self.storage.collection.drop_index(name=self.index_name)
