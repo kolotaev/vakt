@@ -7,7 +7,7 @@ import logging
 import bson.json_util as b_json
 from pymongo.errors import DuplicateKeyError
 
-from ..storage.abc import Storage
+from ..storage.abc import Storage, Migration
 from ..exceptions import PolicyExistsError, UnknownCheckerType
 from ..policy import Policy
 from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker
@@ -50,18 +50,7 @@ class MongoStorage(Storage):
         return self.__feed_policies(cur)
 
     def find_for_inquiry(self, inquiry, checker=None):
-        if isinstance(checker, StringFuzzyChecker):
-            # todo - use index. fts.
-            q_filter = self.__string_query_on_conditions('$regex', lambda field: getattr(inquiry, field))
-        elif isinstance(checker, StringExactChecker):
-            q_filter = self.__string_query_on_conditions('$eq', lambda field: getattr(inquiry, field))
-        # We do not use Reverse-regexp match since it's not implemented yet in MongoDB.
-        # Doing it via Javascript function gives no benefits over Vakt final Guard check.
-        # See: https://jira.mongodb.org/browse/SERVER-11947
-        elif isinstance(checker, RegexChecker) or not checker:  # opt to RegexChecker as default.
-            q_filter = {}
-        else:
-            raise UnknownCheckerType(checker)
+        q_filter = self._create_filter(inquiry, checker)
         cur = self.collection.find(q_filter)
         return self.__feed_policies(cur)
 
@@ -74,6 +63,24 @@ class MongoStorage(Storage):
 
     def delete(self, uid):
         self.collection.delete_one({'_id': uid})
+
+    def _create_filter(self, inquiry, checker):
+        """
+        Returns proper query-filter based on the checker type.
+        """
+        if isinstance(checker, StringFuzzyChecker):
+            # todo - use index. fts.
+            return self.__string_query_on_conditions('$regex', lambda field: getattr(inquiry, field))
+        elif isinstance(checker, StringExactChecker):
+            return self.__string_query_on_conditions('$eq', lambda field: getattr(inquiry, field))
+            # We do not use Reverse-regexp match since it's not implemented yet in MongoDB.
+            # Doing it via Javascript function gives no benefits over Vakt final Guard check.
+            # See: https://jira.mongodb.org/browse/SERVER-11947
+        elif isinstance(checker, RegexChecker) or not checker:  # opt to RegexChecker as default.
+            return {}
+        else:
+            log.error('Provided Checker type is not supported.')
+            raise UnknownCheckerType(checker)
 
     def __string_query_on_conditions(self, operator, get_value):
         """
@@ -117,3 +124,18 @@ class MongoStorage(Storage):
         """
         for doc in cursor:
             yield self.__prepare_from_doc(doc)
+
+
+class Migration0To1x0x3(Migration):
+    """
+    Migration from version 0 to 1.0.3
+    """
+
+    def __init__(self, storage):
+        self.storage = storage
+
+    def migrate_up(self):
+        pass
+
+    def migrate_down(self):
+        pass

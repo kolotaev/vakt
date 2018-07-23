@@ -65,22 +65,17 @@ class Storage(metaclass=ABCMeta):
             raise ValueError("Offset can't be negative")
 
 
-class Manager(metaclass=ABCMeta):
+class Migration(metaclass=ABCMeta):
     """
     Manager for maintaining various actions of the storage: migrations, indices, et al.
     """
 
     @abstractmethod
-    def migrate_up(self, **kwargs):
-        """Migrate DB schema up"""
+    def migrate_up(self):
+        """ Migrate DB schema up """
         pass
 
     @abstractmethod
-    def migrate_down(self, **kwargs):
-        """Migrate DB schema down"""
-        pass
-
-    @abstractmethod
-    def ensure_indices(self, **kwargs):
-        """Create indices if not present"""
+    def migrate_down(self):
+        """ Migrate DB schema down """
         pass
