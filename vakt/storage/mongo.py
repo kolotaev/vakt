@@ -1,5 +1,5 @@
 """
-MongoDB storage for Policies.
+MongoDB Storage and Migrations for Policies.
 """
 
 import logging
@@ -133,10 +133,18 @@ class Migration0To1x0x3(Migration):
 
     def __init__(self, storage):
         self.storage = storage
-        self.index_name = 'vakt_index'
+        self.multi_key_indices = [
+            'actions_idx',
+            'subjects_idx',
+            'resources_idx',
+        ]
 
     def up(self):
-        self.storage.collection.create_index(name=self.index_name)
+        # MongoDB automatically creates a multikey index if any indexed field is an array;
+        # https://docs.mongodb.com/manual/core/index-multikey/#create-multikey-index
+        for name in self.multi_key_indices:
+            self.storage.collection.create_index(name=name)
 
     def down(self):
-        self.storage.collection.drop_index(name=self.index_name)
+        for name in self.multi_key_indices:
+            self.storage.collection.drop_index(name=name)
