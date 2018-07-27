@@ -71,6 +71,12 @@ class Migration(metaclass=ABCMeta):
     """
 
     @abstractmethod
+    @property
+    def order(self):
+        """ Number of this migration in the row of migrations """
+        pass
+
+    @abstractmethod
     def up(self):
         """ Migrate DB schema up """
         pass

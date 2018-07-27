@@ -139,6 +139,9 @@ class Migration0To1x0x3(Migration):
             'resources_idx',
         ]
 
+    def order(self):
+        return 1
+
     def up(self):
         # MongoDB automatically creates a multikey index if any indexed field is an array;
         # https://docs.mongodb.com/manual/core/index-multikey/#create-multikey-index
