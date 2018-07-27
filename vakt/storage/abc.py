@@ -70,8 +70,8 @@ class Migration(metaclass=ABCMeta):
     Manager for maintaining various migration actions of the storage: schema, indices, etc
     """
 
-    @abstractmethod
     @property
+    @abstractmethod
     def order(self):
         """ Number of this migration in the row of migrations """
         pass

@@ -7,7 +7,7 @@ import pytest
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
-from vakt.storage.mongo import MongoStorage
+from vakt.storage.mongo import MongoStorage, Migration0To1x0x3
 from vakt.policy import Policy
 from vakt.rules.string import StringEqualRule
 from vakt.exceptions import PolicyExistsError, UnknownCheckerType
@@ -15,15 +15,21 @@ from vakt.guard import Inquiry
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker
 
 
+db_name, collection_name = 'vakt_test', 'vakt'
+
+
+def create_client():
+    user, password, host = 'root', 'example', 'localhost:27017'
+    uri = 'mongodb://%s:%s@%s' % (quote_plus(user), quote_plus(password), host)
+    return MongoClient(uri, socketTimeoutMS=5 * 1000)
+
+
 @pytest.mark.integration
 class TestMongoStorage:
 
     @pytest.fixture()
     def st(self):
-        db_name, collection_name = 'vakt_test', 'vakt'
-        user, password, host = 'root', 'example', 'localhost:27017'
-        uri = 'mongodb://%s:%s@%s' % (quote_plus(user), quote_plus(password), host)
-        client = MongoClient(uri, socketTimeoutMS=5*1000)
+        client = create_client()
         yield MongoStorage(client, db_name, collection=collection_name)
         client[db_name][collection_name].remove()
         client.close()
@@ -237,3 +243,31 @@ class TestMongoStorage:
         rules = st.get(uid).rules
         assert rules['secret'].satisfied('i-am-a-teacher')
         assert rules['secret2'].satisfied('i-am-a-husband')
+
+
+@pytest.mark.integration
+class TestMigration0To1x0x3:
+
+    @pytest.fixture()
+    def migration(self):
+        client = create_client()
+        storage = MongoStorage(client, db_name, collection=collection_name)
+        yield Migration0To1x0x3(storage)
+        client[db_name][collection_name].remove()
+        client.close()
+
+    def test_order(self, migration):
+        assert 1 == migration.order
+
+    def test_has_access_to_storage(self, migration):
+        assert hasattr(migration, 'storage') and migration.storage is not None
+
+    def test_up(self, migration):
+        migration.up()
+        created_indices = [i['name'] for i in migration.storage.collection.list_indexes()]
+        assert created_indices == ['_id_', 'actions_idx', 'subjects_idx', 'resources_idx']
+
+    def test_down(self, migration):
+        migration.down()
+        left_indices = [i['name'] for i in migration.storage.collection.list_indexes()]
+        assert left_indices == ['_id_']

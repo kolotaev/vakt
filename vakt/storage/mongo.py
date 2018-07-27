@@ -69,7 +69,6 @@ class MongoStorage(Storage):
         Returns proper query-filter based on the checker type.
         """
         if isinstance(checker, StringFuzzyChecker):
-            # todo - use index. fts.
             return self.__string_query_on_conditions('$regex', lambda field: getattr(inquiry, field))
         elif isinstance(checker, StringExactChecker):
             return self.__string_query_on_conditions('$eq', lambda field: getattr(inquiry, field))
@@ -133,21 +132,23 @@ class Migration0To1x0x3(Migration):
 
     def __init__(self, storage):
         self.storage = storage
+        self.index_name = lambda i: i + '_idx'
         self.multi_key_indices = [
-            'actions_idx',
-            'subjects_idx',
-            'resources_idx',
+            'actions',
+            'subjects',
+            'resources',
         ]
 
+    @property
     def order(self):
         return 1
 
     def up(self):
         # MongoDB automatically creates a multikey index if any indexed field is an array;
         # https://docs.mongodb.com/manual/core/index-multikey/#create-multikey-index
-        for name in self.multi_key_indices:
-            self.storage.collection.create_index(name=name)
+        for field in self.multi_key_indices:
+            self.storage.collection.create_index(field, name=self.index_name(field))
 
     def down(self):
-        for name in self.multi_key_indices:
-            self.storage.collection.drop_index(name=name)
+        for field in self.multi_key_indices:
+            self.storage.collection.drop_index(self.index_name(field))
