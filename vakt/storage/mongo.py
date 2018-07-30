@@ -37,6 +37,7 @@ class MongoStorage(Storage):
         except DuplicateKeyError:
             log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
             raise PolicyExistsError(policy.uid)
+        log.info('Added Policy: %s.', policy)
 
     def get(self, uid):
         ret = self.collection.find_one(uid)
@@ -60,9 +61,11 @@ class MongoStorage(Storage):
             {'_id': uid},
             {"$set": self.__prepare_doc(policy)},
             upsert=False)
+        log.info('Updated Policy with UID=%s. New value is: %s.', uid, policy)
 
     def delete(self, uid):
         self.collection.delete_one({'_id': uid})
+        log.info('Deleted Policy with UID=%s.', uid)
 
     def _create_filter(self, inquiry, checker):
         """
