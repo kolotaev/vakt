@@ -39,8 +39,8 @@ policies = [
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
         rules={
-            'ip': CIDRRule('192.168.2.0/24'),
-            # for local testing replace with CIDRRule('127.0.0.1'),
+            'ip': CIDRRule('127.0.0.1/32'),
+            # for real usage might be something like: CIDRRule('192.168.2.0/24')
         },
     ),
     Policy(
@@ -73,6 +73,14 @@ def init():
     # Here we instantiate the Policy Storage.
     # In this case it's just in-memory one, but we can opt to SQL Storage, MongoDB Storage, etc.
     st = MemoryStorage()
+
+    # Optionally you can create a real DB storage, e.g. MongoDB:
+    # from pymongo import MongoClient
+    # from vakt.storage.mongo import MongoStorage
+    # user, password, host = 'root', 'example', 'localhost:27017'
+    # uri = 'mongodb://%s:%s@%s' % (user, password, host)
+    # st = MongoStorage(MongoClient(uri), 'vakt_db', collection='vakt_policies')
+
     # And persist all our Policies so that to start serving our library.
     for p in policies:
         st.add(p)
