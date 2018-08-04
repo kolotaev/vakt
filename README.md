@@ -17,7 +17,7 @@ Attribute-based access control (ABAC) SDK for Python.
     - [Storage](#storage)
         - [Memory](#memory)
         - [MongoDB](#mongodb)
-    - [Manager](#manager)
+    - [Migration](#migration)
 	- [Policy](#policy)
 	- [Inquiry](#inquiry)
 	- [Rule](#rule)
@@ -102,13 +102,24 @@ client = MongoClient('localhost', 27017)
 storage = MongoStorage(client)
 ```
 
-#### Manager
+Actions are the same as for any Storage that conforms (storage.abc.Storage) interface.
 
-Manager is a component that is useful in the context of the [Storage](#storage). It allows you to manage storage.
-For example run migrations, create indices, etc. It's recommended to favor it over manual actions on DB schema/data
+Beware that currently MongoStorage supports indexed `find_for_inquiry()` only for StringExact and StringFuzzy checkers.
+Regex checker simply returns all the Policies from the database.
+See [this issue](https://jira.mongodb.org/browse/SERVER-11947).
+
+#### Migration
+
+Migration is a component that is useful in the context of the [Storage](#storage). It allows you to manage migrations.
+It's recommended to favor it over manual actions on DB schema/data
 since it's aware of Vakt requirements to Policies data. But it's not mandatory, anyway.
-It's up to a particular Storage to decide whether it needs manager or not (or some of its methods).
-Should be located inside particular storage module and implement `storage.abc.Manager`.
+Each storage can have a number of `Migration` classes to address different releases with the order of the migration
+specified in `order` property.
+It's up to a particular Storage to decide whether it needs migrations or not.
+Should be located inside particular storage module and implement `storage.abc.Migration`.
+Migration has 2 main methods (as you might guess):
+- `up` - runs db "schema" upwards
+- `down` - runs db "schema" downwards (rolls back the actions of `up`)
 
 
 #### Policy
@@ -239,8 +250,13 @@ E.g. 'sun' in 'sunny' - True
      'sun' in 'sun' - True
 ```
 
-Also note, that some [Storage](#storage) handlers can already check if Policy fits Inquiry in
-`find_for_inquiry()` method. So Checker is the last row of control before Vakt makes a decision.
+Note, that some [Storage](#storage) handlers can already check if Policy fits Inquiry in
+`find_for_inquiry()` method by performing specific to that storage queries - Storage can (and generally should)
+decide on the type of actions based on the checker class passed to [Guard](#guard) constructor
+(or to `find_for_inquiry()` directly).
+
+Regardless of the results returned by a Storage the Checker is always the last row of control
+before Vakt makes a decision.
 
 
 #### Guard
