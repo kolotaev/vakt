@@ -63,8 +63,14 @@ For example of usage see [examples folder](examples).
 Vakt runs on Python >= 3.3.
 PyPy implementation is supported as well.
 
+For in-memory storage:
 ```bash
 pip install vakt
+```
+
+For MongoDB storage:
+```bash
+pip install vakt[mongo]
 ```
 
 ### Usage
@@ -99,8 +105,10 @@ from pymongo import MongoClient
 from vakt.storage.mongo import MongoStorage
 
 client = MongoClient('localhost', 27017)
-storage = MongoStorage(client)
+storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
 ```
+
+Default collection name is 'vakt'.
 
 Actions are the same as for any Storage that conforms (storage.abc.Storage) interface.
 
