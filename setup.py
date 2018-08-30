@@ -1,9 +1,5 @@
 from setuptools import setup, find_packages
 from os import path
-<<<<<<< HEAD
-
-=======
->>>>>>> Add md readme to setup
 
 __version__ = '1.1.0'
 
@@ -21,11 +17,7 @@ if __name__ == "__main__":
         author='Egor Kolotaev',
         author_email='ekolotaev@gmail.com',
         license="Apache 2.0 license",
-<<<<<<< HEAD
         url='http://github.com/kolotaev/vakt',
-=======
-        url='https://github.com/kolotaev/vakt',
->>>>>>> Add md readme to setup
         long_description=long_description,
         long_description_content_type='text/markdown',
         py_modules=['vakt'],
