@@ -129,6 +129,20 @@ Migration has 2 main methods (as you might guess):
 - `up` - runs db "schema" upwards
 - `down` - runs db "schema" downwards (rolls back the actions of `up`)
 
+Example usage:
+
+```python
+from pymongo import MongoClient
+from vakt.storage.mongo import MongoStorage, Migration0To1x0x3, Migration1x0x3To2
+
+client = MongoClient('localhost', 27017)
+storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
+
+migrations = (Migration0To1x0x3(storage), Migration1x0x3To2(storage))
+for m in sorted(migrations, key=lambda x: x.order):
+  m.up()
+```
+
 
 #### Policy
 Policy is a main object for defining rules for accessing resources.
