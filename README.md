@@ -411,11 +411,7 @@ $ pylint vakt                      # to check code quality with PyLint
 To run only integration tests (for Storage adapters other than `MemoryStorage`):
 
 ```bash
-$ docker run --rm -d  \
-  -e MONGO_INITDB_ROOT_USERNAME='root' \
-  -e MONGO_INITDB_ROOT_PASSWORD='example' \
-  -p 27017:27017 mongo
-
+$ docker run --rm -d -p 27017:27017 mongo
 $ pytest -m integration
 ```
 

@@ -1,4 +1,3 @@
-from urllib.parse import quote_plus
 import uuid
 import random
 import types
@@ -15,13 +14,14 @@ from vakt.guard import Inquiry
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker
 
 
-db_name, collection_name = 'vakt_test', 'vakt'
+MONGO_HOST = '127.0.0.1'
+MONGO_PORT = 27017
+DB_NAME = 'vakt_db'
+COLLECTION = 'vakt_policies'
 
 
 def create_client():
-    user, password, host = 'root', 'example', 'localhost:27017'
-    uri = 'mongodb://%s:%s@%s' % (quote_plus(user), quote_plus(password), host)
-    return MongoClient(uri, socketTimeoutMS=5 * 1000)
+    return MongoClient(MONGO_HOST, MONGO_PORT)
 
 
 @pytest.mark.integration
@@ -30,8 +30,8 @@ class TestMongoStorage:
     @pytest.fixture()
     def st(self):
         client = create_client()
-        yield MongoStorage(client, db_name, collection=collection_name)
-        client[db_name][collection_name].remove()
+        yield MongoStorage(client, DB_NAME, collection=COLLECTION)
+        client[DB_NAME][COLLECTION].remove()
         client.close()
 
     def test_add(self, st):
@@ -251,9 +251,9 @@ class TestMigration0To1x0x3:
     @pytest.fixture()
     def migration(self):
         client = create_client()
-        storage = MongoStorage(client, db_name, collection=collection_name)
+        storage = MongoStorage(client, DB_NAME, collection=COLLECTION)
         yield Migration0To1x0x3(storage)
-        client[db_name][collection_name].remove()
+        client[DB_NAME][COLLECTION].remove()
         client.close()
 
     def test_order(self, migration):

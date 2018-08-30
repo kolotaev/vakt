@@ -1,9 +1,11 @@
 sudo: false
 
+language: python
+
 services:
   - mongodb
 
-language: python
+cache: pip
 
 python:
   - "3.3"
@@ -15,7 +17,8 @@ python:
   - "pypy3"  # Pypy3 5.8.0-beta0
 
 before_script:
-  - mongo vakt_test --eval 'db.createUser({user:"root",pwd:"example",roles:["readWrite"]});'
+  - sleep 15
+  - mongo vakt_db --eval 'db.createUser({user:"test_user",pwd:"test_password",roles:["readWrite"]});'
 
 install:
   - pip install -e .[dev,mongo]
