@@ -14,8 +14,11 @@ python:
   - "nightly"
   - "pypy3"  # Pypy3 5.8.0-beta0
 
+before_script:
+  - mongo vakt_test --eval 'db.createUser({user:"root",pwd:"example",roles:["readWrite"]});'
+
 install:
-  - pip install -e .[dev]
+  - pip install -e .[dev,mongo]
 
 script:
   - python -m pytest --cov-config .coveragerc --cov=./
