@@ -108,7 +108,7 @@ client = MongoClient('localhost', 27017)
 storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
 ```
 
-Default collection name is 'vakt'.
+Default collection name is 'vakt_policies'.
 
 Actions are the same as for any Storage that conforms (storage.abc.Storage) interface.
 
@@ -125,9 +125,10 @@ Each storage can have a number of `Migration` classes to address different relea
 specified in `order` property.
 It's up to a particular Storage to decide whether it needs migrations or not.
 Should be located inside particular storage module and implement `storage.abc.Migration`.
-Migration has 2 main methods (as you might guess):
+Migration has 2 main methods (as you might guess). As well as 1 property:
 - `up` - runs db "schema" upwards
 - `down` - runs db "schema" downwards (rolls back the actions of `up`)
+- `order` - tells the number of the current migration in a row
 
 Example usage:
 
