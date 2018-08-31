@@ -82,6 +82,7 @@ class StringFuzzyChecker(StringChecker):
     """
     Checker that uses fuzzy substring equality. Case-sensitive.
     E.g. 'sun' in 'sunny' - True
+         'sun' in 'unsung' - True
          'sun' in 'sun' - True
     """
 

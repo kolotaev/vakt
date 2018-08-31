@@ -6,14 +6,14 @@ import logging
 
 from .effects import ALLOW_ACCESS, DENY_ACCESS
 from .exceptions import PolicyCreationError
-from .util import JsonDumper, PrettyPrint
+from .util import JsonSerializer, PrettyPrint
 from .rules.base import Rule
 
 
 log = logging.getLogger(__name__)
 
 
-class Policy(JsonDumper, PrettyPrint):
+class Policy(JsonSerializer, PrettyPrint):
     """Represents a policy that regulates access and allowed actions of subjects
     over some resources under a set of rules."""
 

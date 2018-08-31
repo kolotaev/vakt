@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from os import path
 
-__version__ = '1.0.5'
+__version__ = '1.1.0'
 
 
 with open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding='utf-8') as f:
@@ -24,10 +24,13 @@ if __name__ == "__main__":
         install_requires=[],
         extras_require={
             'dev': [
-                'pytest',
+                'pytest>=3.0.0',
                 'pytest-cov',
                 'pylint',
-            ]
+            ],
+            'mongo': [
+                'pymongo>=3.5',
+            ],
         },
         packages=find_packages(exclude='tests'),
         classifiers=[

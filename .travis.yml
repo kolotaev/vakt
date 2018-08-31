@@ -2,6 +2,11 @@ sudo: false
 
 language: python
 
+services:
+  - mongodb
+
+cache: pip
+
 python:
   - "3.3"
   - "3.4"
@@ -11,8 +16,12 @@ python:
   - "nightly"
   - "pypy3"  # Pypy3 5.8.0-beta0
 
+before_script:
+  - sleep 15
+  - mongo vakt_db --eval 'db.createUser({user:"test_user",pwd:"test_password",roles:["readWrite"]});'
+
 install:
-  - pip install -e .[dev]
+  - pip install -e .[dev,mongo]
 
 script:
   - python -m pytest --cov-config .coveragerc --cov=./

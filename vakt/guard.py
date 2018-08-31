@@ -5,13 +5,13 @@ Also contains Inquiry class.
 
 import logging
 
-from .util import JsonDumper, PrettyPrint
+from .util import JsonSerializer, PrettyPrint
 
 
 log = logging.getLogger(__name__)
 
 
-class Inquiry(JsonDumper, PrettyPrint):
+class Inquiry(JsonSerializer, PrettyPrint):
     """Holds all the information about the inquired intent.
     Is responsible to decisions is the inquired intent allowed or not."""
 
@@ -39,7 +39,7 @@ class Guard:
     def is_allowed(self, inquiry):
         """Is given inquiry intent allowed or not?"""
         try:
-            policies = self.storage.find_for_inquiry(inquiry)
+            policies = self.storage.find_for_inquiry(inquiry, self.checker)
             # Storage is not obliged to do the exact policies match. It's up to the storage
             # to decide what policies to return. So we need a more correct programmatically done check.
             answer = self.check_policies_allow(inquiry, policies)

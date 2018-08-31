@@ -1,5 +1,5 @@
 """
-Memory storage.
+Memory storage for Policies.
 """
 
 import threading
@@ -24,20 +24,22 @@ class MemoryStorage(Storage):
         with self.lock:
             if uid in self.policies:
                 log.error('Error trying to create already existing policy with UID=%s', uid)
-                raise PolicyExistsError
+                raise PolicyExistsError(uid)
             self.policies[uid] = policy
 
     def get(self, uid):
         return self.policies.get(uid)
 
     def get_all(self, limit, offset):
+        self._check_limit_and_offset(limit, offset)
         result = [v for v in self.policies.values()]
-        if limit + offset > len(result):
+        if offset > len(result):
+            return []
+        if limit == 0:
             limit = len(result)
-            offset = 0
-        return result[offset:limit + offset]
+        return result[offset:limit+offset]
 
-    def find_for_inquiry(self, inquiry):
+    def find_for_inquiry(self, inquiry, checker=None):
         with self.lock:
             return list(self.policies.values())
 

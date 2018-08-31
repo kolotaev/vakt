@@ -16,6 +16,8 @@ Attribute-based access control (ABAC) SDK for Python.
 - [Components](#components)
     - [Storage](#storage)
         - [Memory](#memory)
+        - [MongoDB](#mongodb)
+    - [Migration](#migration)
 	- [Policy](#policy)
 	- [Inquiry](#inquiry)
 	- [Rule](#rule)
@@ -61,8 +63,14 @@ For example of usage see [examples folder](examples).
 Vakt runs on Python >= 3.3.
 PyPy implementation is supported as well.
 
+For in-memory storage:
 ```bash
 pip install vakt
+```
+
+For MongoDB storage:
+```bash
+pip install vakt[mongo]
 ```
 
 ### Usage
@@ -87,6 +95,55 @@ out of the box. See below.
 ##### Memory
 Implementation that stores Policies in memory. It's not backed by any file or something, so every restart of your
 application will swipe out everything that was stored. Useful for testing.
+
+##### MongoDB
+MongoDB is chosen as the most popular and widespread NO-SQL database.
+
+
+```python
+from pymongo import MongoClient
+from vakt.storage.mongo import MongoStorage
+
+client = MongoClient('localhost', 27017)
+storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
+```
+
+Default collection name is 'vakt_policies'.
+
+Actions are the same as for any Storage that conforms (storage.abc.Storage) interface.
+
+Beware that currently MongoStorage supports indexed `find_for_inquiry()` only for StringExact and StringFuzzy checkers.
+Regex checker simply returns all the Policies from the database.
+See [this issue](https://jira.mongodb.org/browse/SERVER-11947).
+
+#### Migration
+
+Migration is a component that is useful in the context of the [Storage](#storage). It allows you to manage migrations.
+It's recommended to favor it over manual actions on DB schema/data
+since it's aware of Vakt requirements to Policies data. But it's not mandatory, anyway.
+Each storage can have a number of `Migration` classes to address different releases with the order of the migration
+specified in `order` property.
+It's up to a particular Storage to decide whether it needs migrations or not.
+Should be located inside particular storage module and implement `storage.abc.Migration`.
+Migration has 2 main methods (as you might guess). As well as 1 property:
+- `up` - runs db "schema" upwards
+- `down` - runs db "schema" downwards (rolls back the actions of `up`)
+- `order` - tells the number of the current migration in a row
+
+Example usage:
+
+```python
+from pymongo import MongoClient
+from vakt.storage.mongo import MongoStorage, Migration0To1x0x3, Migration1x0x3To2
+
+client = MongoClient('localhost', 27017)
+storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
+
+migrations = (Migration0To1x0x3(storage), Migration1x0x3To2(storage))
+for m in sorted(migrations, key=lambda x: x.order):
+  m.up()
+```
+
 
 #### Policy
 Policy is a main object for defining rules for accessing resources.
@@ -216,8 +273,13 @@ E.g. 'sun' in 'sunny' - True
      'sun' in 'sun' - True
 ```
 
-Also note, that some [Storage](#storage) handlers can already check if Policy fits Inquiry in
-`find_for_inquiry()` method. So Checker is the last row of control before Vakt makes a decision.
+Note, that some [Storage](#storage) handlers can already check if Policy fits Inquiry in
+`find_for_inquiry()` method by performing specific to that storage queries - Storage can (and generally should)
+decide on the type of actions based on the checker class passed to [Guard](#guard) constructor
+(or to `find_for_inquiry()` directly).
+
+Regardless of the results returned by a Storage the Checker is always the last row of control
+before Vakt makes a decision.
 
 
 #### Guard
@@ -262,12 +324,12 @@ print(policy)
 
 The same goes for Rules, Inquiries.
 All custom classes derived from them support this functionality as well.
-If you do not derive from Vakt's classes, but want this option, you can mix-in `vakt.util.JsonDumper` class.
+If you do not derive from Vakt's classes, but want this option, you can mix-in `vakt.util.JsonSerializer` class.
 
 ```python
-from vakt.util import JsonDumper
+from vakt.util import JsonSerializer
 
-class CustomInquiry(JsonDumper):
+class CustomInquiry(JsonSerializer):
     pass
 ```
 
@@ -341,10 +403,17 @@ To hack Vakt locally run:
 
 ```bash
 $ ...                              # activate virtual environment w/ preferred method (optional)
-$ pip install -e .[dev]            # to install all dependencies
-$ pytest                           # to run tests with coverage report
+$ pip install -e .[dev,mongo]      # to install all dependencies
+$ pytest -m "not integration"      # to run non-integration tests with coverage report
 $ pytest --cov=vakt tests/         # to get coverage report
 $ pylint vakt                      # to check code quality with PyLint
+```
+
+To run only integration tests (for Storage adapters other than `MemoryStorage`):
+
+```bash
+$ docker run --rm -d -p 27017:27017 mongo
+$ pytest -m integration
 ```
 
 ### License

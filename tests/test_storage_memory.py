@@ -32,26 +32,39 @@ def test_get(st):
     assert 'some text' == st.get(2).description
 
 
-def test_get_all(st):
+@pytest.mark.parametrize('limit, offset, result', [
+    (500, 0, 200),
+    (101, 1, 101),
+    (500, 50, 150),
+    (200, 0, 200),
+    (200, 1, 199),
+    (199, 0, 199),
+    (200, 50, 150),
+    (0, 0, 200),
+    (1, 0, 1),
+    (5, 4, 5),
+])
+def test_get_all(st, limit, offset, result):
     for i in range(200):
         st.add(Policy(str(i)))
-    assert 200 == len(st.get_all(500, 0))
-    assert 200 == len(st.get_all(500, 50))
-    assert 200 == len(st.get_all(200, 0))
-    assert 200 == len(st.get_all(200, 1))
-    assert 199 == len(st.get_all(199, 0))
-    assert 200 == len(st.get_all(200, 50))
-
-    assert 1 == len(st.get_all(1, 0))
-
-    assert 5 == len(st.get_all(5, 4))
+    assert result == len(st.get_all(limit, offset))
 
 
-def test_get_all_for_one(st):
+def test_get_all_check_policy_properties(st):
     st.add(Policy('1', description='foo'))
     assert 1 == len(st.get_all(100, 0))
     assert '1' == st.get_all(100, 0)[0].uid
     assert 'foo' == st.get_all(100, 0)[0].description
+
+
+def test_get_all_with_incorrect_args(st):
+    with pytest.raises(ValueError) as e:
+        st.get_all(-1, 90)
+    assert "Limit can't be negative" == str(e.value)
+
+    with pytest.raises(ValueError) as e:
+        st.get_all(0, -34)
+    assert "Offset can't be negative" == str(e.value)
 
 
 def test_find_for_inquiry(st):

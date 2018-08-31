@@ -10,7 +10,7 @@ from abc import abstractmethod
 log = logging.getLogger(__name__)
 
 
-class JsonDumper:
+class JsonSerializer:
     """
     Mixin for dumping object to JSON
     """
@@ -30,7 +30,7 @@ class JsonDumper:
         """
         return json.dumps(self._data(),
                           sort_keys=sort,
-                          default=lambda o: o.to_json() if isinstance(o, JsonDumper) else vars(o))
+                          default=lambda o: o.to_json() if isinstance(o, JsonSerializer) else vars(o))
 
     @classmethod
     def _parse(cls, data):
