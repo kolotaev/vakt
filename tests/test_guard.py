@@ -251,7 +251,7 @@ def test_not_allowed_when_similar_policies_have_at_least_one_deny_access():
 def test_guard_if_unexpected_exception_raised():
     # for testing unexpected exception
     class BadMemoryStorage(MemoryStorage):
-        def find_for_inquiry(self, inquiry=None):
+        def find_for_inquiry(self, inquiry=None, checker=None):
             raise Exception('This is test class that raises errors')
     g = Guard(BadMemoryStorage(), RegexChecker())
     assert not g.is_allowed(Inquiry(subject='foo', action='bar', resource='baz'))

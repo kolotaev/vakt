@@ -43,6 +43,7 @@ def test_get(st):
     (0, 0, 200),
     (1, 0, 1),
     (5, 4, 5),
+    (200, 300, 0),
 ])
 def test_get_all(st, limit, offset, result):
     for i in range(200):
