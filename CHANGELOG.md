@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.1.0] - 2018-09-03
 ### Added
 - MongoDB storage implementation.
 - `Migration` interface for specifying storage migrations actions.
