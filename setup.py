@@ -12,7 +12,7 @@ if __name__ == "__main__":
     setup(
         name='vakt',
         description='Attribute-based access control (ABAC) SDK for Python',
-        keywords='ACL ABAC access policy security',
+        keywords='ACL ABAC access-control policy security authorization permission',
         version=__version__,
         author='Egor Kolotaev',
         author_email='ekolotaev@gmail.com',
