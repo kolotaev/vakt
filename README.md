@@ -27,6 +27,7 @@ Attribute-based access control (ABAC) SDK for Python.
 	- [Guard](#guard)
 - [JSON](#json)
 - [Logging](#logging)
+- [Examples](./examples)
 - [Acknowledgements](#acknowledgements)
 - [Benchmark](#benchmark)
 - [Development](#development)

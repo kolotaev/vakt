@@ -1,7 +1,7 @@
 import pytest
 
 from vakt.policy import Policy
-from vakt.effects import *
+from vakt.effects import ALLOW_ACCESS, DENY_ACCESS
 from vakt.exceptions import PolicyCreationError
 from vakt.rules.net import CIDRRule
 from vakt.rules.string import StringEqualRule

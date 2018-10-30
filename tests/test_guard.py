@@ -15,7 +15,7 @@ policies = [
     Policy(
         uid='1',
         description="""
-        Max, Nina, Ben, Henry are allowed to create, delete, get the resources 
+        Max, Nina, Ben, Henry are allowed to create, delete, get the resources
         only if the client IP matches and the inquiry states that any of them is the resource owner
         """,
         effect=ALLOW_ACCESS,

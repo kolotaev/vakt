@@ -2,12 +2,13 @@ import os
 import logging
 import uuid
 
+import vakt.rules.net
+import vakt.rules.string
+import vakt.checker
 from vakt.storage.mongo import MongoStorage, Migration0To1x0x3
-from vakt.rules.net import CIDRRule
-from vakt.rules.string import StringEqualRule
+from vakt.storage.memory import MemoryStorage
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import Policy
-from vakt.checker import RegexChecker
 from vakt.guard import Guard, Inquiry
 
 from flask import Flask, request, session
@@ -41,8 +42,7 @@ policies = [
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
         rules={
-            'ip': CIDRRule('127.0.0.1/32'),
-            # for real usage might be something like: CIDRRule('192.168.2.0/24')
+            'ip': vakt.rules.net.CIDRRule('127.0.0.1/32'),
         },
     ),
     Policy(
@@ -53,7 +53,7 @@ policies = [
         actions=['<.*>'],
         resources=['<.*>'],
         rules={
-            'secret': StringEqualRule('i-am-a-teacher'),
+            'secret': vakt.rules.string.StringEqualRule('i-am-a-teacher'),
         },
     ),
     Policy(
@@ -73,15 +73,17 @@ guard = None
 
 def init():
     # Here we instantiate the Policy Storage.
-    # In this case it's MongoDB Storage, but we can opt to SQL Storage, any other third-party storage, etc.
-    user, password, host = 'root', 'example', 'localhost:27017'
-    uri = 'mongodb://%s:%s@%s' % (user, password, host)
-    st = MongoStorage(MongoClient(uri), 'vakt_db', collection='vakt_policies')
-
-    # We run migrations.
-    migrations = (Migration0To1x0x3(st),)
-    for m in sorted(migrations, key=lambda x: x.order):
-        m.up()
+    # In this case it's Memory or MongoDB Storage, but we can opt to SQL Storage, any other third-party storage, etc.
+    if os.environ.get('STORAGE') == 'mongo':
+        user, password, host = 'root', 'example', 'localhost:27017'
+        uri = 'mongodb://%s:%s@%s' % (user, password, host)
+        st = MongoStorage(MongoClient(uri), 'vakt_db', collection='vakt_policies')
+        # We run migrations.
+        migrations = (Migration0To1x0x3(st),)
+        for m in sorted(migrations, key=lambda x: x.order):
+            m.up()
+    else:
+        st = MemoryStorage()
 
     # And persist all our Policies so that to start serving our library.
     for p in policies:
@@ -89,7 +91,7 @@ def init():
 
     # Create global guard instance
     global guard
-    guard = Guard(st, RegexChecker())
+    guard = Guard(st, vakt.checker.RegexChecker())
 
     # Set up logger.
     root = logging.getLogger()

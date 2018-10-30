@@ -21,6 +21,7 @@ if __name__ == "__main__":
         long_description=long_description,
         long_description_content_type='text/markdown',
         py_modules=['vakt'],
+        python_requires='>=3.3',
         install_requires=[],
         extras_require={
             'dev': [

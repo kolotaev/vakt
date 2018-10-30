@@ -1,3 +1,4 @@
-flask
-requests
-pymongo
+vakt>=1.1.0
+requests==2.20.0
+pymongo==3.7.2
+Flask==1.0.2

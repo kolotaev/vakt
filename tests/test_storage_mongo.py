@@ -144,7 +144,7 @@ class TestMongoStorage:
         None,
         RegexChecker(256),
     ])
-    def test_find_for_inquiry_with_regex_or_none_checker_specified_return_all__existing_policies(self, st, checker):
+    def test_find_for_inquiry_with_regex_or_none_checker_specified_return_all_existing_policies(self, st, checker):
         st.add(Policy('1', subjects=['max', 'bob']))
         st.add(Policy('2', subjects=['sam', 'foo']))
         st.add(Policy('3', subjects=['bar']))
