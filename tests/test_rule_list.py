@@ -10,11 +10,11 @@ def test_initialization():
 
     with pytest.raises(TypeError) as excinfo:
         vakt.rules.list.InListRule([[1, 5], [1, 9]])
-    assert "unhashable type: 'list'" == str(excinfo.value)
+    assert 'unhashable' in str(excinfo.value)
 
     with pytest.raises(TypeError) as excinfo:
         vakt.rules.list.InListRule([{'a': 90}, {'v': "value"}])
-    assert "unhashable type: 'dict'" == str(excinfo.value)
+    assert 'unhashable' in str(excinfo.value)
 
 
 # In List
