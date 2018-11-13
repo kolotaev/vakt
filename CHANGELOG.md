@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [pre-release]
+### Added
+- List-based `rules`: (InList, NotInList, AllInList, AllNotInList, AnyInList, AnyNotInList).
+
+### Changed
+- Rename logging message "Conflicting ID" -> "Conflicting UID"
+
+
 ## [1.1.0] - 2018-09-03
 ### Added
 - MongoDB storage implementation.
