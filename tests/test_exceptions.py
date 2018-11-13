@@ -9,8 +9,8 @@ class MyChecker(RegexChecker):
 
 
 @pytest.mark.parametrize('uid, message', [
-    ('', 'Conflicting ID = '),
-    ('123', 'Conflicting ID = 123'),
+    ('', 'Conflicting UID = '),
+    ('123', 'Conflicting UID = 123'),
 ])
 def test_poicy_exists_message(uid, message):
     ex = PolicyExistsError(uid)
