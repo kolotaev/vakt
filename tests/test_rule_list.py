@@ -188,7 +188,7 @@ def test_any_not_in_list(data, what, result):
     {'a': 90},
 ])
 def test_any_not_in_list_satisfied_wrong_arg(val):
-    rule = vakt.rules.list.AllNotInListRule(['xyz'])
+    rule = vakt.rules.list.AnyNotInListRule(['xyz'])
     with pytest.raises(TypeError) as excinfo:
         rule.satisfied(val)
     assert 'Value should be of list type' == str(excinfo.value)
