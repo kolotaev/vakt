@@ -73,12 +73,17 @@ class Guard:
 
     @staticmethod
     def are_rules_satisfied(policy, inquiry):
-        """Check if rules in the policy are satisfied for a given inquiry's context"""
+        """
+        Check if rules in the policy are satisfied for a given inquiry's context.
+        If at least one rule is not present in Inquiry's context -> deny access.
+        If at least one rule provided in Inquiry's context is not satisfied -> deny access.
+        """
         for key, rule in policy.rules.items():
             try:
-                ctx_rule = inquiry.context[key]
+                ctx_value = inquiry.context[key]
             except KeyError:
+                log.info("No key '%s' found in Inquiry context", key)
                 return False
-            if not rule.satisfied(ctx_rule, inquiry):
+            if not rule.satisfied(ctx_value, inquiry):
                 return False
         return True

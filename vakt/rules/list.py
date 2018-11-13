@@ -34,7 +34,7 @@ class ListRule(Rule):
         self.data = set(data)
 
     @abstractmethod
-    def satisfied(self, what, inquiry):
+    def satisfied(self, what, inquiry=None):
         pass
 
 

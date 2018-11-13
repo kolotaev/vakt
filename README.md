@@ -121,7 +121,7 @@ See [this issue](https://jira.mongodb.org/browse/SERVER-11947).
 
 #### Migration
 
-Migration is a component that is useful in the context of the [Storage](#storage). It allows you to manage migrations.
+Migration is a component that is useful from the perspective of the [Storage](#storage). It allows you to manage migrations.
 It's recommended to favor it over manual actions on DB schema/data
 since it's aware of Vakt requirements to Policies data. But it's not mandatory, anyway.
 Each storage can have a number of `Migration` classes to address different releases with the order of the migration
@@ -155,9 +155,9 @@ The main parts reflect questions described in [Concepts](#concepts) section:
 * resources - a list of resources. Answers: what is asked?
 * subjects  - a list of subjects. Answers: who asks access to resources?
 * actions - a list of actions. Answers: what actions are asked to be performed on resources?
-* rules - a list of context rules that should be satisfied in the given inquiry. See [Rule](#rule)
-* effect - If policy matches all the above conditions, what effect it implies?
-can be any either `vakt.effects.ALLOW_ACCESS` or `vakt.effects.DENY_ACCESS`
+* rules - a list of context rules that should be satisfied in the given inquiry. See [Rule](#rule).
+* effect - If policy matches all the above conditions, what effect does it imply?
+Can be either `vakt.effects.ALLOW_ACCESS` or `vakt.effects.DENY_ACCESS`
 
 All `resources`, `subjects`, `actions` can be described by a simple string or a regex. See [Checker](#checker) for more.
 
@@ -214,16 +214,16 @@ Inquiry has several constructor arguments:
 * subject - string. Who asks for it?
 * context - dictionary. The context of the request. Eventually it should be resolved to [Rule](#rule)
 
-If you are observant enough you might have noticed that Inquiry resembles Policy, where Policy describes multiple
+If you were observant enough you might have noticed that Inquiry resembles Policy, where Policy describes multiple
 variants of resource access from the owner side and Inquiry describes an concrete access scenario from consumer side.
 
 
 #### Rule
-Rules allow you to make additional checks apart of Policy's `action`, `subject`, `resource`.
+Rules allow you to make additional checks apart from Policy's `action`, `subject`, `resource`.
 Vakt takes additional context information from Inquiry's context and checks if it satisfies
-the defined Rules set described in the Policy that is being matched.
-If Rule is not satisfied Inquiry is rejected by given Policy.
-Generally Rules represent what is called `contextual (environment) attributes` in the classic ABAC definition.
+the defined Rule-set attached to the Policy that is being matched.
+If at least on Rule in the Rule-set is not satisfied Inquiry is rejected by given Policy.
+Generally Rules represent so called `contextual (environment) attributes` in the classic ABAC definition.
 There are a number of different Rule types:
 
 1. Inquiry-related
@@ -245,6 +245,21 @@ There are a number of different Rule types:
   * AnyNotInListRule
 
 See class documentation of a particular `Rule` for more.
+
+Attaching a Rule-set to a Policy is simple:
+
+```python
+import vakt.rules.net
+import vakt.rules.string
+
+Policy(
+    ...,
+    rules={
+        'secret': vakt.rules.string.StringEqualRule('.KIMZihH0gsrc'),
+        'ip': vakt.rules.net.CIDRRule('192.168.0.15/24')
+    },
+),
+```
 
 
 #### Checker
@@ -272,7 +287,7 @@ Syntax for description of Policy fields is:
 Where `<>` are delimiters of a regular expression boundaries part. Custom Policy can redefine them by overriding
 `start_tag` and `end_tag` properties. Generally you always want to use the first variant: `<foo.*>`.
 
-* StringExactChecker - most quick checker:
+* StringExactChecker - the most quick checker:
 ```
 Checker that uses exact string equality. Case-sensitive.
 E.g. 'sun' in 'sunny' - False
