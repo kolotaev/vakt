@@ -220,8 +220,10 @@ variants of resource access from the owner side and Inquiry describes an concret
 
 #### Rule
 Rules allow you to make additional checks apart of Policy's `action`, `subject`, `resource`.
-Vakt takes additional context information from Inquiry and checks if it satisfies the defined Rules set described
-in the Policy that is being matched. If Rule is not satisfied Inquiry is rejected by given Policy.
+Vakt takes additional context information from Inquiry's context and checks if it satisfies
+the defined Rules set described in the Policy that is being matched.
+If Rule is not satisfied Inquiry is rejected by given Policy.
+Generally Rules represent what is called `contextual (environment) attributes` in the classic ABAC definition.
 There are a number of different Rule types:
 
 1. Inquiry-related
@@ -234,8 +236,15 @@ There are a number of different Rule types:
   * StringEqualRule
   * StringPairsEqualRule
   * RegexMatchRule
+4. List-related
+  * InListRule
+  * NotInListRule
+  * AllInListRule
+  * AllNotInListRule
+  * AnyInListRule
+  * AnyNotInListRule
 
-See class documentation for more.
+See class documentation of a particular `Rule` for more.
 
 
 #### Checker
