@@ -88,3 +88,11 @@ class StringFuzzyChecker(StringChecker):
 
     def compare(self, needle, haystack):
         return needle in haystack
+
+
+class AttributesChecker:
+    """
+    Checker that uses Policy and Inquiry attributes to determine match.
+    """
+    def fits(self, policy, field, what):
+        pass

@@ -19,6 +19,6 @@ from vakt.policy import Policy
     (Policy('1', resources=['<[\d]{1}>', '<[\d]{2}>']), 'resources', '12', True),
     (Policy('1', actions=['get', 'delete']), 'actions', 'create', False),
 ])
-def test_matches(policy, field, what, result):
+def test_fits(policy, field, what, result):
     c = RegexChecker()
     assert result == c.fits(policy, field, what)

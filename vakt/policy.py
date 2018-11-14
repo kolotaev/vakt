@@ -12,6 +12,9 @@ from .rules.base import Rule
 
 log = logging.getLogger(__name__)
 
+STRING_BASED_TYPE = 0
+ATTRIBUTES_BASED_TYPE = 1
+
 
 class Policy(JsonSerializer, PrettyPrint):
     """Represents a policy that regulates access and allowed actions of subjects
@@ -29,6 +32,11 @@ class Policy(JsonSerializer, PrettyPrint):
             log.error('Error creating Policy. Rules must be a dictionary')
             raise PolicyCreationError("Error creating Policy. Rules must be a dictionary")
         self.rules = rules
+        # Determine type of a Policy. Is useful for Storage retrieval operations
+        if any(map(lambda x: isinstance(x, dict), (subjects, resources, actions))):
+            self.type = ATTRIBUTES_BASED_TYPE
+        else:
+            self.type = STRING_BASED_TYPE
 
     @classmethod
     def from_json(cls, data):

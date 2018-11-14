@@ -15,6 +15,6 @@ from vakt.policy import Policy
     (Policy('1', resources=['books:1', 'books:2']), 'resources', 'books:3', False),
     (Policy('1', resources=['books:1', 'books:2']), 'resources', 'books:1', True),
 ])
-def test_matches(policy, field, what, result):
+def test_fits(policy, field, what, result):
     c = StringExactChecker()
     assert result == c.fits(policy, field, what)

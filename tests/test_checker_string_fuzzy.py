@@ -21,6 +21,6 @@ from vakt.policy import Policy
     (Policy('1', resources=['books:1', 'books:2']), 'resources', ':', True),
     (Policy('1', resources=['books:1', 'books:2']), 'resources', '3', False),
 ])
-def test_matches(policy, field, what, result):
+def test_fits(policy, field, what, result):
     c = StringFuzzyChecker()
     assert result == c.fits(policy, field, what)
