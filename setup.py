@@ -1,10 +1,13 @@
 from setuptools import setup, find_packages
 from os import path
 
-__version__ = '1.1.0'
+here = path.abspath(path.dirname(__file__))
 
+about = {}
+with open(path.join(here, 'vakt', '__version__.py'), mode='r', encoding='utf-8') as f:
+    exec(f.read(), about)
 
-with open(path.join(path.abspath(path.dirname(__file__)), 'README.md'), encoding='utf-8') as f:
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 
@@ -13,7 +16,7 @@ if __name__ == "__main__":
         name='vakt',
         description='Attribute-based access control (ABAC) SDK for Python',
         keywords='ACL ABAC access-control policy security authorization permission',
-        version=__version__,
+        version=about['__version__'],
         author='Egor Kolotaev',
         author_email='ekolotaev@gmail.com',
         license="Apache 2.0 license",
