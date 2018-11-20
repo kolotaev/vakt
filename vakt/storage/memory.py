@@ -26,6 +26,7 @@ class MemoryStorage(Storage):
                 log.error('Error trying to create already existing policy with UID=%s', uid)
                 raise PolicyExistsError(uid)
             self.policies[uid] = policy
+            log.info('Added Policy: %s', policy)
 
     def get(self, uid):
         return self.policies.get(uid)
@@ -45,7 +46,9 @@ class MemoryStorage(Storage):
 
     def update(self, policy):
         self.policies[policy.uid] = policy
+        log.info('Updated Policy with UID=%s. New value is: %s', policy.uid, policy)
 
     def delete(self, uid):
         if uid in self.policies:
             del self.policies[uid]
+            log.info('Policy with UID %s was deleted', uid)

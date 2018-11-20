@@ -54,4 +54,4 @@ class PrettyPrint:
     """
 
     def __str__(self):
-        return "%s: %s" % (self.__class__, vars(self))
+        return "%s <Object ID %s>: %s" % (self.__class__, id(self), vars(self))

@@ -26,7 +26,7 @@ class Policy(JsonSerializer, PrettyPrint):
         self.actions = actions
         rules = rules or {}
         if not isinstance(rules, dict):
-            log.exception('Error creating Policy. Rules must be a dictionary')
+            log.error('Error creating Policy. Rules must be a dictionary')
             raise PolicyCreationError("Error creating Policy. Rules must be a dictionary")
         self.rules = rules
 
@@ -34,7 +34,7 @@ class Policy(JsonSerializer, PrettyPrint):
     def from_json(cls, data):
         props = cls._parse(data)
         if 'uid' not in props:
-            log.exception("Error creating policy from json. 'uid' attribute is required")
+            log.error("Error creating policy from json. 'uid' attribute is required")
             raise PolicyCreationError("Error creating policy from json. 'uid' attribute is required")
 
         rules = {}

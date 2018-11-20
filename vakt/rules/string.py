@@ -50,7 +50,7 @@ class RegexMatchRule(Rule):
         try:
             self.regex = re.compile(pattern)
         except Exception as e:
-            log.error('%s creation. Failed to compile regexp %s', type(self).__name__, pattern)
+            log.exception('%s creation. Failed to compile regexp %s', type(self).__name__, pattern)
             raise TypeError('pattern should be a valid regexp string. Error %s' % e)
 
     def satisfied(self, what, inquiry=None):

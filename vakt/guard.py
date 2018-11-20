@@ -48,9 +48,9 @@ class Guard:
             answer = False
 
         if answer:
-            log.info('Incoming Inquiry allowed. Data: %s', inquiry)
+            log.info('Incoming Inquiry was allowed. Inquiry: %s', inquiry)
         else:
-            log.info('Incoming Inquiry rejected. Data: %s', inquiry)
+            log.info('Incoming Inquiry was rejected. Inquiry: %s', inquiry)
 
         return answer
 
@@ -82,7 +82,7 @@ class Guard:
             try:
                 ctx_value = inquiry.context[key]
             except KeyError:
-                log.info("No key '%s' found in Inquiry context", key)
+                log.debug("No key '%s' found in Inquiry context", key)
                 return False
             if not rule.satisfied(ctx_value, inquiry):
                 return False
