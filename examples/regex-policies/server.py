@@ -2,11 +2,15 @@ import os
 import logging
 import uuid
 
-from vakt import (
-    DENY_ACCESS, ALLOW_ACCESS, MemoryStorage,
-    Policy, Guard, Inquiry, RegexChecker,
-    rules,
-)
+import vakt.rules.net
+import vakt.rules.string
+import vakt.checker
+import vakt.audit
+from vakt.storage.mongo import MongoStorage, Migration0To1x0x3
+from vakt.storage.memory import MemoryStorage
+from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
+from vakt.policy import Policy
+from vakt.guard import Guard, Inquiry
 
 from flask import Flask, request, session
 
@@ -76,6 +80,10 @@ guard = None
 
 def init():
     # Set up logger.
+    vakt.audit.enable()
+    va = vakt.audit.get_logger()
+    va.addHandler(logging.FileHandler(filename='audit.log'))
+
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
     root.addHandler(logging.StreamHandler())

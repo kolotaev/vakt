@@ -6,9 +6,11 @@ Also contains Inquiry class.
 import logging
 
 from .util import JsonSerializer, PrettyPrint
+from .audit import get_logger as audit_logger
 
 
 log = logging.getLogger(__name__)
+audit_log = audit_logger()
 
 
 class Inquiry(JsonSerializer, PrettyPrint):
@@ -84,12 +86,20 @@ class Guard:
         except Exception:
             log.exception('Unexpected exception occurred while checking Inquiry %s', inquiry)
             answer = False
+
+        if answer:
+            audit_log.info('Incoming Inquiry was allowed. Inquiry: %s', inquiry)
+        else:
+            audit_log.info('Incoming Inquiry was rejected. Inquiry: %s', inquiry)
+
         return answer
 
     def check_policies_allow(self, inquiry, policies):
         """
         Check if any of a given policy allows a specified inquiry
         """
+        audit_log.info("Potential Policies for Inquiry '%s' are: %s", inquiry, policies)
+
         # If no policies found or None is given -> deny access!
         if not policies:
             return False
@@ -100,6 +110,8 @@ class Guard:
                     self.checker.fits(p, 'subjects', inquiry.subject, inquiry) and
                     self.checker.fits(p, 'resources', inquiry.resource, inquiry) and
                     self.check_context_restriction(p, inquiry)]
+
+        audit_log.info("Policies filtered by checker '%s' for Inquiry '%s' are: %s", self.checker, inquiry, policies)
 
         # no policies -> deny access!
         # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!

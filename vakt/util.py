@@ -51,7 +51,8 @@ class PrettyPrint:
     """
     Allows to log objects with all the fields
     """
-    def __str__(self):
+
+    def __repr__(self):
         return "%s <Object ID %s>: %s" % (self.__class__, id(self), vars(self))
 
 
