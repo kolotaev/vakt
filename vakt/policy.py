@@ -35,6 +35,7 @@ class Policy:
 class BasePolicy(JsonSerializer, PrettyPrint, metaclass=ABCMeta):
     """Represents a policy that regulates access and allowed actions of subjects
     over some resources under a set of rules.
+    Is an abstract type and assumes specific implementations of a Policy definition.
     """
     def __init__(self, uid, subjects=(), effect=DENY_ACCESS, resources=(), actions=(), rules=None, description=None):
         self.type = self.get_type()
