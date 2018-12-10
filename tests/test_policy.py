@@ -28,10 +28,10 @@ def test_exception_raised_when_rules_is_not_dict():
 @pytest.mark.parametrize('data, expect', [
     ('{"uid":123}',
      '{"actions": [], "description": null, "effect": "deny", ' +
-     '"resources": [], "rules": {}, "subjects": [], "uid": 123}'),
+     '"resources": [], "rules": {}, "subjects": [], "type": 1, "uid": 123}'),
     ('{"effect":"allow", "actions": ["create", "update"], "uid":123}',
      '{"actions": ["create", "update"], "description": null, "effect": "allow", ' +
-     '"resources": [], "rules": {}, "subjects": [], "uid": 123}'),
+     '"resources": [], "rules": {}, "subjects": [], "type": 1, "uid": 123}'),
 ])
 def test_json_roundtrip(data, expect):
     p = Policy.from_json(data)

@@ -6,6 +6,7 @@ Also contains Inquiry class.
 import logging
 
 from .util import JsonSerializer, PrettyPrint
+# from . import TYPE_STRINGS, TYPE_ATTRIBUTES
 
 
 log = logging.getLogger(__name__)
@@ -21,6 +22,10 @@ class Inquiry(JsonSerializer, PrettyPrint):
         self.action = action or ''
         self.subject = subject or ''
         self.context = context or {}
+        # if any([isinstance(a, dict) for a in [self.resource, self.action, self.subject]]):
+        #     self.type = TYPE_ATTRIBUTES
+        # else:
+        #     self.type = TYPE_STRINGS
 
     @classmethod
     def from_json(cls, data):
