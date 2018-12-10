@@ -32,6 +32,10 @@ def test_exception_raised_when_rules_is_not_dict():
     ('{"effect":"allow", "actions": ["create", "update"], "uid":123}',
      '{"actions": ["create", "update"], "description": null, "effect": "allow", ' +
      '"resources": [], "rules": {}, "subjects": [], "type": 1, "uid": 123}'),
+    # 'type' if present, should be omitted and not result in setting type of a Policy object
+    ('{"actions": ["create", "update"], "uid":123, "type": 2}',
+     '{"actions": ["create", "update"], "description": null, "effect": "deny", ' +
+     '"resources": [], "rules": {}, "subjects": [], "type": 1, "uid": 123}'),
 ])
 def test_json_roundtrip(data, expect):
     p = Policy.from_json(data)
@@ -106,3 +110,8 @@ def test_pretty_print():
     assert "'resources': ()" in str(p)
     assert "'actions': ()" in str(p)
     assert "'rules': {}" in str(p)
+
+
+@pytest.mark.skip
+def test_get_type():
+    pass
