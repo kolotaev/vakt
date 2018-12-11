@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.rules.string import RegexMatchRule
+from vakt.rules.string import RegexMatch, RegexMatchRule
 
 
 def test_regex_match_construct_fails():
@@ -21,5 +21,8 @@ def test_regex_match_construct_fails():
     ('^python?exe$', 'python?exe', False),
 ])
 def test_regex_match_rule_satisfied(arg, against, result):
+    c = RegexMatch(arg)
+    assert result == c.satisfied(against)
+    # test deprecated class
     c = RegexMatchRule(arg)
     assert result == c.satisfied(against)

@@ -8,7 +8,7 @@ from bson.objectid import ObjectId
 
 from vakt.storage.mongo import MongoStorage, Migration0To1x0x3
 from vakt.policy import Policy
-from vakt.rules.string import StringEqualRule
+from vakt.rules.string import Equal
 from vakt.exceptions import PolicyExistsError, UnknownCheckerType
 from vakt.guard import Inquiry
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker
@@ -43,14 +43,14 @@ class TestMongoStorage:
             actions=['<.*>'],
             resources=['<.*>'],
             rules={
-                'secret': StringEqualRule('i-am-a-teacher'),
+                'secret': Equal('i-am-a-teacher'),
             },
         )
         st.add(p)
         back = st.get(id)
         assert id == back.uid
         assert 'foo bar баз' == back.description
-        assert isinstance(back.rules['secret'], StringEqualRule)
+        assert isinstance(back.rules['secret'], Equal)
 
     def test_add_with_bson_object_id(self, st):
         id = str(ObjectId())
@@ -107,7 +107,7 @@ class TestMongoStorage:
             actions=['<.*>'],
             resources=['<.*>'],
             rules={
-                'secret': StringEqualRule('i-am-a-teacher'),
+                'secret': Equal('i-am-a-teacher'),
             },
         )
         st.add(p)
@@ -118,7 +118,7 @@ class TestMongoStorage:
         assert ['Edward Rooney', 'Florence Sparrow'] == policies[0].subjects
         assert ['<.*>'] == policies[0].actions
         assert ['<.*>'] == policies[0].resources
-        assert isinstance(policies[0].rules['secret'], StringEqualRule)
+        assert isinstance(policies[0].rules['secret'], Equal)
 
     def test_get_all_with_incorrect_args(self, st):
         for i in range(10):
@@ -234,8 +234,8 @@ class TestMongoStorage:
         p = Policy(
             uid=uid,
             rules={
-                'secret': StringEqualRule('i-am-a-teacher'),
-                'secret2': StringEqualRule('i-am-a-husband'),
+                'secret': Equal('i-am-a-teacher'),
+                'secret2': Equal('i-am-a-husband'),
 
             },
         )

@@ -1,7 +1,7 @@
 import pytest
 
 from vakt.rules.base import Rule
-from vakt.rules.string import StringEqualRule
+from vakt.rules.string import Equal
 from vakt.exceptions import RuleCreationError
 import vakt.rules.net
 
@@ -45,8 +45,8 @@ def test_from_json():
 @pytest.mark.parametrize('rule, satisfied', [
     (ABRule(1, 1), True),
     (ABRule(1, 1.2), False),
-    (StringEqualRule('foo'), False),
-    (vakt.rules.net.CIDRRule('192.168.0.1/24'), False),
+    (Equal('foo'), False),
+    (vakt.rules.net.CIDR('192.168.0.1/24'), False),
 ])
 def test_json_roundtrip(rule, satisfied):
     c1 = Rule.from_json(rule.to_json())
@@ -58,9 +58,9 @@ def test_json_roundtrip(rule, satisfied):
 @pytest.mark.parametrize('data, msg', [
     ('{crap}', 'Invalid JSON data'),
     ("{}", "No 'contents' key in JSON"),
-    ('{"type": "vakt.rules.net.CIDRRule"}', "No 'contents' key in JSON"),
+    ('{"type": "vakt.rules.net.CIDR"}', "No 'contents' key in JSON"),
     ('{"contents": {"cidr": "192.168.2.0/24"}}', "No 'type' key in JSON"),
-    ('{"contents": {"cidr": "192.168.2.0/24", "foo":"bar"}, "type": "vakt.rules.net.CIDRRule"}',
+    ('{"contents": {"cidr": "192.168.2.0/24", "foo":"bar"}, "type": "vakt.rules.net.CIDR"}',
      'Number of arguments does not match. Given 2. Expected 1'),
 ])
 def test_from_json_fails(data, msg):

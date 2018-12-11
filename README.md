@@ -173,7 +173,7 @@ p = Policy(
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
         rules={
-            'ip': CIDRRule('192.168.2.0/24'),
+        'ip': CIDR('192.168.2.0/24'),
         }
     )
 ```
@@ -227,22 +227,22 @@ Generally Rules represent so called `contextual (environment) attributes` in the
 There are a number of different Rule types:
 
 1. Inquiry-related
-  * SubjectEqualRule
-  * ActionEqualRule
-  * ResourceInRule
+  * SubjectEqual
+  * ActionEqual
+  * ResourceIn
 2. Network-related
-  * CIDRRule
+  * CIDR
 3. String-related
-  * StringEqualRule
-  * StringPairsEqualRule
-  * RegexMatchRule
+  * Equal
+  * PairsEqual
+  * RegexMatch
 4. List-related
-  * InListRule
-  * NotInListRule
-  * AllInListRule
-  * AllNotInListRule
-  * AnyInListRule
-  * AnyNotInListRule
+  * InList
+  * NotInList
+  * AllInList
+  * AllNotInList
+  * AnyInList
+  * AnyNotInList
 
 See class documentation of a particular `Rule` for more.
 
@@ -255,8 +255,8 @@ import vakt.rules.string
 Policy(
     ...,
     rules={
-        'secret': vakt.rules.string.StringEqualRule('.KIMZihH0gsrc'),
-        'ip': vakt.rules.net.CIDRRule('192.168.0.15/24')
+        'secret': vakt.rules.string.Equal('.KIMZihH0gsrc'),
+        'ip': vakt.rules.net.CIDR('192.168.0.15/24')
     },
 ),
 ```

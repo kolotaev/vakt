@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.rules.inquiry import ResourceInRule
+from vakt.rules.inquiry import ResourceIn, ResourceInRule
 from vakt.guard import Inquiry
 
 
@@ -14,6 +14,10 @@ from vakt.guard import Inquiry
     (None, 'foo', False),
 ])
 def test_resource_in_satisfied(what, resource, result):
+    i = Inquiry(action='get', resource=resource, subject='Max')
+    c = ResourceIn()
+    assert result == c.satisfied(what, i)
+    # test deprecated class
     i = Inquiry(action='get', resource=resource, subject='Max')
     c = ResourceInRule()
     assert result == c.satisfied(what, i)

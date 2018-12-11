@@ -3,8 +3,8 @@ import pytest
 from vakt.policy import Policy
 from vakt.effects import ALLOW_ACCESS, DENY_ACCESS
 from vakt.exceptions import PolicyCreationError
-from vakt.rules.net import CIDRRule
-from vakt.rules.string import StringEqualRule
+from vakt.rules.net import CIDR
+from vakt.rules.string import Equal
 
 
 def test_properties():
@@ -22,7 +22,7 @@ def test_properties():
 
 def test_exception_raised_when_rules_is_not_dict():
     with pytest.raises(PolicyCreationError):
-        Policy('1', rules=[StringEqualRule('foo')])
+        Policy('1', rules=[Equal('foo')])
 
 
 @pytest.mark.parametrize('data, expect', [
@@ -55,15 +55,15 @@ def test_json_default_effect_is_set_correctly_when_from_json(data, effect):
 
 
 def test_json_roundtrip_of_a_policy_with_rules():
-    p = Policy('123', rules={'ip': CIDRRule('192.168.1.0/24'), 'sub': StringEqualRule('test-me')})
+    p = Policy('123', rules={'ip': CIDR('192.168.1.0/24'), 'sub': Equal('test-me')})
     s = p.to_json()
     p1 = Policy.from_json(s)
     assert '123' == p1.uid
     assert 2 == len(p1.rules)
     assert 'ip' in p1.rules
     assert 'sub' in p1.rules
-    assert isinstance(p1.rules['ip'], CIDRRule)
-    assert isinstance(p1.rules['sub'], StringEqualRule)
+    assert isinstance(p1.rules['ip'], CIDR)
+    assert isinstance(p1.rules['sub'], Equal)
     assert p1.rules['sub'].satisfied('test-me')
 
 

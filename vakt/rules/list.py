@@ -38,7 +38,7 @@ class ListRule(Rule):
         pass
 
 
-class InListRule(ListRule):
+class InList(ListRule):
     """
     Is item in list?
     """
@@ -46,7 +46,7 @@ class InListRule(ListRule):
         return _one_in_list(what, self.data)
 
 
-class NotInListRule(ListRule):
+class NotInList(ListRule):
     """
     Is not item in the list?
     """
@@ -54,7 +54,7 @@ class NotInListRule(ListRule):
         return not _one_in_list(what, self.data)
 
 
-class AllInListRule(ListRule):
+class AllInList(ListRule):
     """
     Are all the items in the list?
     """
@@ -64,7 +64,7 @@ class AllInListRule(ListRule):
         return _all_in_list(what, self.data)
 
 
-class AllNotInListRule(ListRule):
+class AllNotInList(ListRule):
     """
     Are all the items not in the list?
     """
@@ -74,7 +74,7 @@ class AllNotInListRule(ListRule):
         return not _all_in_list(what, self.data)
 
 
-class AnyInListRule(ListRule):
+class AnyInList(ListRule):
     """
     Are any of the items in the list?
     """
@@ -84,7 +84,7 @@ class AnyInListRule(ListRule):
         return _any_in_list(what, self.data)
 
 
-class AnyNotInListRule(ListRule):
+class AnyNotInList(ListRule):
     """
     Are some of the items not in the list?
     """

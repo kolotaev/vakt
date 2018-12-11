@@ -1,7 +1,8 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [pre-release]
+
+## [Unreleased]
 ### Added
 - [Rules] List-based `rules`: (InList, NotInList, AllInList, AllNotInList, AnyInList, AnyNotInList).
 
@@ -11,6 +12,12 @@ All notable changes to this project will be documented in this file.
 - [Policy] Make Policy constructor argument 'description' a last argument.
 - [Policy] `Policy()` is now a factory-method, but not a class, that returns policies of different type based on the representation.
 of its attributes (string, dict, etc.). Those policies are subtypes of an abstract type `BasePolicy`.
+
+### Deprecated
+- [Rules] `Rules` from `string`, `net`, `inquiry` were renamed to their shorter equivalents.
+Old-named Rules are now deprecated for usage and will be removed  in later versions.
+Deprecated rules are: SubjectEqualRule, ActionEqualRule, ResourceInRule, CIDRRule, StringEqualRule, RegexMatchRule,
+StringPairsEqualRule.
 
 
 ## [1.1.0] - 2018-09-03

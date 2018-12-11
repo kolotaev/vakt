@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.rules.string import StringEqualRule
+from vakt.rules.string import Equal, StringEqualRule
 
 
 def test_string_equal_construct_fails():
@@ -17,5 +17,8 @@ def test_string_equal_construct_fails():
     ('', '', True),
 ])
 def test_string_equal_satisfied(arg, against, result):
+    c = Equal(arg)
+    assert result == c.satisfied(against)
+    # test deprecated class
     c = StringEqualRule(arg)
     assert result == c.satisfied(against)

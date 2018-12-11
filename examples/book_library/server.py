@@ -41,7 +41,7 @@ policies = [
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
         rules={
-            'ip': vakt.rules.net.CIDRRule('127.0.0.1/32'),
+            'ip': vakt.rules.net.CIDR('127.0.0.1/32'),
         },
     ),
     Policy(
@@ -52,7 +52,7 @@ policies = [
         actions=['<.*>'],
         resources=['<.*>'],
         rules={
-            'secret': vakt.rules.string.StringEqualRule('i-am-a-teacher'),
+            'secret': vakt.rules.string.Equal('i-am-a-teacher'),
         },
     ),
     Policy(

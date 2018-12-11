@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.rules.inquiry import SubjectEqualRule
+from vakt.rules.inquiry import SubjectEqual, SubjectEqualRule
 from vakt.guard import Inquiry
 
 
@@ -14,6 +14,10 @@ from vakt.guard import Inquiry
     ('', '', True),
 ])
 def test_subject_equal_satisfied(what, subject, result):
+    i = Inquiry(action='get', resource=None, subject=subject)
+    c = SubjectEqual()
+    assert result == c.satisfied(what, i)
+    # test deprecated class
     i = Inquiry(action='get', resource=None, subject=subject)
     c = SubjectEqualRule()
     assert result == c.satisfied(what, i)

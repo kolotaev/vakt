@@ -4,6 +4,7 @@ All Rules relevant to networking context
 
 import ipaddress
 import logging
+import warnings
 
 from ..rules.base import Rule
 
@@ -11,7 +12,7 @@ from ..rules.base import Rule
 log = logging.getLogger(__name__)
 
 
-class CIDRRule(Rule):
+class CIDR(Rule):
     """Rule that is satisfied when inquiry's IP address is in the provided CIDR"""
 
     def __init__(self, cidr):
@@ -27,3 +28,8 @@ class CIDRRule(Rule):
             log.exception('Error %s satisfied', type(self).__name__)
             return False
         return ip in net
+
+
+# Classes marked for removal in next releases
+class CIDRRule(CIDR):
+    warnings.warn('CIDRRule will be removed in next version. Use CIDR', DeprecationWarning, stacklevel=2)

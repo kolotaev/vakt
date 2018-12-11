@@ -4,7 +4,7 @@ import timeit
 import sys
 
 from vakt.storage.memory import MemoryStorage
-from vakt.rules.net import CIDRRule
+from vakt.rules.net import CIDR
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import Policy
 from vakt.checker import RegexChecker
@@ -59,7 +59,7 @@ def populate_storage():
             resources=('library:books:<.+>', 'office:magazines:<.+>'),
             actions=['<read|get>'],
             rules={
-                'ip': CIDRRule('127.0.0.1'),
+                'ip': CIDR('127.0.0.1'),
             },
         )
         store.add(policy)

@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.rules.inquiry import ActionEqualRule
+from vakt.rules.inquiry import ActionEqual, ActionEqualRule
 from vakt.guard import Inquiry
 
 
@@ -14,6 +14,10 @@ from vakt.guard import Inquiry
     ('', '', True),
 ])
 def test_action_equal_satisfied(what, action, result):
+    i = Inquiry(action=action, resource=None, subject=None)
+    c = ActionEqual()
+    assert result == c.satisfied(what, i)
+    # test deprecated class
     i = Inquiry(action=action, resource=None, subject=None)
     c = ActionEqualRule()
     assert result == c.satisfied(what, i)

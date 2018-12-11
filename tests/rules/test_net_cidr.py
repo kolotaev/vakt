@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.rules.net import CIDRRule
+from vakt.rules.net import CIDR, CIDRRule
 
 
 @pytest.mark.parametrize('cidr, ip, result', [
@@ -11,5 +11,8 @@ from vakt.rules.net import CIDRRule
     ('0.0.0.0/0', '192.168.2.56', True),
 ])
 def test_cidr_satisfied(cidr, ip, result):
+    c = CIDR(cidr)
+    assert result == c.satisfied(ip)
+    # test deprecated class
     c = CIDRRule(cidr)
     assert result == c.satisfied(ip)

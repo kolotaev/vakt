@@ -5,6 +5,7 @@ It may be subject, object, etc.
 
 import re
 import logging
+import warnings
 
 from ..rules.base import Rule
 
@@ -12,7 +13,7 @@ from ..rules.base import Rule
 log = logging.getLogger(__name__)
 
 
-class StringEqualRule(Rule):
+class Equal(Rule):
     """Rule that is satisfied if the string value equals the specified property of this rule"""
 
     def __init__(self, val):
@@ -25,7 +26,7 @@ class StringEqualRule(Rule):
         return isinstance(what, str) and what == self.val
 
 
-class StringPairsEqualRule(Rule):
+class PairsEqual(Rule):
     """Rule that is satisfied when given data is an array of pairs and
        those pairs are represented by equal to each other strings"""
 
@@ -42,7 +43,7 @@ class StringPairsEqualRule(Rule):
         return True
 
 
-class RegexMatchRule(Rule):
+class RegexMatch(Rule):
     """Rule that is satisfied when given data matches the provided regular expression.
        Note, that you should provide syntactically valid regular-expression string."""
 
@@ -55,3 +56,17 @@ class RegexMatchRule(Rule):
 
     def satisfied(self, what, inquiry=None):
         return bool(self.regex.match(str(what)))
+
+
+# Classes marked for removal in next releases
+class StringEqualRule(Equal):
+    warnings.warn('StringEqualRule will be removed in next version. Use Equal', DeprecationWarning, stacklevel=2)
+
+
+class RegexMatchRule(RegexMatch):
+    warnings.warn('RegexMatchRule will be removed in next version. Use RegexMatch', DeprecationWarning, stacklevel=2)
+
+
+class StringPairsEqualRule(PairsEqual):
+    warnings.warn('StringPairsEqualRule will be removed in next version. Use PairsEqual',
+                  DeprecationWarning, stacklevel=2)

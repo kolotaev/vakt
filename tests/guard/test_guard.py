@@ -2,8 +2,8 @@ import pytest
 
 from vakt.checker import RegexChecker
 from vakt.storage.memory import MemoryStorage
-from vakt.rules.net import CIDRRule
-from vakt.rules.inquiry import SubjectEqualRule
+from vakt.rules.net import CIDR
+from vakt.rules.inquiry import SubjectEqual
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import Policy
 from vakt.guard import Guard, Inquiry
@@ -23,8 +23,8 @@ policies = [
         resources=('myrn:example.com:resource:123', 'myrn:example.com:resource:345', 'myrn:something:foo:<.+>'),
         actions=('<create|delete>', 'get'),
         rules={
-            'ip': CIDRRule('127.0.0.1/32'),
-            'owner': SubjectEqualRule(),
+            'ip': CIDR('127.0.0.1/32'),
+            'owner': SubjectEqual(),
         },
     ),
     Policy(

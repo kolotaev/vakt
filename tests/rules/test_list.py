@@ -5,15 +5,15 @@ import vakt.rules.list
 
 def test_initialization():
     with pytest.raises(TypeError) as excinfo:
-        vakt.rules.list.InListRule(1)
+        vakt.rules.list.InList(1)
     assert 'Initial data should be of list type' == str(excinfo.value)
 
     with pytest.raises(TypeError) as excinfo:
-        vakt.rules.list.InListRule([[1, 5], [1, 9]])
+        vakt.rules.list.InList([[1, 5], [1, 9]])
     assert 'unhashable' in str(excinfo.value)
 
     with pytest.raises(TypeError) as excinfo:
-        vakt.rules.list.InListRule([{'a': 90}, {'v': "value"}])
+        vakt.rules.list.InList([{'a': 90}, {'v': "value"}])
     assert 'unhashable' in str(excinfo.value)
 
 
@@ -28,7 +28,7 @@ def test_initialization():
     (['a', 'b'], 'c', False),
 ])
 def test_in_list(data, what, result):
-    c = vakt.rules.list.InListRule(data)
+    c = vakt.rules.list.InList(data)
     assert result == c.satisfied(what)
 
 
@@ -43,7 +43,7 @@ def test_in_list(data, what, result):
     (['a', 'b'], 'c', True),
 ])
 def test_not_in_list(data, what, result):
-    c = vakt.rules.list.NotInListRule(data)
+    c = vakt.rules.list.NotInList(data)
     assert result == c.satisfied(what)
 
 
@@ -59,7 +59,7 @@ def test_not_in_list(data, what, result):
     (['f', 'a', 'y'], ['f', 'a', 'y', 'u'], False),
 ])
 def test_all_in_list(data, what, result):
-    c = vakt.rules.list.AllInListRule(data)
+    c = vakt.rules.list.AllInList(data)
     assert result == c.satisfied(what)
 
 
@@ -71,7 +71,7 @@ def test_all_in_list(data, what, result):
     {'a': 90},
 ])
 def test_all_in_list_satisfied_wrong_arg(val):
-    rule = vakt.rules.list.AllInListRule(['io', 'util'])
+    rule = vakt.rules.list.AllInList(['io', 'util'])
     with pytest.raises(TypeError) as excinfo:
         rule.satisfied(val)
     assert 'Value should be of list type' == str(excinfo.value)
@@ -95,7 +95,7 @@ def test_all_in_list_satisfied_wrong_arg(val):
     (['f', 'a', 'y'], ['f', 'a', 'y', 'u'], True),
 ])
 def test_all_not_in_list(data, what, result):
-    c = vakt.rules.list.AllNotInListRule(data)
+    c = vakt.rules.list.AllNotInList(data)
     assert result == c.satisfied(what)
 
 
@@ -107,7 +107,7 @@ def test_all_not_in_list(data, what, result):
     {'a': 90},
 ])
 def test_all_not_in_list_satisfied_wrong_arg(val):
-    rule = vakt.rules.list.AllNotInListRule([])
+    rule = vakt.rules.list.AllNotInList([])
     with pytest.raises(TypeError) as excinfo:
         rule.satisfied(val)
     assert 'Value should be of list type' == str(excinfo.value)
@@ -133,7 +133,7 @@ def test_all_not_in_list_satisfied_wrong_arg(val):
     (['f', 'a', 'y'], ['f', 'a', 'y', 'u'], True),
 ])
 def test_any_in_list(data, what, result):
-    c = vakt.rules.list.AnyInListRule(data)
+    c = vakt.rules.list.AnyInList(data)
     assert result == c.satisfied(what)
 
 
@@ -145,7 +145,7 @@ def test_any_in_list(data, what, result):
     {'a': 90},
 ])
 def test_any_in_list_satisfied_wrong_arg(val):
-    rule = vakt.rules.list.AnyInListRule(['oop'])
+    rule = vakt.rules.list.AnyInList(['oop'])
     with pytest.raises(TypeError) as excinfo:
         rule.satisfied(val)
     assert 'Value should be of list type' == str(excinfo.value)
@@ -176,7 +176,7 @@ def test_any_in_list_satisfied_wrong_arg(val):
     (['f', 'a', 'y'], ['f', 'a', 'y', 'u'], True),
 ])
 def test_any_not_in_list(data, what, result):
-    c = vakt.rules.list.AnyNotInListRule(data)
+    c = vakt.rules.list.AnyNotInList(data)
     assert result == c.satisfied(what)
 
 
@@ -188,7 +188,7 @@ def test_any_not_in_list(data, what, result):
     {'a': 90},
 ])
 def test_any_not_in_list_satisfied_wrong_arg(val):
-    rule = vakt.rules.list.AnyNotInListRule(['xyz'])
+    rule = vakt.rules.list.AnyNotInList(['xyz'])
     with pytest.raises(TypeError) as excinfo:
         rule.satisfied(val)
     assert 'Value should be of list type' == str(excinfo.value)

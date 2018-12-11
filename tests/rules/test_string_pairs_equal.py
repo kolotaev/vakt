@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.rules.string import StringPairsEqualRule
+from vakt.rules.string import PairsEqual, StringPairsEqualRule
 
 
 @pytest.mark.parametrize('against, result', [
@@ -20,5 +20,8 @@ from vakt.rules.string import StringPairsEqualRule
     ([['a', 'a'], ['b', 'c']], False),
 ])
 def test_string_pairs_equal_satisfied(against, result):
+    c = PairsEqual()
+    assert result == c.satisfied(against)
+    # test deprecated class
     c = StringPairsEqualRule()
     assert result == c.satisfied(against)
