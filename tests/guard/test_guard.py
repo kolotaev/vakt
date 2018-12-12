@@ -22,7 +22,7 @@ policies = [
         subjects=('Max', 'Nina', '<Ben|Henry>'),
         resources=('myrn:example.com:resource:123', 'myrn:example.com:resource:345', 'myrn:something:foo:<.+>'),
         actions=('<create|delete>', 'get'),
-        rules={
+        context={
             'ip': CIDR('127.0.0.1/32'),
             'owner': SubjectEqual(),
         },

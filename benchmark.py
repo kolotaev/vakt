@@ -58,7 +58,7 @@ def populate_storage():
             subjects=subjects,
             resources=('library:books:<.+>', 'office:magazines:<.+>'),
             actions=['<read|get>'],
-            rules={
+            context={
                 'ip': CIDR('127.0.0.1'),
             },
         )

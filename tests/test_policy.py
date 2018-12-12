@@ -10,32 +10,53 @@ from vakt.rules.string import Equal
 def test_properties():
     policy = Policy('123', description='readme',
                     subjects=['user'], effect=ALLOW_ACCESS,
-                    resources='books:{\d+}', actions=['create', 'delete'], rules={})
+                    resources='books:{\d+}', actions=['create', 'delete'], context={})
     assert '123' == policy.uid
     assert 'readme' == policy.description
     assert ['user'] == policy.subjects
     assert ALLOW_ACCESS == policy.effect
     assert 'books:{\d+}' == policy.resources
     assert ['create', 'delete'] == policy.actions
-    assert {} == policy.rules
+    assert {} == policy.context
 
 
-def test_exception_raised_when_rules_is_not_dict():
+def test_exception_raised_when_context_is_not_dict():
     with pytest.raises(PolicyCreationError):
-        Policy('1', rules=[Equal('foo')])
+        Policy('1', context=[Equal('foo')])
 
 
 @pytest.mark.parametrize('data, expect', [
     ('{"uid":123}',
-     '{"actions": [], "description": null, "effect": "deny", ' +
-     '"resources": [], "rules": {}, "subjects": [], "type": 1, "uid": 123}'),
+     '{"actions": [], "context": {}, "description": null, "effect": "deny", ' +
+     '"resources": [], "subjects": [], "type": 1, "uid": 123}'),
     ('{"effect":"allow", "actions": ["create", "update"], "uid":123}',
-     '{"actions": ["create", "update"], "description": null, "effect": "allow", ' +
-     '"resources": [], "rules": {}, "subjects": [], "type": 1, "uid": 123}'),
+     '{"actions": ["create", "update"], "context": {}, "description": null, "effect": "allow", ' +
+     '"resources": [], "subjects": [], "type": 1, "uid": 123}'),
     # 'type' if present, should be omitted and not result in setting type of a Policy object
     ('{"actions": ["create", "update"], "uid":123, "type": 2}',
-     '{"actions": ["create", "update"], "description": null, "effect": "deny", ' +
-     '"resources": [], "rules": {}, "subjects": [], "type": 1, "uid": 123}'),
+     '{"actions": ["create", "update"], "context": {}, "description": null, "effect": "deny", ' +
+     '"resources": [], "subjects": [], "type": 1, "uid": 123}'),
+    # 'rules' can be present, but after deserialization should be converted to 'context' field
+    ('{"uid":123, "actions": [], "rules":' +
+     '{"a": "{\\"type\\": \\"vakt.rules.net.CIDR\\", \\"contents\\": {\\"cidr\\": \\"192.168.2.0/24\\"}}"}}',
+     '{"actions": [], ' +
+     '"context": {"a": "{\\"type\\": \\"vakt.rules.net.CIDR\\", \\"contents\\": {\\"cidr\\": \\"192.168.2.0/24\\"}}"}, '
+     +
+     '"description": null, "effect": "deny", "resources": [], "subjects": [], "type": 1, "uid": 123}'),
+    # 'context' should be deserialized to 'context' properly
+    ('{"uid":123, "actions": [], "rules":' +
+     '{"a": "{\\"type\\": \\"vakt.rules.net.CIDR\\", \\"contents\\": {\\"cidr\\": \\"192.168.2.0/24\\"}}"}}',
+     '{"actions": [], ' +
+     '"context": {"a": "{\\"type\\": \\"vakt.rules.net.CIDR\\", \\"contents\\": {\\"cidr\\": \\"192.168.2.0/24\\"}}"}, '
+     +
+     '"description": null, "effect": "deny", "resources": [], "subjects": [], "type": 1, "uid": 123}'),
+    # 'context' should win over deprecated attribute 'rules' if both are present
+    ('{"uid":123, "actions": [], "context":' +
+     '{"a": "{\\"type\\": \\"vakt.rules.string.Equal\\", \\"contents\\": {\\"val\\": \\"foo\\"}}"}, ' +
+     '"rules": {"b": "{\\"type\\": \\"vakt.rules.net.CIDR\\", \\"contents\\": {\\"cidr\\": \\"192.168.2.0/24\\"}}"}}',
+     '{"actions": [], ' +
+     '"context": {"a": "{\\"type\\": \\"vakt.rules.string.Equal\\", \\"contents\\": {\\"val\\": \\"foo\\"}}"}, ' +
+     '"description": null, "effect": "deny", "resources": [], "subjects": [], "type": 1, "uid": 123}'),
 ])
 def test_json_roundtrip(data, expect):
     p = Policy.from_json(data)
@@ -54,17 +75,49 @@ def test_json_default_effect_is_set_correctly_when_from_json(data, effect):
     assert effect == p.effect
 
 
-def test_json_roundtrip_of_a_policy_with_rules():
-    p = Policy('123', rules={'ip': CIDR('192.168.1.0/24'), 'sub': Equal('test-me')})
+def test_json_roundtrip_of_a_policy_with_context():
+    p = Policy('123', context={'ip': CIDR('192.168.1.0/24'), 'sub': Equal('test-me')})
     s = p.to_json()
     p1 = Policy.from_json(s)
     assert '123' == p1.uid
-    assert 2 == len(p1.rules)
-    assert 'ip' in p1.rules
-    assert 'sub' in p1.rules
-    assert isinstance(p1.rules['ip'], CIDR)
-    assert isinstance(p1.rules['sub'], Equal)
-    assert p1.rules['sub'].satisfied('test-me')
+    assert 2 == len(p1.context)
+    assert 'ip' in p1.context
+    assert 'sub' in p1.context
+    assert isinstance(p1.context['ip'], CIDR)
+    assert isinstance(p1.context['sub'], Equal)
+    assert p1.context['sub'].satisfied('test-me')
+
+    # 'context' wins over deprecated rules
+    p = Policy(
+        '456',
+        context={'ip': CIDR('192.168.1.0/24'), 'sub': Equal('foo-bar')},
+        rules={'ip': CIDR('127.0.0.1'), 'sub': Equal('baz')}
+    )
+    s = p.to_json()
+    p1 = Policy.from_json(s)
+    assert '456' == p1.uid
+    assert 2 == len(p1.context)
+    assert 'ip' in p1.context
+    assert 'sub' in p1.context
+    assert isinstance(p1.context['ip'], CIDR)
+    assert isinstance(p1.context['sub'], Equal)
+    assert p1.context['sub'].satisfied('foo-bar')
+    assert p1.context['ip'].satisfied('192.168.1.0')
+    assert not hasattr(p1, 'rules')
+
+    # 'rules' are allowed, but they become a 'context' class field
+    p = Policy('789', rules={'ip': CIDR('127.0.0.1'), 'sub': Equal('baz')})
+    s = p.to_json()
+    p1 = Policy.from_json(s)
+    assert '789' == p1.uid
+    assert 2 == len(p1.context)
+    assert 'ip' in p1.context
+    assert 'sub' in p1.context
+    assert isinstance(p1.context['ip'], CIDR)
+    assert isinstance(p1.context['sub'], Equal)
+    assert p1.context['sub'].satisfied('baz')
+    assert p1.context['ip'].satisfied('127.0.0.1')
+    assert not hasattr(p1, 'rules')
 
 
 @pytest.mark.parametrize('data, exception, msg', [
@@ -109,7 +162,7 @@ def test_pretty_print():
     assert "'effect': 'deny'" in str(p)
     assert "'resources': ()" in str(p)
     assert "'actions': ()" in str(p)
-    assert "'rules': {}" in str(p)
+    assert "'context': {}" in str(p)
 
 
 @pytest.mark.skip

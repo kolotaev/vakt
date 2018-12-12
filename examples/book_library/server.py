@@ -40,7 +40,7 @@ policies = [
         subjects=['<[\w]+ M[\w]+>'],
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
-        rules={
+        context={
             'ip': vakt.rules.net.CIDR('127.0.0.1/32'),
         },
     ),
@@ -51,7 +51,7 @@ policies = [
         subjects=('Edward Rooney', 'Florence Sparrow'),
         actions=['<.*>'],
         resources=['<.*>'],
-        rules={
+        context={
             'secret': vakt.rules.string.Equal('i-am-a-teacher'),
         },
     ),

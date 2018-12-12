@@ -72,20 +72,20 @@ class Guard:
                     self.checker.fits(p, 'actions', inquiry.action) and
                     self.checker.fits(p, 'subjects', inquiry.subject) and
                     self.checker.fits(p, 'resources', inquiry.resource) and
-                    self.are_rules_satisfied(p, inquiry)]
+                    self.check_context_restriction(p, inquiry)]
 
         # no policies -> deny access!
         # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
         return len(filtered) > 0 and all(p.allow_access() for p in filtered)
 
     @staticmethod
-    def are_rules_satisfied(policy, inquiry):
+    def check_context_restriction(policy, inquiry):
         """
-        Check if rules in the policy are satisfied for a given inquiry's context.
+        Check if context restriction in the policy is satisfied for a given inquiry's context.
         If at least one rule is not present in Inquiry's context -> deny access.
         If at least one rule provided in Inquiry's context is not satisfied -> deny access.
         """
-        for key, rule in policy.rules.items():
+        for key, rule in policy.context.items():
             try:
                 ctx_value = inquiry.context[key]
             except KeyError:

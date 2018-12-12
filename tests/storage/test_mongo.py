@@ -42,7 +42,7 @@ class TestMongoStorage:
             subjects=('Edward Rooney', 'Florence Sparrow'),
             actions=['<.*>'],
             resources=['<.*>'],
-            rules={
+            context={
                 'secret': Equal('i-am-a-teacher'),
             },
         )
@@ -50,7 +50,7 @@ class TestMongoStorage:
         back = st.get(id)
         assert id == back.uid
         assert 'foo bar баз' == back.description
-        assert isinstance(back.rules['secret'], Equal)
+        assert isinstance(back.context['secret'], Equal)
 
     def test_add_with_bson_object_id(self, st):
         id = str(ObjectId())
@@ -106,7 +106,7 @@ class TestMongoStorage:
             subjects=('Edward Rooney', 'Florence Sparrow'),
             actions=['<.*>'],
             resources=['<.*>'],
-            rules={
+            context={
                 'secret': Equal('i-am-a-teacher'),
             },
         )
@@ -118,7 +118,7 @@ class TestMongoStorage:
         assert ['Edward Rooney', 'Florence Sparrow'] == policies[0].subjects
         assert ['<.*>'] == policies[0].actions
         assert ['<.*>'] == policies[0].resources
-        assert isinstance(policies[0].rules['secret'], Equal)
+        assert isinstance(policies[0].context['secret'], Equal)
 
     def test_get_all_with_incorrect_args(self, st):
         for i in range(10):
@@ -233,16 +233,16 @@ class TestMongoStorage:
         uid = str(uuid.uuid4())
         p = Policy(
             uid=uid,
-            rules={
+            context={
                 'secret': Equal('i-am-a-teacher'),
                 'secret2': Equal('i-am-a-husband'),
 
             },
         )
         st.add(p)
-        rules = st.get(uid).rules
-        assert rules['secret'].satisfied('i-am-a-teacher')
-        assert rules['secret2'].satisfied('i-am-a-husband')
+        context = st.get(uid).context
+        assert context['secret'].satisfied('i-am-a-teacher')
+        assert context['secret2'].satisfied('i-am-a-husband')
 
 
 @pytest.mark.integration

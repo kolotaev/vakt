@@ -155,7 +155,7 @@ The main parts reflect questions described in [Concepts](#concepts) section:
 * resources - a list of resources. Answers: what is asked?
 * subjects  - a list of subjects. Answers: who asks access to resources?
 * actions - a list of actions. Answers: what actions are asked to be performed on resources?
-* rules - a list of context rules that should be satisfied in the given inquiry. See [Rule](#rule).
+* context - a list of context rules that should be satisfied in the given inquiry. See [Rule](#rule).
 * effect - If policy matches all the above conditions, what effect does it imply?
 Can be either `vakt.effects.ALLOW_ACCESS` or `vakt.effects.DENY_ACCESS`
 
@@ -172,7 +172,7 @@ p = Policy(
         subjects=['<[\w]+ M[\w]+>'],
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
-        rules={
+        context={
         'ip': CIDR('192.168.2.0/24'),
         }
     )
@@ -254,7 +254,7 @@ import vakt.rules.string
 
 Policy(
     ...,
-    rules={
+    context={
         'secret': vakt.rules.string.Equal('.KIMZihH0gsrc'),
         'ip': vakt.rules.net.CIDR('192.168.0.15/24')
     },
@@ -342,7 +342,7 @@ policy = Policy('1')
 json_policy = policy.to_json()
 print(json_policy)
 # {"actions": [], "description": null, "effect": "deny", "uid": "1",
-# "resources": [], "rules": {}, "subjects": []}
+# "resources": [], "context": {}, "subjects": []}
 
 policy = Policy.from_json(json_policy)
 print(policy)

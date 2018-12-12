@@ -9,7 +9,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - [Logging] Rename logging message "Conflicting ID" -> "Conflicting UID".
 - [Logging] Changed several exception logs to error level.
-- [Policy] Make Policy constructor argument 'description' a last argument.
+- [Guard] Guard's method `are_rules_satisfied` is now `check_context_restriction`.
+- [Policy] Policy constructor signature is now: `Policy(uid, subjects, effect, resources, actions, context, rules, description)`.
 - [Policy] `Policy()` is now a factory-method, but not a class, that returns policies of different type based on the representation.
 of its attributes (string, dict, etc.). Those policies are subtypes of an abstract type `BasePolicy`.
 
@@ -18,6 +19,7 @@ of its attributes (string, dict, etc.). Those policies are subtypes of an abstra
 Old-named Rules are now deprecated for usage and will be removed  in later versions.
 Deprecated rules are: SubjectEqualRule, ActionEqualRule, ResourceInRule, CIDRRule, StringEqualRule, RegexMatchRule,
 StringPairsEqualRule.
+- [Policy] `rules` argument is now deprecated. Use 'context' argument for the same purpose.
 
 
 ## [1.1.0] - 2018-09-03
