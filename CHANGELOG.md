@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
-- [Rules] List-based `rules`: (InList, NotInList, AllInList, AllNotInList, AnyInList, AnyNotInList).
+- [Rules] List-based `Rules`: (InList, NotInList, AllInList, AllNotInList, AnyInList, AnyNotInList) in `vakt.rules.list`.
+- [Rules] Comparison operator `Rules`: (Equal, NotEqual, Greater, Less, GreaterOrEqual, LessOrEqual) in `vakt.rules.compare`.
 
 ### Changed
 - [Logging] Rename logging message "Conflicting ID" -> "Conflicting UID".

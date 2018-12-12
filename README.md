@@ -226,17 +226,24 @@ If at least on Rule in the Rule-set is not satisfied Inquiry is rejected by give
 Generally Rules represent so called `contextual (environment) attributes` in the classic ABAC definition.
 There are a number of different Rule types:
 
-1. Inquiry-related
-  * SubjectEqual
-  * ActionEqual
-  * ResourceIn
-2. Network-related
-  * CIDR
-3. String-related
+1. Comparison operators
+  * Equal
+  * NotEqual
+  * Greater
+  * Less
+  * GreaterOrEqual
+  * LessOrEqual
+2. String-related
   * Equal
   * PairsEqual
   * RegexMatch
-4. List-related
+3. Inquiry-related
+  * SubjectEqual
+  * ActionEqual
+  * ResourceIn
+4. Network-related
+  * CIDR
+5. List-related
   * InList
   * NotInList
   * AllInList
