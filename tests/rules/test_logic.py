@@ -223,3 +223,43 @@ def test_less_or_equal_satisfied(val, against, result):
     jsn = LessOrEqual(val).to_json()
     c1 = Rule.from_json(jsn)
     assert result == c1.satisfied(against)
+
+
+@pytest.mark.parametrize('against, result', [
+    ('', False),
+    ('a', True),
+    ([], False),
+    ([1], True),
+    (0, False),
+    (1, True),
+    (None, False),
+    (1 < 90, True),
+    (1 > 90, False),
+    (lambda: True, True),
+    (lambda: False, False),
+])
+def test_is_true_satisfied(against, result):
+    assert result == IsTrue().satisfied(against)
+    # test after (de)serialization
+    jsn = IsTrue().to_json()
+    assert result == Rule.from_json(jsn).satisfied(against)
+
+
+@pytest.mark.parametrize('against, result', [
+    ('', True),
+    ('a', False),
+    ([], True),
+    ([1], False),
+    (0, True),
+    (1, False),
+    (None, True),
+    (1 < 90, False),
+    (1 > 90, True),
+    (lambda: True, False),
+    (lambda: False, True),
+])
+def test_is_false_satisfied(against, result):
+    assert result == IsFalse().satisfied(against)
+    # test after (de)serialization
+    jsn = IsFalse().to_json()
+    assert result == Rule.from_json(jsn).satisfied(against)

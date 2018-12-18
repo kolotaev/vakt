@@ -18,6 +18,13 @@ log = logging.getLogger(__name__)
 class Rule(JsonSerializer, PrettyPrint, metaclass=ABCMeta):
     """Basic Rule"""
 
+    def __init__(self):
+        """
+        Ctor that takes no arguments.
+        Useful when doing unserialization for derived classes without overridden constructor.
+        """
+        pass
+
     @abstractmethod
     def satisfied(self, what, inquiry):
         """Is rule satisfied by the inquiry"""
