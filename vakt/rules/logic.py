@@ -13,11 +13,17 @@ from ..rules.base import Rule
 log = logging.getLogger(__name__)
 
 
-class Eq(Rule):
-    """Rule that is satisfied when two values are equal '=='"""
+class OperatorRule(Rule, metaclass=ABCMeta):
+    """
+    Base class for all Logic Operator Rules
+    """
     def __init__(self, val):
+        super().__init__()
         self.val = val
 
+
+class Eq(OperatorRule):
+    """Rule that is satisfied when two values are equal '=='"""
     def satisfied(self, what, inquiry=None):
         if isinstance(self.val, tuple):
             val = list(self.val)
@@ -26,12 +32,8 @@ class Eq(Rule):
         return val == what
 
 
-class NotEq(Rule):
+class NotEq(OperatorRule):
     """Rule that is satisfied when two values are not equal '!='"""
-
-    def __init__(self, val):
-        self.val = val
-
     def satisfied(self, what, inquiry=None):
         if isinstance(self.val, tuple):
             val = list(self.val)
@@ -40,48 +42,32 @@ class NotEq(Rule):
         return val != what
 
 
-class Greater(Rule):
+class Greater(OperatorRule):
     """Rule that is satisfied when 'what' is greater '>' than initial value"""
-
-    def __init__(self, val):
-        self.val = val
-
     def satisfied(self, what, inquiry=None):
         if isinstance(what, tuple) and isinstance(what, tuple):
             return list(what) > list(self.val)
         return what > self.val
 
 
-class Less(Rule):
+class Less(OperatorRule):
     """Rule that is satisfied when 'what' is less '<' than initial value"""
-
-    def __init__(self, val):
-        self.val = val
-
     def satisfied(self, what, inquiry=None):
         if isinstance(what, tuple) and isinstance(what, tuple):
             return list(what) < list(self.val)
         return what < self.val
 
 
-class GreaterOrEqual(Rule):
+class GreaterOrEqual(OperatorRule):
     """Rule that is satisfied when 'what' is greater or equal '>=' than initial value"""
-
-    def __init__(self, val):
-        self.val = val
-
     def satisfied(self, what, inquiry=None):
         if isinstance(what, tuple) and isinstance(what, tuple):
             return list(what) >= list(self.val)
         return what >= self.val
 
 
-class LessOrEqual(Rule):
+class LessOrEqual(OperatorRule):
     """Rule that is satisfied when 'what' is less or equal '<=' than initial value"""
-
-    def __init__(self, val):
-        self.val = val
-
     def satisfied(self, what, inquiry=None):
         if isinstance(what, tuple) and isinstance(what, tuple):
             return list(what) <= list(self.val)

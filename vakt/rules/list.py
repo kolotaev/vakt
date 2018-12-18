@@ -28,6 +28,7 @@ class ListRule(Rule):
     Generic Rule for List-related checks
     """
     def __init__(self, data):
+        super().__init__()
         if not isinstance(data, list):
             log.error('%s creation. Initial data should be of list type', type(self).__name__)
             raise TypeError('Initial data should be of list type')
