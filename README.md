@@ -235,6 +235,8 @@ There are a number of different Rule types:
   * LessOrEqual
   * IsTrue
   * IsFalse
+  * And
+  * Or
 2. String-related
   * Equal
   * PairsEqual

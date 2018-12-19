@@ -1,6 +1,9 @@
 import pytest
 
 from vakt.rules.logic import *
+from vakt.rules.inquiry import ActionEqual
+from vakt.rules.list import InList
+from vakt.guard import Inquiry
 
 
 @pytest.mark.parametrize('val, against, result', [
@@ -263,3 +266,67 @@ def test_is_false_satisfied(against, result):
     # test after (de)serialization
     jsn = IsFalse().to_json()
     assert result == Rule.from_json(jsn).satisfied(against)
+
+
+def test_and_or_rules_bad_args():
+    expected_msg = "Arguments should be of Rule class or it's derivatives"
+    with pytest.raises(TypeError) as excinfo:
+        And(Inquiry())
+    assert expected_msg in str(excinfo.value)
+    with pytest.raises(TypeError) as excinfo:
+        Or(Inquiry(), Inquiry())
+    assert expected_msg in str(excinfo.value)
+
+
+@pytest.mark.parametrize('rules, what, inquiry, result', [
+    ([], 1, None, False),
+    ([Greater(-1)], 1, None, True),
+    ([Greater(55)], 1, None, False),
+    ([Greater(-1), Less(10)], 1, None, True),
+    ([Greater(-1), Less(10), Eq(700)], 1, None, False),
+    ([Eq('read'), InList(['read', 'write']), ActionEqual()], 'read', Inquiry(action='read'), True),
+    ([Eq('read'), InList(['write']), ActionEqual()], 'read', Inquiry(action='read'), False),
+])
+def test_and_rule(rules, what, inquiry, result):
+    r = And(*rules)
+    assert result == r.satisfied(what, inquiry)
+
+
+@pytest.mark.parametrize('rules, what, inquiry, result', [
+    ([], 1, None, False),
+    ([Greater(-1)], 1, None, True),
+    ([Greater(55)], 1, None, False),
+    ([Greater(-1), Less(10)], 1, None, True),
+    ([Less(10), Eq(700)], 1, None, True),
+    ([Eq(700), Less(10)], 1, None, True),
+    ([Eq('read'), InList(['read', 'write']), ActionEqual()], 'read', Inquiry(action='read'), True),
+    ([Eq('read'), InList(['write']), ActionEqual()], 'read', Inquiry(action='read'), True),
+])
+def test_or_rule(rules, what, inquiry, result):
+    r = Or(*rules)
+    assert result == r.satisfied(what, inquiry)
+
+
+def test_or_rule_uses_short_circuit_and_rule_does_not():
+    x = []
+    def get_inc(x):
+        def inc():
+            x.append(1)
+            return True
+        return inc
+    f = get_inc(x)
+    rules = [
+        Eq(f),
+        IsTrue()
+    ]
+    # test Or
+    r = Or(*rules)
+    assert r.satisfied(f, None)
+    assert r.satisfied(f, None)
+    assert 0 == len(x)
+    # test And
+    r = And(*rules)
+    assert r.satisfied(f, None)
+    assert 1 == len(x)
+    assert r.satisfied(f, None)
+    assert 2 == len(x)

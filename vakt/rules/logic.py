@@ -10,6 +10,7 @@ from abc import ABCMeta, abstractmethod
 
 from ..rules.base import Rule
 
+
 log = logging.getLogger(__name__)
 
 
@@ -103,4 +104,38 @@ class IsFalse(BooleanRule):
     """Rule that is satisfied when 'what' is evaluated to a boolean 'false'."""
     @property
     def val(self):
+        return False
+
+
+class LogicCompositionRule(Rule, metaclass=ABCMeta):
+    """
+    Abstract Rule that encompasses other Rules.
+    """
+    def __init__(self, *rules):
+        super().__init__()
+        for r in rules:
+            if not isinstance(r, Rule):
+                log.error("%s creation. Arguments should be of Rule class or it's derivatives", type(self).__name__)
+                raise TypeError("Arguments should be of Rule class or it's derivatives")
+        self.rules = rules
+
+
+class And(LogicCompositionRule):
+    """
+    Rule that is satisfied when all the rules it's composed of are satisfied.
+    """
+    def satisfied(self, what, inquiry):
+        answers = [x.satisfied(what, inquiry) for x in self.rules]
+        return len(answers) > 0 and all(answers)
+
+
+class Or(LogicCompositionRule):
+    """
+    Rule that is satisfied when at least one of the rules it's composed of is satisfied.
+    Uses short-circuit evaluation.
+    """
+    def satisfied(self, what, inquiry):
+        for rule in self.rules:
+            if rule.satisfied(what, inquiry):
+                return True
         return False
