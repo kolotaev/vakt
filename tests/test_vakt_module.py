@@ -2,8 +2,8 @@ import vakt
 
 
 def test_types():
-    assert 1 == vakt.TYPE_STRINGS
-    assert 2 == vakt.TYPE_ATTRIBUTES
+    assert 1 == vakt.TYPE_STRING_BASED
+    assert 2 == vakt.TYPE_RULE_BASED
 
 
 def test_version():

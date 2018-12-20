@@ -9,7 +9,7 @@ from .effects import ALLOW_ACCESS, DENY_ACCESS
 from .exceptions import PolicyCreationError
 from .util import JsonSerializer, PrettyPrint
 from .rules.base import Rule
-from . import TYPE_STRINGS, TYPE_ATTRIBUTES
+from . import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 
 log = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class Policy(JsonSerializer, PrettyPrint):
             raise PolicyCreationError("Error creating Policy. Context must be a dictionary")
         self.context = context
         self.description = description
-        self.type = self.get_type()
+        self.type = None
 
     @classmethod
     def from_json(cls, data):
@@ -77,8 +77,14 @@ class Policy(JsonSerializer, PrettyPrint):
         """Policy expression end tag"""
         return '>'
 
-    def get_type(self):
-        for elements in [self.resources, self.actions, self.subjects]:
+    def __setattr__(self, name, value):
+        object.__setattr__(self, name, value)
+        # always calculate type. Evn if type is set explicitly. Dict assign eliminates recursion
+        self.__dict__['type'] = self._calculate_type()
+
+    def _calculate_type(self):
+        fields = ['subjects', 'resources', 'actions']
+        for elements in [getattr(self, f, ()) for f in fields]:
             if any([isinstance(e, Rule) for e in elements]):
-                return TYPE_ATTRIBUTES
-        return TYPE_STRINGS
+                return TYPE_RULE_BASED
+        return TYPE_STRING_BASED
