@@ -9,19 +9,6 @@ def test_default_values():
     assert '' == i.action
     assert '' == i.resource
     assert {} == i.context
-    assert 1 == i.type
-
-
-@pytest.mark.parametrize('resource, action, subject, context, type', [
-    ('', '', '', None, 1),
-    ('a', 'b', 'c', None, 1),
-    ('a', 'b', 'c', {'x': 'y'}, 1),
-    ({'a': 'b'}, None, None, None, 2),
-    ({'a': 'b'}, {'aa': 'bb'}, {'aaa': 'bbb'}, {'x': 'y'}, 2),
-])
-def test_creation_based_on_type(resource, action, subject, context, type):
-    i = Inquiry(resource=resource, action=action, subject=subject, context=context)
-    assert type == i.type
 
 
 def test_json_roundtrip():
@@ -32,13 +19,6 @@ def test_json_roundtrip():
     assert 'view' == r1.action
     assert 'bobby' == r1.subject
     assert {'ip': '127.0.0.1'} == r1.context
-    assert 1 == r1.type
-
-
-def test_from_json_skips_type():
-    s = '{"resource": {"a": "b"}, "action": {"x": "y"}, "subject": {"c": "d"}, "context": {}, "type": 1}'
-    i = Inquiry.from_json(s)
-    assert 2 == i.type
 
 
 def test_json_decode_fails_for_incorrect_data():

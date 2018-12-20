@@ -6,7 +6,6 @@ Also contains Inquiry class.
 import logging
 
 from .util import JsonSerializer, PrettyPrint
-from . import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 
 log = logging.getLogger(__name__)
@@ -14,7 +13,7 @@ log = logging.getLogger(__name__)
 
 class Inquiry(JsonSerializer, PrettyPrint):
     """Holds all the information about the inquired intent.
-    Is responsible to decisions is the inquired intent allowed or not."""
+    Is responsible to decisions if the inquired intent allowed or not."""
 
     def __init__(self, resource=None, action=None, subject=None, context=None):
         # explicitly assign empty strings instead of occasional None, (), etc.
@@ -22,16 +21,10 @@ class Inquiry(JsonSerializer, PrettyPrint):
         self.action = action or ''
         self.subject = subject or ''
         self.context = context or {}
-        if any([isinstance(a, dict) for a in [self.resource, self.action, self.subject]]):
-            self.type = TYPE_RULE_BASED
-        else:
-            self.type = TYPE_STRING_BASED
 
     @classmethod
     def from_json(cls, data):
         props = cls._parse(data)
-        if 'type' in props:
-            del props['type']
         return cls(**props)
 
 
