@@ -274,7 +274,7 @@ def test_and_or_rules_bad_args():
         And(Inquiry())
     assert expected_msg in str(excinfo.value)
     with pytest.raises(TypeError) as excinfo:
-        Or(Inquiry(), Inquiry())
+        Or(Inquiry(), 123)
     assert expected_msg in str(excinfo.value)
 
 
@@ -330,3 +330,27 @@ def test_or_rule_uses_short_circuit_and_rule_does_not():
     assert 1 == len(x)
     assert r.satisfied(f, None)
     assert 2 == len(x)
+
+
+def test_not_rule_bad_args():
+    expected_msg = "Arguments should be of Rule class or it's derivatives"
+    with pytest.raises(TypeError) as excinfo:
+        Not(123)
+    assert expected_msg in str(excinfo.value)
+    with pytest.raises(TypeError) as excinfo:
+        Not([Greater(-1)])
+    assert expected_msg in str(excinfo.value)
+
+
+@pytest.mark.parametrize('rule, what, inquiry, result', [
+    (Greater(-1), 1, None, False),
+    (Greater(55), 1, None, True),
+    (Less(10), 1, None, False),
+    (Eq(10), 10, None, False),
+    (Eq(10), 11, None, True),
+    (ActionEqual(), 'read', Inquiry(action='read'), False),
+    (ActionEqual(), 'write', Inquiry(action='read'), True),
+])
+def test_not_rule(rule, what, inquiry, result):
+    r = Not(rule)
+    assert result == r.satisfied(what, inquiry)

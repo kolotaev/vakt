@@ -155,7 +155,7 @@ The main parts reflect questions described in [Concepts](#concepts) section:
 * resources - a list of resources. Answers: what is asked?
 * subjects  - a list of subjects. Answers: who asks access to resources?
 * actions - a list of actions. Answers: what actions are asked to be performed on resources?
-* context - a list of context rules that should be satisfied in the given inquiry. See [Rule](#rule).
+* context - a list of rules that should be satisfied by the given inquiry's context.
 * effect - If policy matches all the above conditions, what effect does it imply?
 Can be either `vakt.effects.ALLOW_ACCESS` or `vakt.effects.DENY_ACCESS`
 
@@ -235,6 +235,7 @@ There are a number of different Rule types:
   * LessOrEqual
   * IsTrue
   * IsFalse
+  * Not
   * And
   * Or
 2. String-related

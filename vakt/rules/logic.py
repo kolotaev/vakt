@@ -139,3 +139,18 @@ class Or(LogicCompositionRule):
             if rule.satisfied(what, inquiry):
                 return True
         return False
+
+
+class Not(Rule):
+    """
+    Rule that negates another Rule.
+    """
+    def __init__(self, rule):
+        super().__init__()
+        if not isinstance(rule, Rule):
+            log.error("%s creation. Arguments should be of Rule class or it's derivatives", type(self).__name__)
+            raise TypeError("Arguments should be of Rule class or it's derivatives")
+        self.rule = rule
+
+    def satisfied(self, what, inquiry):
+        return not self.rule.satisfied(what, inquiry)
