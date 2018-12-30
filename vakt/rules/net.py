@@ -16,7 +16,6 @@ class CIDR(Rule):
     """Rule that is satisfied when inquiry's IP address is in the provided CIDR"""
 
     def __init__(self, cidr):
-        super().__init__()
         self.cidr = cidr
 
     def satisfied(self, what, inquiry=None):

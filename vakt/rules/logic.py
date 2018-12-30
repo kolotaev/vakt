@@ -8,7 +8,7 @@ They behave the same as you might expect from Python comparison operators.
 import logging
 from abc import ABCMeta, abstractmethod
 
-from ..rules.base import Rule
+from ..rules.base import Rule, RuleWithZeroInit
 
 
 log = logging.getLogger(__name__)
@@ -19,7 +19,6 @@ class OperatorRule(Rule, metaclass=ABCMeta):
     Base class for all Logic Operator Rules
     """
     def __init__(self, val):
-        super().__init__()
         self.val = val
 
 
@@ -75,7 +74,7 @@ class LessOrEqual(OperatorRule):
         return what <= self.val
 
 
-class BooleanRule(Rule, metaclass=ABCMeta):
+class BooleanRule(RuleWithZeroInit, metaclass=ABCMeta):
     """
     Abstract Rule that is satisfied when 'what' is evaluated to a boolean 'true'/'false'.
     Its `satisfied` accepts:
@@ -112,7 +111,6 @@ class LogicCompositionRule(Rule, metaclass=ABCMeta):
     Abstract Rule that encompasses other Rules.
     """
     def __init__(self, *rules):
-        super().__init__()
         for r in rules:
             if not isinstance(r, Rule):
                 log.error("%s creation. Arguments should be of Rule class or it's derivatives", type(self).__name__)
@@ -146,7 +144,6 @@ class Not(Rule):
     Rule that negates another Rule.
     """
     def __init__(self, rule):
-        super().__init__()
         if not isinstance(rule, Rule):
             log.error("%s creation. Arguments should be of Rule class or it's derivatives", type(self).__name__)
             raise TypeError("Arguments should be of Rule class or it's derivatives")

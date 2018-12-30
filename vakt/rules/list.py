@@ -28,7 +28,6 @@ class ListRule(Rule):
     Generic Rule for List-related checks
     """
     def __init__(self, data):
-        super().__init__()
         if not isinstance(data, list):
             log.error('%s creation. Initial data should be of list type', type(self).__name__)
             raise TypeError('Initial data should be of list type')
@@ -87,7 +86,7 @@ class AnyInList(ListRule):
 
 class AnyNotInList(ListRule):
     """
-    Are some of the items not in the list?
+    Are any of the items not in the list?
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):

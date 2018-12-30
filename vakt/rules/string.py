@@ -17,7 +17,6 @@ class Equal(Rule):
     """Rule that is satisfied if the string value equals the specified property of this rule"""
 
     def __init__(self, val):
-        super().__init__()
         if not isinstance(val, str):
             log.error('%s creation. Initial property should be a string', type(self).__name__)
             raise TypeError('Initial property should be a string')
@@ -49,7 +48,6 @@ class RegexMatch(Rule):
        Note, that you should provide syntactically valid regular-expression string."""
 
     def __init__(self, pattern):
-        super().__init__()
         try:
             self.regex = re.compile(pattern)
         except Exception as e:

@@ -18,13 +18,6 @@ log = logging.getLogger(__name__)
 class Rule(JsonSerializer, PrettyPrint, metaclass=ABCMeta):
     """Basic Rule"""
 
-    def __init__(self):
-        """
-        Ctor that takes no arguments.
-        Useful when doing unserialization for derived classes without overridden constructor.
-        """
-        pass
-
     @abstractmethod
     def satisfied(self, what, inquiry):
         """Is rule satisfied by the inquiry"""
@@ -63,3 +56,19 @@ class Rule(JsonSerializer, PrettyPrint, metaclass=ABCMeta):
             'type': '%s.%s' % (self.__class__.__module__, self.__class__.__name__),
             'contents': vars(self),
         }
+
+
+class RuleWithZeroInit(Rule, metaclass=ABCMeta):
+    """
+    Basic Rule with zero-arguments init.
+    If you have a custom rule that has no arguments, you should subclass from this abstract class
+    so that JSON de(serialization) works properly.
+    Examples of usage: BooleanRule
+    """
+
+    def __init__(self):
+        """
+        Ctor that takes no arguments.
+        Useful when doing unserialization for derived classes without overridden constructor.
+        """
+        pass
