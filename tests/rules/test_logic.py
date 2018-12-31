@@ -290,6 +290,8 @@ def test_and_or_rules_bad_args():
 def test_and_rule(rules, what, inquiry, result):
     r = And(*rules)
     assert result == r.satisfied(what, inquiry)
+    # test after (de)serialization
+    assert result == Rule.from_json(And(*rules).to_json()).satisfied(what, inquiry)
 
 
 @pytest.mark.parametrize('rules, what, inquiry, result', [
@@ -305,9 +307,11 @@ def test_and_rule(rules, what, inquiry, result):
 def test_or_rule(rules, what, inquiry, result):
     r = Or(*rules)
     assert result == r.satisfied(what, inquiry)
+    # test after (de)serialization
+    assert result == Rule.from_json(Or(*rules).to_json()).satisfied(what, inquiry)
 
 
-def test_or_rule_uses_short_circuit_and_rule_does_not():
+def test_or_rule_uses_short_circuit_but_and_rule_does_not():
     x = []
     def get_inc(x):
         def inc():
@@ -354,3 +358,5 @@ def test_not_rule_bad_args():
 def test_not_rule(rule, what, inquiry, result):
     r = Not(rule)
     assert result == r.satisfied(what, inquiry)
+    # test after (de)serialization
+    assert result == Rule.from_json(Not(rule).to_json()).satisfied(what, inquiry)

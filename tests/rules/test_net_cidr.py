@@ -13,6 +13,8 @@ from vakt.rules.net import CIDR, CIDRRule
 def test_cidr_satisfied(cidr, ip, result):
     c = CIDR(cidr)
     assert result == c.satisfied(ip)
+    # test after (de)serialization
+    assert result == CIDR.from_json(CIDR(cidr).to_json()).satisfied(ip)
     # test deprecated class
     c = CIDRRule(cidr)
     assert result == c.satisfied(ip)

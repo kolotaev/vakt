@@ -17,6 +17,10 @@ def test_resource_in_satisfied(what, resource, result):
     i = Inquiry(action='get', resource=resource, subject='Max')
     c = ResourceIn()
     assert result == c.satisfied(what, i)
+    # test after (de)serialization
+    jsn = ResourceIn().to_json()
+    c1 = ResourceIn.from_json(jsn)
+    assert result == c1.satisfied(what, i)
     # test deprecated class
     i = Inquiry(action='get', resource=resource, subject='Max')
     c = ResourceInRule()

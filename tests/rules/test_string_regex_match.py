@@ -1,6 +1,7 @@
 import pytest
 
 from vakt.rules.string import RegexMatch, RegexMatchRule
+from vakt.rules.base import Rule
 
 
 def test_regex_match_construct_fails():
@@ -23,6 +24,9 @@ def test_regex_match_construct_fails():
 def test_regex_match_rule_satisfied(arg, against, result):
     c = RegexMatch(arg)
     assert result == c.satisfied(against)
+    # test after (de)serialization
+    js = RegexMatch(arg).to_json()
+    assert result == Rule.from_json(js).satisfied(against)
     # test deprecated class
     c = RegexMatchRule(arg)
     assert result == c.satisfied(against)

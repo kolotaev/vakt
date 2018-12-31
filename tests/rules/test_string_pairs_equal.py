@@ -22,6 +22,8 @@ from vakt.rules.string import PairsEqual, StringPairsEqualRule
 def test_string_pairs_equal_satisfied(against, result):
     c = PairsEqual()
     assert result == c.satisfied(against)
+    # test after (de)serialization
+    assert result == PairsEqual.from_json(PairsEqual().to_json()).satisfied(against)
     # test deprecated class
     c = StringPairsEqualRule()
     assert result == c.satisfied(against)

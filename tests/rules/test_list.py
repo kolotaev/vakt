@@ -30,6 +30,10 @@ def test_initialization():
 def test_in_list(data, what, result):
     c = vakt.rules.list.InList(data)
     assert result == c.satisfied(what)
+    # test after (de)serialization
+    jsn = vakt.rules.list.InList(data).to_json()
+    c1 = vakt.rules.list.InList.from_json(jsn)
+    assert result == c1.satisfied(what)
 
 
 # Not In List
@@ -45,6 +49,10 @@ def test_in_list(data, what, result):
 def test_not_in_list(data, what, result):
     c = vakt.rules.list.NotInList(data)
     assert result == c.satisfied(what)
+    # test after (de)serialization
+    jsn = vakt.rules.list.NotInList(data).to_json()
+    c1 = vakt.rules.list.NotInList.from_json(jsn)
+    assert result == c1.satisfied(what)
 
 
 # All In List
@@ -61,6 +69,10 @@ def test_not_in_list(data, what, result):
 def test_all_in_list(data, what, result):
     c = vakt.rules.list.AllInList(data)
     assert result == c.satisfied(what)
+    # test after (de)serialization
+    jsn = vakt.rules.list.AllInList(data).to_json()
+    c1 = vakt.rules.list.AllInList.from_json(jsn)
+    assert result == c1.satisfied(what)
 
 
 @pytest.mark.parametrize('val', [
@@ -97,6 +109,10 @@ def test_all_in_list_satisfied_wrong_arg(val):
 def test_all_not_in_list(data, what, result):
     c = vakt.rules.list.AllNotInList(data)
     assert result == c.satisfied(what)
+    # test after (de)serialization
+    jsn = vakt.rules.list.AllNotInList(data).to_json()
+    c1 = vakt.rules.list.AllNotInList.from_json(jsn)
+    assert result == c1.satisfied(what)
 
 
 @pytest.mark.parametrize('val', [
@@ -135,6 +151,10 @@ def test_all_not_in_list_satisfied_wrong_arg(val):
 def test_any_in_list(data, what, result):
     c = vakt.rules.list.AnyInList(data)
     assert result == c.satisfied(what)
+    # test after (de)serialization
+    jsn = vakt.rules.list.AnyInList(data).to_json()
+    c1 = vakt.rules.list.AnyInList.from_json(jsn)
+    assert result == c1.satisfied(what)
 
 
 @pytest.mark.parametrize('val', [
@@ -178,6 +198,10 @@ def test_any_in_list_satisfied_wrong_arg(val):
 def test_any_not_in_list(data, what, result):
     c = vakt.rules.list.AnyNotInList(data)
     assert result == c.satisfied(what)
+    # test after (de)serialization
+    jsn = vakt.rules.list.AnyNotInList(data).to_json()
+    c1 = vakt.rules.list.AnyNotInList.from_json(jsn)
+    assert result == c1.satisfied(what)
 
 
 @pytest.mark.parametrize('val', [
