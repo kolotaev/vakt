@@ -8,7 +8,7 @@ They behave the same as you might expect from Python comparison operators.
 import logging
 from abc import ABCMeta, abstractmethod
 
-from ..rules.base import Rule, RuleWithZeroInit
+from ..rules.base import Rule
 
 
 log = logging.getLogger(__name__)
@@ -53,6 +53,7 @@ class Greater(OperatorRule):
 class Less(OperatorRule):
     """Rule that is satisfied when 'what' is less '<' than initial value"""
     def satisfied(self, what, inquiry=None):
+        # todo
         if isinstance(what, tuple) and isinstance(what, tuple):
             return list(what) < list(self.val)
         return what < self.val
@@ -74,7 +75,7 @@ class LessOrEqual(OperatorRule):
         return what <= self.val
 
 
-class BooleanRule(RuleWithZeroInit, metaclass=ABCMeta):
+class BooleanRule(Rule, metaclass=ABCMeta):
     """
     Abstract Rule that is satisfied when 'what' is evaluated to a boolean 'true'/'false'.
     Its `satisfied` accepts:

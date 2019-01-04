@@ -51,13 +51,10 @@ class Policy(JsonSerializer, PrettyPrint):
             raise PolicyCreationError("Error creating policy from json. 'uid' attribute is required")
         context_rules = {}
         if 'context' in props:
-            rules = props['context']
+            context_rules = props['context']
         elif 'rules' in props:  # this is to support deprecated 'rules' attribute
-            rules = props['rules']
-        else:
-            rules = {}
-        for k, clazz in rules.items():
-            context_rules[k] = Rule.from_json(clazz)
+            context_rules = props['rules']
+            del props['rules']
         props['context'] = context_rules
         if 'type' in props:  # type is calculated dynamically on init
             del props['type']
@@ -79,7 +76,7 @@ class Policy(JsonSerializer, PrettyPrint):
 
     def __setattr__(self, name, value):
         object.__setattr__(self, name, value)
-        # always calculate type. Evn if type is set explicitly. Dict assign eliminates recursion
+        # always calculate type. Even if type is set explicitly. Dict assign eliminates recursion
         self.__dict__['type'] = self._calculate_type()
 
     def _calculate_type(self):
@@ -88,3 +85,11 @@ class Policy(JsonSerializer, PrettyPrint):
             if any([isinstance(e, Rule) for e in elements]):
                 return TYPE_RULE_BASED
         return TYPE_STRING_BASED
+
+    def _data(self):
+        data = vars(self)
+        # get rid of "py/tuple" for tuples upon serialization in favor of simple json-array
+        for k, prop in data.items():
+            if isinstance(prop, tuple):
+                data[k] = list(prop)
+        return data

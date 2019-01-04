@@ -25,7 +25,9 @@ if __name__ == "__main__":
         long_description_content_type='text/markdown',
         py_modules=['vakt'],
         python_requires='>=3.3',
-        install_requires=[],
+        install_requires=[
+            'jsonpickle~=1.0',
+        ],
         extras_require={
             'dev': [
                 'pytest>=3.0.0',

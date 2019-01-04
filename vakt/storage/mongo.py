@@ -18,6 +18,7 @@ DEFAULT_COLLECTION = 'vakt_policies'
 log = logging.getLogger(__name__)
 
 
+# todo - update mongo driver
 class MongoStorage(Storage):
     """Stores all policies in MongoDB"""
 
@@ -155,3 +156,23 @@ class Migration0To1x0x3(Migration):
     def down(self):
         for field in self.multi_key_indices:
             self.storage.collection.drop_index(self.index_name(field))
+
+
+class Migration1x0x3To1x1x0(Migration):
+    """
+    Migration between versions 1.0.3 and 1.1.0
+    """
+    # todo - add migration
+
+    def __init__(self, storage):
+        self.storage = storage
+
+    @property
+    def order(self):
+        return 2
+
+    def up(self):
+        pass
+
+    def down(self):
+        pass

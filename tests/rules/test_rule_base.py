@@ -25,14 +25,14 @@ def test_to_json():
         ABRule(1, 2),
         ABRule('x', 'y'),
     ]
-    assert '{"contents": {"a": 1, "b": 2}, "type": "test_rule_base.ABRule"}' == rules[0].to_json(sort=True)
-    assert '{"contents": {"a": "x", "b": "y"}, "type": "test_rule_base.ABRule"}' == rules[1].to_json(sort=True)
+    assert '{"a": 1, "b": 2, "py/object": "test_rule_base.ABRule"}' == rules[0].to_json(sort=True)
+    assert '{"a": "x", "b": "y", "py/object": "test_rule_base.ABRule"}' == rules[1].to_json(sort=True)
 
 
 def test_from_json():
     rules = [
-        '{"contents": {"a": 1, "b": 1}, "type": "test_rule_base.ABRule"}',
-        '{"contents": {"a": "x", "b": "y"}, "type": "test_rule_base.ABRule"}',
+        '{"a": 1, "b": 1, "py/object": "test_rule_base.ABRule"}',
+        '{"a": "x", "b": "y", "py/object": "test_rule_base.ABRule"}',
     ]
     c1 = Rule.from_json(rules[0])
     c2 = Rule.from_json(rules[1])
@@ -56,12 +56,8 @@ def test_json_roundtrip(rule, satisfied):
 
 
 @pytest.mark.parametrize('data, msg', [
-    ('{crap}', 'Invalid JSON data'),
-    ("{}", "No 'contents' key in JSON"),
-    ('{"type": "vakt.rules.net.CIDR"}', "No 'contents' key in JSON"),
-    ('{"contents": {"cidr": "192.168.2.0/24"}}', "No 'type' key in JSON"),
-    ('{"contents": {"cidr": "192.168.2.0/24", "foo":"bar"}, "type": "vakt.rules.net.CIDR"}',
-     'Number of arguments does not match. Given 2. Expected 1'),
+    ('{crap}', 'Expecting property name enclosed in double quotes'),
+    ("{\"}", "Unterminated string starting"),
 ])
 def test_from_json_fails(data, msg):
     with pytest.raises(RuleCreationError) as excinfo:

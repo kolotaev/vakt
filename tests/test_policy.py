@@ -39,24 +39,18 @@ def test_exception_raised_when_context_is_not_dict():
      '"resources": [], "subjects": [], "type": 1, "uid": 123}'),
     # 'rules' can be present, but after deserialization should be converted to 'context' field
     ('{"uid":123, "actions": [], "rules":' +
-     '{"a": "{\\"type\\": \\"vakt.rules.net.CIDR\\", \\"contents\\": {\\"cidr\\": \\"192.168.2.0/24\\"}}"}}',
-     '{"actions": [], ' +
-     '"context": {"a": "{\\"type\\": \\"vakt.rules.net.CIDR\\", \\"contents\\": {\\"cidr\\": \\"192.168.2.0/24\\"}}"}, '
-     +
+     '{"a": {"py/object": "vakt.rules.net.CIDR", "cidr": "192.168.2.0/24"}}}',
+     '{"actions": [], "context": {"a": {"cidr": "192.168.2.0/24", "py/object": "vakt.rules.net.CIDR"}}, ' +
      '"description": null, "effect": "deny", "resources": [], "subjects": [], "type": 1, "uid": 123}'),
     # 'context' should be deserialized to 'context' properly
     ('{"uid":123, "actions": [], "rules":' +
-     '{"a": "{\\"type\\": \\"vakt.rules.net.CIDR\\", \\"contents\\": {\\"cidr\\": \\"192.168.2.0/24\\"}}"}}',
-     '{"actions": [], ' +
-     '"context": {"a": "{\\"type\\": \\"vakt.rules.net.CIDR\\", \\"contents\\": {\\"cidr\\": \\"192.168.2.0/24\\"}}"}, '
-     +
+     '{"a": {"py/object": "vakt.rules.net.CIDR", "cidr": "192.168.2.0/24"}}}',
+     '{"actions": [], "context": {"a": {"cidr": "192.168.2.0/24", "py/object": "vakt.rules.net.CIDR"}}, ' +
      '"description": null, "effect": "deny", "resources": [], "subjects": [], "type": 1, "uid": 123}'),
     # 'context' should win over deprecated attribute 'rules' if both are present
-    ('{"uid":123, "actions": [], "context":' +
-     '{"a": "{\\"type\\": \\"vakt.rules.string.Equal\\", \\"contents\\": {\\"val\\": \\"foo\\"}}"}, ' +
-     '"rules": {"b": "{\\"type\\": \\"vakt.rules.net.CIDR\\", \\"contents\\": {\\"cidr\\": \\"192.168.2.0/24\\"}}"}}',
-     '{"actions": [], ' +
-     '"context": {"a": "{\\"type\\": \\"vakt.rules.string.Equal\\", \\"contents\\": {\\"val\\": \\"foo\\"}}"}, ' +
+    ('{"uid":123, "actions": [], "context": {"a": {"py/object": "vakt.rules.string.Equal", "val": "foo"}}, ' +
+     '"rules": {"b": {"cidr": "192.168.2.0/24", "py/object": "vakt.rules.net.CIDR"}}}',
+     '{"actions": [], "context": {"a": {"py/object": "vakt.rules.string.Equal", "val": "foo"}}, ' +
      '"description": null, "effect": "deny", "resources": [], "subjects": [], "type": 1, "uid": 123}'),
 ])
 def test_json_roundtrip(data, expect):
