@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 ### Added
 - [Rules] List-based `Rules`: (InList, NotInList, AllInList, AllNotInList, AnyInList, AnyNotInList) in `vakt.rules.list`.
+- [Rules] String-based `Rule` EqualInsensitive.
 - [Rules] Logic-related `Rules`:
 (Eq, NotEq, Greater, Less, GreaterOrEqual, LessOrEqual, IsTrue, IsFalse, Not, And, Or) in `vakt.rules.logic`.
 
@@ -15,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - [Policy] Policy constructor signature is now: `Policy(uid, subjects, effect, resources, actions, context, rules, description)`.
 - [Policy] `Policy()` is now a factory-method, but not a class, that returns policies of different type based on the representation.
 of its attributes (string, dict, etc.). Those policies are subtypes of an abstract type `BasePolicy`.
+- [JSON] Objects are now serialized via `jsonpickle` library. This affects Rule JSON representation as JSON string.
 
 ### Deprecated
 - [Rules] `Rules` from `string`, `net`, `inquiry` were renamed to their shorter equivalents.
