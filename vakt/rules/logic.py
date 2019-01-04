@@ -3,6 +3,9 @@ All Rules that are related to logic:
 Simple operator comparisons:
 ==, !=, <, >, <=, >=
 They behave the same as you might expect from Python comparison operators.
+
+Also composition and logic related:
+and, or, not, is-true, is-false.
 """
 
 import logging
@@ -45,33 +48,24 @@ class NotEq(OperatorRule):
 class Greater(OperatorRule):
     """Rule that is satisfied when 'what' is greater '>' than initial value"""
     def satisfied(self, what, inquiry=None):
-        if isinstance(what, tuple) and isinstance(what, tuple):
-            return list(what) > list(self.val)
         return what > self.val
 
 
 class Less(OperatorRule):
     """Rule that is satisfied when 'what' is less '<' than initial value"""
     def satisfied(self, what, inquiry=None):
-        # todo
-        if isinstance(what, tuple) and isinstance(what, tuple):
-            return list(what) < list(self.val)
         return what < self.val
 
 
 class GreaterOrEqual(OperatorRule):
     """Rule that is satisfied when 'what' is greater or equal '>=' than initial value"""
     def satisfied(self, what, inquiry=None):
-        if isinstance(what, tuple) and isinstance(what, tuple):
-            return list(what) >= list(self.val)
         return what >= self.val
 
 
 class LessOrEqual(OperatorRule):
     """Rule that is satisfied when 'what' is less or equal '<=' than initial value"""
     def satisfied(self, what, inquiry=None):
-        if isinstance(what, tuple) and isinstance(what, tuple):
-            return list(what) <= list(self.val)
         return what <= self.val
 
 

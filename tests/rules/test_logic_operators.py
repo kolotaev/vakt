@@ -1,6 +1,18 @@
+from datetime import datetime as dt
+
 import pytest
 
 from vakt.rules.logic import *
+
+
+class A:
+    def __init__(self, a):
+        self.a = a
+
+
+class B(A):
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
 
 @pytest.mark.parametrize('val, against, result', [
@@ -18,7 +30,6 @@ from vakt.rules.logic import *
     ('1', 1, False),
     ((), (), False),
     ((1, 2), (1, 2), False),
-    (Eq(1), Eq(1), False),
     (['1', '2'], ['1', '2'], True),
     (['1', '2'], ['2', '1'], False),
     (['1', '2'], ['1', '3'], False),
@@ -26,6 +37,14 @@ from vakt.rules.logic import *
     ({'a': [1, 2]}, {'a': [1, 2]}, True),
     ({'a': [1, 2]}, {'a': [2, 1]}, False),
     ({'a': [1, 2]}, {'a': [1, 3]}, False),
+    (A(1), A(1), False),
+    (B(1), B(1), True),
+    (A(1), A(2), False),
+    (B(1), B(2), False),
+    (dt.strptime("2018-01-21 02:37:21", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:21", "%Y-%m-%d %H:%M:%S"), True),
+    (dt.strptime("2018-01-21 02:37:21", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:55", "%Y-%m-%d %H:%M:%S"), False),
 ])
 def test_eq_satisfied(val, against, result):
     c = Eq(val)
@@ -51,7 +70,6 @@ def test_eq_satisfied(val, against, result):
     ('1', 1, True),
     ((), (), True),
     ((1, 2), (1, 2), True),
-    (Eq(1), Eq(1), True),
     (['1', '2'], ['1', '2'], False),
     (['1', '2'], ['2', '1'], True),
     (['1', '2'], ['1', '3'], True),
@@ -59,6 +77,14 @@ def test_eq_satisfied(val, against, result):
     ({'a': [1, 2]}, {'a': [1, 2]}, False),
     ({'a': [1, 2]}, {'a': [2, 1]}, True),
     ({'a': [1, 2]}, {'a': [1, 3]}, True),
+    (A(1), A(1), True),
+    (B(1), B(1), False),
+    (A(1), A(2), True),
+    (B(1), B(2), True),
+    (dt.strptime("2018-01-21 02:37:21", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:21", "%Y-%m-%d %H:%M:%S"), False),
+    (dt.strptime("2018-01-21 02:37:21", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:55", "%Y-%m-%d %H:%M:%S"), True),
 ])
 def test_not_eq_satisfied(val, against, result):
     c = NotEq(val)
@@ -98,6 +124,12 @@ def test_not_eq_satisfied(val, against, result):
     (['1', '2'], ['2', '1'], True),
     (['1', '2'], ['1', '3'], True),
     (['2', '1'], ['1', '2'], False),
+    (dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"), False),
+    (dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:59", "%Y-%m-%d %H:%M:%S"), True),
+    (dt.strptime("2018-01-21 02:37:59", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"), False),
 ])
 def test_greater_satisfied(val, against, result):
     c = Greater(val)
@@ -137,6 +169,12 @@ def test_greater_satisfied(val, against, result):
     (['1', '2'], ['2', '1'], False),
     (['1', '2'], ['1', '3'], False),
     (['2', '1'], ['1', '2'], True),
+    (dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"), False),
+    (dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:59", "%Y-%m-%d %H:%M:%S"), False),
+    (dt.strptime("2018-01-21 02:37:59", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"), True),
 ])
 def test_less_satisfied(val, against, result):
     c = Less(val)
@@ -176,6 +214,12 @@ def test_less_satisfied(val, against, result):
     (['1', '2'], ['2', '1'], True),
     (['1', '2'], ['1', '3'], True),
     (['2', '1'], ['1', '2'], False),
+    (dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"), True),
+    (dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:59", "%Y-%m-%d %H:%M:%S"), True),
+    (dt.strptime("2018-01-21 02:37:59", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"), False),
 ])
 def test_greater_or_equal_satisfied(val, against, result):
     c = GreaterOrEqual(val)
@@ -215,6 +259,12 @@ def test_greater_or_equal_satisfied(val, against, result):
     (['1', '2'], ['2', '1'], False),
     (['1', '2'], ['1', '3'], False),
     (['2', '1'], ['1', '2'], True),
+    (dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"), True),
+    (dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:59", "%Y-%m-%d %H:%M:%S"), False),
+    (dt.strptime("2018-01-21 02:37:59", "%Y-%m-%d %H:%M:%S"),
+     dt.strptime("2018-01-21 02:37:00", "%Y-%m-%d %H:%M:%S"), True),
 ])
 def test_less_or_equal_satisfied(val, against, result):
     c = LessOrEqual(val)

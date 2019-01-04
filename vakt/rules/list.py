@@ -13,6 +13,7 @@ Various search options are available:
 - are all the items in the list?
 - are all the items not in the list?
 - is at least one of the provided items in the list?
+- is at least one of the provided items not in the list?
 """
 
 import logging
