@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 - [Rules] String-based `Rule` EqualInsensitive.
 - [Rules] Logic-related `Rules`:
 (Eq, NotEq, Greater, Less, GreaterOrEqual, LessOrEqual, IsTrue, IsFalse, Not, And, Or) in `vakt.rules.logic`.
+- [Policy] Policy now checks field type on it's creation or setting.
+- [Checker] New Checker based on definition of attributes via dictionaries w/ various Rules.
 
 ### Changed
 - [Logging] Rename logging message "Conflicting ID" -> "Conflicting UID".

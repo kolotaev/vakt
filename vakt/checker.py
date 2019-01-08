@@ -90,9 +90,29 @@ class StringFuzzyChecker(StringChecker):
         return needle in haystack
 
 
-class AttributesChecker:
+class RulesChecker:
     """
-    Checker that uses Policy and Inquiry attributes to determine match.
+    Checker that uses Rules defined inside dictionaries to determine match.
     """
     def fits(self, policy, field, what):
-        pass
+        """Does Policy fit the given 'what' value by its 'field' property"""
+        where = getattr(policy, field, [])
+        for i in where:
+            item_result = False
+            if not isinstance(i, dict):
+                continue  # if not dict, skip it - we are not meant to handle it
+            for key, rule in i.items():
+                try:
+                    what_value = what[key]
+                except KeyError:  # at least one missing key in inquiry's data means no match for this item
+                    log.debug('Error matching Policy, because data has no key "%s" required by Policy' % key)
+                    item_result = False
+                    break
+                try:
+                    item_result = rule.satisfied(what_value)
+                except Exception as e:  # Broad exception for possible custom exceptions
+                    log.exception('Error matching Policy, because of raised exception', e)
+                    item_result = False
+            if item_result:  # if at least one item fits -> policy fits for this field
+                return True
+        return False
