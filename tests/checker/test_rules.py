@@ -126,6 +126,18 @@ from vakt.rules.logic import *
         {'name': 'Max'},
         True
     ),
+    (
+        Policy(9, subjects=('baz', {'name': Eq('Max')}, '<bar.*>')),
+        'subjects',
+        'baz',
+        False
+    ),
+    (
+        Policy(9.1, subjects=('baz', {'name': Eq('Max')}, '<bar.*>')),
+        'subjects',
+        'foo',
+        False
+    ),
 ])
 def test_fits(policy, field, what, result):
     c = RulesChecker()

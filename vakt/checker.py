@@ -104,7 +104,8 @@ class RulesChecker:
             for key, rule in i.items():
                 try:
                     what_value = what[key]
-                except KeyError:  # at least one missing key in inquiry's data means no match for this item
+                # at least one missing key in inquiry's data means no match for this item
+                except (KeyError, TypeError):
                     log.debug('Error matching Policy, because data has no key "%s" required by Policy' % key)
                     item_result = False
                     break
