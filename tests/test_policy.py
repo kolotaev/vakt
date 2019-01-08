@@ -167,15 +167,17 @@ def test_pretty_print():
     (Policy(1, actions=['<foo.bar>'], resources=['asdf']), TYPE_STRING_BASED),
     (Policy(1, actions=['<foo.bar>'], resources=['asdf'], subjects=['<qwerty>']), TYPE_STRING_BASED),
     (Policy(1, actions=['<foo.bar>'], resources=['asdf'], subjects=['<qwerty>'], context={}), TYPE_STRING_BASED),
-    (Policy(1, actions=[CIDR('127.0.0.1')]), TYPE_RULE_BASED),
-    (Policy(1, actions=[CIDR('127.0.0.1'), '<.*>']), TYPE_RULE_BASED),
-    (Policy(1, resources=[CIDR('127.0.0.1'), '<.*>']), TYPE_RULE_BASED),
-    (Policy(1, subjects=[CIDR('127.0.0.1'), '<.*>']), TYPE_RULE_BASED),
-    (Policy(1, actions=[CIDR('127.0.0.1'), CIDR('10.12.35.88')]), TYPE_RULE_BASED),
-    (Policy(1, actions=[CIDR('127.0.0.1')], resources=['asdf']), TYPE_RULE_BASED),
-    (Policy(1, actions=[CIDR('127.0.0.1')], resources=[CIDR('127.0.0.1')]), TYPE_RULE_BASED),
-    (Policy(1, actions=[CIDR('127.0.0.1')], resources=[CIDR('127.0.0.1')], subjects=['<qwerty>']), TYPE_RULE_BASED),
-    (Policy(1, actions=[CIDR('127.0.0.1')], resources=[CIDR('127.0.0.1')], subjects=[CIDR('0.0.0.0')]), TYPE_RULE_BASED)
+    (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}]), TYPE_RULE_BASED),
+    (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}, '<.*>']), TYPE_RULE_BASED),
+    (Policy(1, resources=[{'ip': CIDR('127.0.0.1')}, '<.*>']), TYPE_RULE_BASED),
+    (Policy(1, subjects=[{'ip': CIDR('127.0.0.1')}, '<.*>']), TYPE_RULE_BASED),
+    (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}, {'ip': CIDR('10.12.35.88')}]), TYPE_RULE_BASED),
+    (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}], resources=['asdf']), TYPE_RULE_BASED),
+    (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}], resources=[{'ip': CIDR('127.0.0.1')}]), TYPE_RULE_BASED),
+    (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}],
+            resources=[{'ip': CIDR('127.0.0.1')}], subjects=['<qwerty>']), TYPE_RULE_BASED),
+    (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}],
+            resources=[{'ip': CIDR('127.0.0.1')}], subjects=[{'ip': CIDR('0.0.0.0')}]), TYPE_RULE_BASED)
 ])
 def test_policy_type_on_creation(policy, policy_type):
     assert policy_type == policy.type
@@ -186,9 +188,9 @@ def test_policy_type_on_attribute_change():
     assert TYPE_STRING_BASED == p.type
     p.effect = ALLOW_ACCESS
     assert TYPE_STRING_BASED == p.type
-    p.actions = [CIDR('0.0.0.0')]
+    p.actions = [{'ip': CIDR('0.0.0.0')}]
     assert TYPE_RULE_BASED == p.type
-    p.subjects = [CIDR('0.0.0.0')]
+    p.subjects = [{'ip': CIDR('0.0.0.0')}]
     assert TYPE_RULE_BASED == p.type
     p.actions = ['<.*>']
     assert TYPE_RULE_BASED == p.type
@@ -196,3 +198,20 @@ def test_policy_type_on_attribute_change():
     assert TYPE_STRING_BASED == p.type
     p.type = TYPE_RULE_BASED  # explicit assign doesn't help
     assert TYPE_STRING_BASED == p.type
+
+
+@pytest.mark.parametrize('args, msg', [
+    ({'actions': (1, 2)}, 'Field "actions" element must be of `str` or `dict` type.'),
+    ({'actions': (1, 'abc')}, 'Field "actions" element must be of `str` or `dict` type.'),
+    ({'actions': ('2', 1)}, 'Field "actions" element must be of `str` or `dict` type.'),
+    ({'actions': ([3])}, 'Field "actions" element must be of `str` or `dict` type.'),
+    ({'actions': ([], [])}, 'Field "actions" element must be of `str` or `dict` type.'),
+    ({'subjects': (1, {})}, 'Field "subjects" element must be of `str` or `dict` type'),
+    ({'context': ()}, 'Error creating Policy. Context must be a dictionary'),
+    ({'context': 5}, 'Error creating Policy. Context must be a dictionary'),
+    ({'context': 'data'}, 'Error creating Policy. Context must be a dictionary'),
+])
+def test_policy_field_type_check(args, msg):
+    with pytest.raises(PolicyCreationError) as excinfo:
+        Policy(1, **args)
+    assert msg in str(excinfo.value)
