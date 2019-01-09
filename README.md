@@ -46,6 +46,8 @@ implementation.
 
 See [concepts](#concepts) section for more details.
 
+**[Back to top](#documentation)**
+
 
 ### Concepts
 
@@ -59,6 +61,8 @@ answering the following questions:
 1. *What is resulting effect of the answer on the above questions?*
 
 For example of usage see [examples folder](examples).
+
+**[Back to top](#documentation)**
 
 
 ### Install
@@ -75,6 +79,9 @@ For MongoDB storage:
 ```bash
 pip install vakt[mongo]
 ```
+
+**[Back to top](#documentation)**
+
 
 ### Usage
 
@@ -119,6 +126,9 @@ Beware that currently MongoStorage supports indexed `find_for_inquiry()` only fo
 Regex checker simply returns all the Policies from the database.
 See [this issue](https://jira.mongodb.org/browse/SERVER-11947).
 
+**[Back to top](#documentation)**
+
+
 #### Migration
 
 Migration is a component that is useful from the perspective of the [Storage](#storage). It allows you to manage migrations.
@@ -146,6 +156,8 @@ migrations = (Migration0To1x0x3(storage), Migration1x0x3To2(storage))
 for m in sorted(migrations, key=lambda x: x.order):
   m.up()
 ```
+
+**[Back to top](#documentation)**
 
 
 #### Policy
@@ -187,6 +199,9 @@ for p in policies:
     st.add(p)
 ```
 
+**[Back to top](#documentation)**
+
+
 #### Inquiry
 Inquiry is an object that serves as a mediator between Vakt and outer world request for resource access. All you need
 to do is take any kind of incoming request (REST request, SOAP, etc.) and build an `Inquiry` out of it in order to
@@ -216,6 +231,8 @@ Inquiry has several constructor arguments:
 
 If you were observant enough you might have noticed that Inquiry resembles Policy, where Policy describes multiple
 variants of resource access from the owner side and Inquiry describes an concrete access scenario from consumer side.
+
+**[Back to top](#documentation)**
 
 
 #### Rule
@@ -274,6 +291,8 @@ Policy(
 ),
 ```
 
+**[Back to top](#documentation)**
+
 
 #### Checker
 Checker allows you to check whether Policy matches Inquiry by concrete field (`subject`, `action`, etc.). It's used
@@ -321,6 +340,8 @@ decide on the type of actions based on the checker class passed to [Guard](#guar
 Regardless of the results returned by a Storage the Checker is always the last row of control
 before Vakt makes a decision.
 
+**[Back to top](#documentation)**
+
 
 #### Guard
 Guard component is a main entry point for Vakt to make a decision. It has one method `is_allowed` that passed an
@@ -341,6 +362,9 @@ if guard.is_allowed(inquiry):
 else:
     return "Go away, you violator!", 401
 ```
+
+**[Back to top](#documentation)**
+
 
 ### JSON
 
@@ -373,6 +397,9 @@ class CustomInquiry(JsonSerializer):
     pass
 ```
 
+**[Back to top](#documentation)**
+
+
 ### Logging
 
 Vakt follows a common logging pattern for libraries:
@@ -396,12 +423,16 @@ Vakt logs can be considered in 2 basic levels:
 1. *Error/Exception* - informs about exceptions and errors during Vakt work.
 2. *Info* - informs about incoming inquires and their resolution.
 
+**[Back to top](#documentation)**
+
 
 ### Acknowledgements
 
 Code ideas of Vakt are based on
 [Amazon IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md) and
 [Ladon](https://github.com/ory/ladon) Policies SDK as its reference implementation.
+
+**[Back to top](#documentation)**
 
 
 ### Benchmark
@@ -436,6 +467,8 @@ Script arguments:
 3. Int - Number of Policies with the same regexp pattern (Default: 0)
 3. Int - Cache size for RegexChecker (Default: 1024)
 
+**[Back to top](#documentation)**
+
 
 ### Development
 
@@ -456,6 +489,11 @@ $ docker run --rm -d -p 27017:27017 mongo
 $ pytest -m integration
 ```
 
+**[Back to top](#documentation)**
+
+
 ### License
 
 The source code is licensed under Apache License Version 2.0
+
+**[Back to top](#documentation)**
