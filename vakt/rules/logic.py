@@ -1,10 +1,5 @@
 """
-All Rules that are related to logic:
-Simple operator comparisons:
-==, !=, <, >, <=, >=
-They behave the same as you might expect from Python comparison operators.
-
-Also composition and logic related:
+All Rules that are related to logic and composition:
 and, or, not, is-true, is-false.
 """
 
@@ -17,61 +12,9 @@ from ..rules.base import Rule
 log = logging.getLogger(__name__)
 
 
-class OperatorRule(Rule, metaclass=ABCMeta):
-    """
-    Base class for all Logic Operator Rules
-    """
-    def __init__(self, val):
-        self.val = val
-
-
-class Eq(OperatorRule):
-    """Rule that is satisfied when two values are equal '=='"""
-    def satisfied(self, what, inquiry=None):
-        if isinstance(self.val, tuple):
-            val = list(self.val)
-        else:
-            val = self.val
-        return val == what
-
-
-class NotEq(OperatorRule):
-    """Rule that is satisfied when two values are not equal '!='"""
-    def satisfied(self, what, inquiry=None):
-        if isinstance(self.val, tuple):
-            val = list(self.val)
-        else:
-            val = self.val
-        return val != what
-
-
-class Greater(OperatorRule):
-    """Rule that is satisfied when 'what' is greater '>' than initial value"""
-    def satisfied(self, what, inquiry=None):
-        return what > self.val
-
-
-class Less(OperatorRule):
-    """Rule that is satisfied when 'what' is less '<' than initial value"""
-    def satisfied(self, what, inquiry=None):
-        return what < self.val
-
-
-class GreaterOrEqual(OperatorRule):
-    """Rule that is satisfied when 'what' is greater or equal '>=' than initial value"""
-    def satisfied(self, what, inquiry=None):
-        return what >= self.val
-
-
-class LessOrEqual(OperatorRule):
-    """Rule that is satisfied when 'what' is less or equal '<=' than initial value"""
-    def satisfied(self, what, inquiry=None):
-        return what <= self.val
-
-
 class BooleanRule(Rule, metaclass=ABCMeta):
     """
-    Abstract Rule that is satisfied when 'what' is evaluated to a boolean 'true'/'false'.
+    Boolean Rule that is satisfied when 'what' is evaluated to a boolean 'true'/'false'.
     Its `satisfied` accepts:
      - a callable without arguments
      - non-callable
@@ -101,7 +44,7 @@ class IsFalse(BooleanRule):
         return False
 
 
-class LogicCompositionRule(Rule, metaclass=ABCMeta):
+class CompositionRule(Rule, metaclass=ABCMeta):
     """
     Abstract Rule that encompasses other Rules.
     """
@@ -113,7 +56,7 @@ class LogicCompositionRule(Rule, metaclass=ABCMeta):
         self.rules = rules
 
 
-class And(LogicCompositionRule):
+class And(CompositionRule):
     """
     Rule that is satisfied when all the rules it's composed of are satisfied.
     """
@@ -122,7 +65,7 @@ class And(LogicCompositionRule):
         return len(answers) > 0 and all(answers)
 
 
-class Or(LogicCompositionRule):
+class Or(CompositionRule):
     """
     Rule that is satisfied when at least one of the rules it's composed of is satisfied.
     Uses short-circuit evaluation.

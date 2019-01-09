@@ -2,7 +2,7 @@ from datetime import datetime as dt
 
 import pytest
 
-from vakt.rules.logic import *
+from vakt.rules.operator import *
 
 
 class A:

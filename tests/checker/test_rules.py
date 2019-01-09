@@ -2,7 +2,7 @@ import pytest
 
 from vakt.checker import RulesChecker
 from vakt.policy import Policy
-from vakt.rules.logic import *
+from vakt.rules.operator import *
 
 
 @pytest.mark.parametrize('policy, field, what, result', [

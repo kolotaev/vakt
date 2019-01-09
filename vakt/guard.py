@@ -29,8 +29,10 @@ class Inquiry(JsonSerializer, PrettyPrint):
 
 
 class Guard:
-    """Executor of policy checks.
-       Given a storage and a checker it can decide via `is_allowed` method if a given inquiry allowed or not."""
+    """
+    Executor of policy checks.
+    Given a storage and a checker it can decide via `is_allowed` method if a given inquiry allowed or not.
+    """
 
     def __init__(self, storage, checker):
         self.storage = storage

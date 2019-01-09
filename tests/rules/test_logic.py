@@ -1,6 +1,7 @@
 import pytest
 
 from vakt.rules.logic import *
+from vakt.rules.operator import Greater, Less, Eq
 from vakt.rules.inquiry import ActionEqual
 from vakt.rules.list import InList
 from vakt.guard import Inquiry

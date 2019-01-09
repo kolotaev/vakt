@@ -4,7 +4,7 @@ from vakt.checker import RegexChecker, RulesChecker
 from vakt.storage.memory import MemoryStorage
 from vakt.rules.net import CIDR
 from vakt.rules.inquiry import SubjectEqual
-from vakt.rules.logic import Eq, NotEq
+from vakt.rules.operator import Eq, NotEq
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import Policy
 from vakt.guard import Guard, Inquiry
