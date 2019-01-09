@@ -16,31 +16,22 @@ log = logging.getLogger(__name__)
 class Equal(Rule):
     """
     Rule that is satisfied if the string value equals the specified property of this rule.
-    Performs case-sensitive comparison.
+    Performs case-sensitive and case-sensitive comparisons (based on `case_insensitive` flag).
     """
-    def __init__(self, val):
+    def __init__(self, val, case_insensitive=False):
         if not isinstance(val, str):
             log.error('%s creation. Initial property should be a string', type(self).__name__)
             raise TypeError('Initial property should be a string')
         self.val = val
+        self.ci = case_insensitive
 
     def satisfied(self, what, inquiry=None):
-        return isinstance(what, str) and what == self.val
-
-
-class EqualInsensitive(Rule):
-    """
-    Rule that is satisfied if the string value equals the specified property of this rule.
-    Performs case-insensitive comparison.
-    """
-    def __init__(self, val):
-        if not isinstance(val, str):
-            log.error('%s creation. Initial property should be a string', type(self).__name__)
-            raise TypeError('Initial property should be a string')
-        self.val = val
-
-    def satisfied(self, what, inquiry=None):
-        return isinstance(what, str) and what.lower() == self.val.lower()
+        if isinstance(what, str):
+            if self.ci:
+                return what.lower() == self.val.lower()
+            else:
+                return what == self.val
+        return False
 
 
 class PairsEqual(Rule):

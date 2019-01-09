@@ -5,7 +5,6 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 ### Added
 - [Rules] List-based `Rules`: (InList, NotInList, AllInList, AllNotInList, AnyInList, AnyNotInList) in `vakt.rules.list`.
-- [Rules] String-based `Rule` EqualInsensitive.
 - [Rules] Comparison operator `Rules`:(Eq, NotEq, Greater, Less, GreaterOrEqual, LessOrEqual) in `vakt.rules.operator`.
 - [Rules] Logic-related operator `Rules`:(IsTrue, IsFalse, Not, And, Or) in `vakt.rules.logic`.
 - [Policy] Policy now checks field type on it's creation or setting.
@@ -13,6 +12,8 @@ All notable changes to this project will be documented in this file.
 - [Checker] New `MixedChecker` that performs checks based on its comprising Checkers.
 
 ### Changed
+- [Rules] String-based `Rule` Equal now has flag `case_insensitive`.
+If set to `True`, string case-insensitive comparison is performed.
 - [Logging] Rename logging message "Conflicting ID" -> "Conflicting UID".
 - [Logging] Changed several exception logs to error level.
 - [Guard] Guard's method `are_rules_satisfied` is now `check_context_restriction`.

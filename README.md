@@ -257,7 +257,6 @@ There are a number of different Rule types:
   * Or
 2. String-related
   * Equal
-  * EqualInsensitive
   * PairsEqual
   * RegexMatch
 3. Inquiry-related

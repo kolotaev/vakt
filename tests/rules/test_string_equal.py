@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.rules.string import Equal, StringEqualRule, EqualInsensitive
+from vakt.rules.string import Equal, StringEqualRule
 
 
 def test_string_equal_construct_fails():
@@ -29,12 +29,6 @@ def test_string_equal_satisfied(arg, against, result):
     assert result == c.satisfied(against)
 
 
-def test_string_equal_insensitive_construct_fails():
-    with pytest.raises(TypeError) as excinfo:
-        EqualInsensitive(123456)
-    assert 'Initial property should be a string' in str(excinfo.value)
-
-
 @pytest.mark.parametrize('arg, against, result', [
     ('foo', 'foo', True),
     ('foo', 'Foo', True),
@@ -47,7 +41,7 @@ def test_string_equal_insensitive_construct_fails():
     ('', '', True),
 ])
 def test_string_equal_insensitive_satisfied(arg, against, result):
-    c = EqualInsensitive(arg)
+    c = Equal(arg, case_insensitive=True)
     assert result == c.satisfied(against)
     # test after (de)serialization
-    assert result == EqualInsensitive.from_json(EqualInsensitive(arg).to_json()).satisfied(against)
+    assert result == Equal.from_json(c.to_json()).satisfied(against)
