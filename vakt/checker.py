@@ -117,3 +117,24 @@ class RulesChecker:
             if item_result:  # if at least one item fits -> policy fits for this field
                 return True
         return False
+
+
+class MixedChecker:
+    """
+    Checker that uses other Checkers that it's comprised of.
+    Checks are performed in the order in which the Checkers were added to MixedChecker
+    """
+
+    def __init__(self, *checkers):
+        self.checkers = checkers
+
+    def fits(self, policy, field, what):
+        for checker in self.checkers:
+            try:
+                result = checker.fits(policy, field, what)
+            # Use broad exception to prevent unknown exceptions in custom checkers
+            except Exception:
+                result = False
+            if result:
+                return True
+        return False
