@@ -77,13 +77,13 @@ class RegexMatch(Rule):
 
 # Classes marked for removal in next releases
 class StringEqualRule(Equal):
-    warnings.warn('StringEqualRule will be removed in next version. Use Equal', DeprecationWarning, stacklevel=2)
+    warnings.warn('StringEqualRule will be removed in version 2.0. Use Equal', DeprecationWarning, stacklevel=2)
 
 
 class RegexMatchRule(RegexMatch):
-    warnings.warn('RegexMatchRule will be removed in next version. Use RegexMatch', DeprecationWarning, stacklevel=2)
+    warnings.warn('RegexMatchRule will be removed in version 2.0. Use RegexMatch', DeprecationWarning, stacklevel=2)
 
 
 class StringPairsEqualRule(PairsEqual):
-    warnings.warn('StringPairsEqualRule will be removed in next version. Use PairsEqual',
+    warnings.warn('StringPairsEqualRule will be removed in version 2.0. Use PairsEqual',
                   DeprecationWarning, stacklevel=2)

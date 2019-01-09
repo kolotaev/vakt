@@ -26,13 +26,12 @@ class ResourceIn(Rule):
 
 # Classes marked for removal in next releases
 class SubjectEqualRule(SubjectEqual):
-    warnings.warn('SubjectEqualRule will be removed in next version. Use SubjectEqual',
-                  DeprecationWarning, stacklevel=2)
+    warnings.warn('SubjectEqualRule will be removed in version 2.0. Use SubjectEqual', DeprecationWarning, stacklevel=2)
 
 
 class ActionEqualRule(ActionEqual):
-    warnings.warn('ActionEqualRule will be removed in next version. Use ActionEqual', DeprecationWarning, stacklevel=2)
+    warnings.warn('ActionEqualRule will be removed in version 2.0. Use ActionEqual', DeprecationWarning, stacklevel=2)
 
 
 class ResourceInRule(ResourceIn):
-    warnings.warn('ResourceInRule will be removed in next version. Use ResourceIn', DeprecationWarning, stacklevel=2)
+    warnings.warn('ResourceInRule will be removed in version 2.0. Use ResourceIn', DeprecationWarning, stacklevel=2)

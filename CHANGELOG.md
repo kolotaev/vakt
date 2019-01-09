@@ -23,7 +23,7 @@ of its attributes (string, dict, etc.). Those policies are subtypes of an abstra
 
 ### Deprecated
 - [Rules] `Rules` from `string`, `net`, `inquiry` were renamed to their shorter equivalents.
-Old-named Rules are now deprecated for usage and will be removed  in later versions.
+Old-named Rules are now deprecated for usage and will be removed in the next major version.
 Deprecated rules are: SubjectEqualRule, ActionEqualRule, ResourceInRule, CIDRRule, StringEqualRule, RegexMatchRule,
 StringPairsEqualRule.
 - [Policy] `rules` argument is now deprecated. Use 'context' argument for the same purpose.

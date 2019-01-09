@@ -34,7 +34,7 @@ class Policy(JsonSerializer, PrettyPrint):
         if context is not None:
             pass
         elif rules:
-            warnings.warn("'rules' argument will be removed in next version. Use 'context' argument",
+            warnings.warn("'rules' argument will be removed in version 2.0. Use 'context' argument",
                           DeprecationWarning, stacklevel=2)
             context = rules
         else:

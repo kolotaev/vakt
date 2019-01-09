@@ -32,4 +32,4 @@ class CIDR(Rule):
 
 # Classes marked for removal in next releases
 class CIDRRule(CIDR):
-    warnings.warn('CIDRRule will be removed in next version. Use CIDR', DeprecationWarning, stacklevel=2)
+    warnings.warn('CIDRRule will be removed in version 2.0. Use CIDR', DeprecationWarning, stacklevel=2)
