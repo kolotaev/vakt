@@ -56,7 +56,7 @@ def test_json_roundtrip(rule, satisfied):
 
 
 @pytest.mark.parametrize('data, msg', [
-    ('{crap}', 'Expecting property name enclosed in double quotes'),
+    ('{crap}', "Unexpected 'c'"),
     ("{\"}", "Unterminated string starting"),
 ])
 def test_from_json_fails(data, msg):
