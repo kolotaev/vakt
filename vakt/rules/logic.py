@@ -89,3 +89,23 @@ class Not(Rule):
 
     def satisfied(self, what, inquiry):
         return not self.rule.satisfied(what, inquiry)
+
+
+class Any(Rule):
+    """
+    Rule that is always satisfied.
+    For example: resource={'endpoint': Any(), 'method': 'POST'}
+    """
+
+    def satisfied(self, what=None, inquiry=None):
+        return True
+
+
+class Neither(Rule):
+    """
+    Rule that always isn't satisfied.
+    For example: resource={'endpoint': Neither(), 'method': 'GET'}
+    """
+
+    def satisfied(self, what=None, inquiry=None):
+        return False

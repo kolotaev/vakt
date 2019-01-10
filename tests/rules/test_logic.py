@@ -139,3 +139,18 @@ def test_not_rule(rule, what, inquiry, result):
     assert result == r.satisfied(what, inquiry)
     # test after (de)serialization
     assert result == Rule.from_json(Not(rule).to_json()).satisfied(what, inquiry)
+
+
+@pytest.mark.parametrize('what', [
+    1,
+    'str',
+    9.0,
+    False,
+    True,
+])
+def test_any_and_neither_rules(what):
+    assert Any().satisfied(what)
+    assert not Neither().satisfied(what)
+    # test after (de)serialization
+    assert Rule.from_json(Any().to_json()).satisfied(what)
+    assert not Rule.from_json(Neither().to_json()).satisfied(what)
