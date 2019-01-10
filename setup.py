@@ -30,8 +30,8 @@ if __name__ == "__main__":
         ],
         extras_require={
             'dev': [
-                'pytest>=3.0.0',
-                'pytest-cov',
+                'pytest~=3.0',
+                'pytest-cov~=2.9',
                 'pylint',
             ],
             'mongo': [
