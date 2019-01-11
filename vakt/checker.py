@@ -104,17 +104,20 @@ class RulesChecker:
             for key, rule in i.items():
                 try:
                     what_value = what[key]
+                    item_result = rule.satisfied(what_value)
                 # at least one missing key in inquiry's data means no match for this item
                 except (KeyError, TypeError):
                     log.debug('Error matching Policy, because data has no key "%s" required by Policy' % key)
                     item_result = False
-                    break
-                try:
-                    item_result = rule.satisfied(what_value)
-                except Exception as e:  # Broad exception for possible custom exceptions
+                # broad exception for possible custom exceptions. Any exception -> no match
+                except Exception as e:
                     log.exception('Error matching Policy, because of raised exception', e)
                     item_result = False
-            if item_result:  # if at least one item fits -> policy fits for this field
+                # at least one item's key didn't satisfy -> fail fast: policy doesn't fit anyway
+                if not item_result:
+                    break
+            # If at least one item fits -> policy fits for this field
+            if item_result:
                 return True
         return False
 
