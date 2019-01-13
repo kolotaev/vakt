@@ -19,3 +19,4 @@ def test_string_equal_construct_fails():
 def test_string_equal_satisfied(arg, against, result):
     c = StringEqualRule(arg)
     assert result == c.satisfied(against)
+    assert result == StringEqualRule.from_json(c.to_json()).satisfied(against)

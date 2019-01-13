@@ -17,3 +17,4 @@ def test_resource_in_satisfied(what, resource, result):
     i = Inquiry(action='get', resource=resource, subject='Max')
     c = ResourceInRule()
     assert result == c.satisfied(what, i)
+    assert result == ResourceInRule.from_json(c.to_json()).satisfied(what, i)

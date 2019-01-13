@@ -5,6 +5,7 @@ from vakt.effects import ALLOW_ACCESS, DENY_ACCESS
 from vakt.exceptions import PolicyCreationError
 from vakt.rules.net import CIDRRule
 from vakt.rules.string import StringEqualRule
+import vakt.rules.string
 
 
 def test_properties():
@@ -51,16 +52,24 @@ def test_json_default_effect_is_set_correctly_when_from_json(data, effect):
 
 
 def test_json_roundtrip_of_a_policy_with_rules():
-    p = Policy('123', rules={'ip': CIDRRule('192.168.1.0/24'), 'sub': StringEqualRule('test-me')})
+    p = Policy('123', rules={
+        'ip': CIDRRule('192.168.1.0/24'),
+        'sub': StringEqualRule('test-me'),
+        'name': vakt.rules.string.RegexMatchRule('[jJ]ohn'),
+    })
     s = p.to_json()
     p1 = Policy.from_json(s)
     assert '123' == p1.uid
-    assert 2 == len(p1.rules)
+    assert 3 == len(p1.rules)
     assert 'ip' in p1.rules
     assert 'sub' in p1.rules
+    assert 'name' in p1.rules
     assert isinstance(p1.rules['ip'], CIDRRule)
     assert isinstance(p1.rules['sub'], StringEqualRule)
     assert p1.rules['sub'].satisfied('test-me')
+    assert p1.rules['ip'].satisfied('192.168.1.0')
+    assert p1.rules['name'].satisfied('John')
+    assert not p1.rules['name'].satisfied('Kohn')
 
 
 @pytest.mark.parametrize('data, exception, msg', [

@@ -23,3 +23,4 @@ def test_regex_match_construct_fails():
 def test_regex_match_rule_satisfied(arg, against, result):
     c = RegexMatchRule(arg)
     assert result == c.satisfied(against)
+    assert result == RegexMatchRule.from_json(c.to_json()).satisfied(against)
