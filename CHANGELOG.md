@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.1.1] - 2019-01-14
+### Fixed
+- Failing JSON deserialization of some Rules.
+- Migration Migration0To1x0x3 was properly renamed to Migration0To1x1x0
+
+### Changed
+- Objects are now serialized via jsonpickle library. This affects Rule JSON representation as JSON string
+
+
 ## [1.1.0] - 2018-09-03
 ### Added
 - MongoDB storage implementation.
