@@ -5,7 +5,7 @@ import uuid
 import vakt.rules.net
 import vakt.rules.string
 import vakt.checker
-from vakt.storage.mongo import MongoStorage, Migration0To1x0x3
+from vakt.storage.mongo import MongoStorage, Migration0To1x1x0, Migration1x1x0To1x1x1
 from vakt.storage.memory import MemoryStorage
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import Policy
@@ -79,7 +79,7 @@ def init():
         uri = 'mongodb://%s:%s@%s' % (user, password, host)
         st = MongoStorage(MongoClient(uri), 'vakt_db', collection='vakt_policies')
         # We run migrations.
-        migrations = (Migration0To1x0x3(st),)
+        migrations = (Migration0To1x1x0(st), Migration1x1x0To1x1x1(st))
         for m in sorted(migrations, key=lambda x: x.order):
             m.up()
     else:
