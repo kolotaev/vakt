@@ -235,11 +235,9 @@ class Migration1x1x0To1x1x1(Migration):
                 failed_policies.append(doc)
         if failed_policies:
             msg = "\n".join([
-                'Migration was unable to convert some Policies.',
-                'But they were left in the database as-is.',
+                'Migration was unable to convert some Policies, but they were left in the database as-is. ' +
                 'Some of them are custom ones, some are just malformed JSON docs.',
-                'You must convert them manually or delete them. See above log output for details of migration',
-                'Policies Mongo IDs are:',
-                str([p['_id'] for p in failed_policies])
+                'You must convert them manually or delete entirely. See above log output for details of migration.',
+                'Mongo IDs of failed Policies are: %s' % [p['_id'] for p in failed_policies]
             ])
             log.error(msg)

@@ -506,6 +506,6 @@ class TestMigration1x1x0To1x1x1:
         assert 2 == len(log_handler.messages['warning'])
         assert "Unexpected exception occurred while migrating Policy: {'_id': '6', 'uid': '6'}" in \
             log_handler.messages['error'][0]
-        assert 'Migration was unable to convert some Policies.' in log_handler.messages['error'][1]
-        assert 'Policies Mongo IDs are:' in log_handler.messages['error'][1]
+        assert 'Migration was unable to convert some Policies, but' in log_handler.messages['error'][1]
+        assert 'Mongo IDs of failed Policies are:' in log_handler.messages['error'][1]
         assert "[1, 4, '6']" in log_handler.messages['error'][1]
