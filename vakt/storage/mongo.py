@@ -212,7 +212,7 @@ class Migration1x1x0To1x1x1(Migration):
                 elif rule_type == 'vakt.rules.string.RegexMatchRule':
                     raise self.Irreversible
                 rule_to_save['contents'].update(rule_contents)
-                rules_to_save[name] = b_json.dumps(rule_to_save)
+                rules_to_save[name] = b_json.dumps(rule_to_save, sort_keys=True)
             # report or save document
             doc_to_save['rules'] = rules_to_save
             return doc_to_save

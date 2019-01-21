@@ -3,6 +3,7 @@ import random
 import types
 import json
 import re
+import unittest
 
 import pytest
 from pymongo import MongoClient
@@ -406,66 +407,66 @@ class TestMigration1x1x0To1x1x1:
             assert g.is_allowed(inq)
 
     def test_down(self, storage):
+        assertions = unittest.TestCase('__init__')
         migration = Migration1x1x0To1x1x1(storage)
         # prepare docs that might have been saved by users in v 1.1.1
         docs = [
             (
                 """
-                { "_id" : 1, "actions" : [ ], "description" : null, "effect" : "deny", "resources" : [ ], "rules" :
-                { "name" : { "py/object" : "vakt.rules.string.RegexMatchRule",
-                "regex" : { "pattern" : "[Mm]ax", "py/object" : "_sre.SRE_Pattern" } },
-                "secret" : { "py/object" : "vakt.rules.string.StringEqualRule", "val" : "i-am-a-foo" } },
-                "subjects" : [ ], "uid" : 1 }
+                {"_id":1,"actions":[],"description":null,"effect":"deny","resources":[],"rules":
+                {"name":{"py/object":"vakt.rules.string.RegexMatchRule",
+                "regex":{"pattern":"[Mm]ax","py/object":"_sre.SRE_Pattern"}},
+                "secret":{"py/object":"vakt.rules.string.StringEqualRule","val":"i-am-a-foo"}},
+                "subjects":[],"uid":1}
                 """,
                 None
             ),
             (
                 """
-                { "_id" : 2, "actions" : [ "<.*>" ], "description" : "foo bar", "effect" : "deny",
-                "resources" : [ "<.*>" ], "rules" : { "secret" :
-                { "py/object" : "vakt.rules.string.StringEqualRule", "val" : "John" } },
-                "subjects" : [ "<.*>" ], "uid" : 2 }
+                {"_id":2,"actions":["<.*>"],"description":"foobar","effect":"deny",
+                "resources":["<.*>"],"rules":{"secret":{"py/object":"vakt.rules.string.StringEqualRule","val":"John"}},
+                "subjects":["<.*>"],"uid":2}
                 """,
                 """
-                { "_id" : 2, "actions" : [ "<.*>" ], "description" : "foo bar", "effect" : "deny",
-                "resources" : [ "<.*>" ], "rules" : { "secret" :
-                "{ \\"type\\" : \\"vakt.rules.string.StringEqualRule\\", \\"contents\\": { \\"val\\" : \\"John\\" } }"},
-                "subjects" : [ "<.*>" ], "uid" : 2 }
+                {"_id":2,"actions":["<.*>"],"description":"foobar","effect":"deny",
+                "resources":["<.*>"],"rules":{"secret":
+                "{\\"contents\\": {\\"val\\": \\"John\\"}, \\"type\\": \\"vakt.rules.string.StringEqualRule\\"}"},
+                "subjects":["<.*>"],"uid":2}
                 """
             ),
             (
                 """
-                { "_id" : 3, "actions" : [ "<.*>" ], "description" : "foo bar", "effect" : "deny",
-                "resources" : [ "<.*>" ], "rules" : {  }, "subjects" : [ "<.*>" ], "uid" : 3 }
+                {"_id":3,"actions":["<.*>"],"description":"foobar","effect":"deny",
+                "resources":["<.*>"],"rules":{},"subjects":["<.*>"],"uid":3}
                 """,
                 """
-                { "_id" : 3, "actions" : [ "<.*>" ], "description" : "foo bar", "effect" : "deny",
-                "resources" : [ "<.*>" ], "rules" : {  }, "subjects" : [ "<.*>" ], "uid" : 3 }
+                {"_id":3,"actions":["<.*>"],"description":"foobar","effect":"deny",
+                "resources":["<.*>"],"rules":{},"subjects":["<.*>"],"uid":3}
                 """
             ),
             (
                 """
-                { "_id" : 4, "actions" : [ ], "description" : null, "effect" : "deny", "resources" : [ ],
-                "rules" : { "digit" : { "py/object" : "test_storage_mongo.WithObject",
-                "val" : { "pattern" : "\\\\d+", "py/object" : "_sre.SRE_Pattern" } },
-                "num" : { "py/object" : "test_storage_mongo.Simple", "val" : "123" } }, "subjects" : [ ], "uid" : 4 }
+                {"_id":4,"actions":[],"description":null,"effect":"deny","resources":[],
+                "rules":{"digit":{"py/object":"test_storage_mongo.WithObject",
+                "val":{"pattern":"\\\\d+","py/object":"_sre.SRE_Pattern"}},
+                "num":{"py/object":"test_storage_mongo.Simple","val":"123"}},"subjects":[],"uid":4}
                 """,
                 None
             ),
             (
                 """
-                { "_id" : 5, "actions" : [ ], "description" : null, "effect" : "deny", "resources" : [ ], "rules" : 
-                { "num" : { "py/object" : "test_storage_mongo.Simple", "val" : "46" } }, "subjects" : [ ], "uid" : 5 }
+                {"_id":5,"actions":[],"description":null,"effect":"deny","resources":[],"rules":
+                {"num":{"py/object":"test_storage_mongo.Simple","val":"46"}},"subjects":[],"uid":5}
                 """,
                 """
-                { "_id" : 5, "actions" : [ ], "description" : null, "effect" : "deny", "resources" : [ ], "rules" : 
-                { "num" : "{ \\"type\\" : \\"test_storage_mongo.Simple\\", \\"contents\\": { \\"val\\" : \\"46\\" } }"}, 
-                "subjects" : [ ], "uid" : 5 }
+                {"_id":5,"actions":[],"description":null,"effect":"deny","resources":[],"rules":
+                {"num":"{\\"contents\\": {\\"val\\": \\"46\\"}, \\"type\\": \\"test_storage_mongo.Simple\\"}"},
+                "subjects":[],"uid":5}
                 """
             ),
             (
                 """
-                { "_id" : "6", "uid": "6" }
+                {"_id":"6","uid":"6"}
                 """,
                 None
             ),
@@ -474,6 +475,7 @@ class TestMigration1x1x0To1x1x1:
             d = b_json.loads(doc)
             migration.storage.collection.insert_one(d)
 
+        # set logger for capturing output
         l = logging.getLogger('vakt.storage.mongo')
         log_handler = self.MockLoggingHandler()
         l.setLevel(logging.INFO)
@@ -486,13 +488,11 @@ class TestMigration1x1x0To1x1x1:
         # test Policy.from_json() is called without errors for each doc (implicitly)
         assert len(docs) == len(list(migration.storage.get_all(1000, 0)))
         # test string contents of each doc
-        for (doc, result_doc) in docs:
-            if not result_doc:  # some policies should be left as-is if not converted
-                result_doc = doc
+        for (doc, expected_doc) in docs:
+            if not expected_doc:  # some policies should be left as-is if not converted
+                expected_doc = doc
             new_doc = migration.storage.collection.find_one({'uid': json.loads(doc)['uid']})
-            expected = result_doc.replace("\n", '').replace(' ', '')
-            actual = json.dumps(new_doc, sort_keys=True).replace("\n", '').replace(' ', '')
-            assert expected == actual
+            assertions.assertDictEqual(json.loads(expected_doc), new_doc)
         # test failed policies report
         assert 'info' in log_handler.messages
         assert 9 == len(log_handler.messages['info'])
@@ -500,12 +500,14 @@ class TestMigration1x1x0To1x1x1:
         assert 'Policy with UID was migrated: 5' in log_handler.messages['info']
         assert 'warning' in log_handler.messages
         assert 2 == len(log_handler.messages['warning'])
-        assert "(Probably) custom Policy is irreversible: {'_id': 1, " in log_handler.messages['warning'][0]
-        assert "(Probably) custom Policy is irreversible: {'_id': 4, " in log_handler.messages['warning'][1]
+        assert "(Probably) custom Policy is irreversible:" in log_handler.messages['warning'][0]
+        assert "'_id': 1" in log_handler.messages['warning'][0]
+        assert "(Probably) custom Policy is irreversible:" in log_handler.messages['warning'][1]
+        assert "'_id': 4" in log_handler.messages['warning'][1]
         assert 'error' in log_handler.messages
         assert 2 == len(log_handler.messages['warning'])
-        assert "Unexpected exception occurred while migrating Policy: {'_id': '6', 'uid': '6'}" in \
-            log_handler.messages['error'][0]
+        assert "Unexpected exception occurred while migrating Policy:" in log_handler.messages['error'][0]
+        assert "'uid': '6'" in log_handler.messages['error'][0]
         assert 'Migration was unable to convert some Policies, but' in log_handler.messages['error'][1]
         assert 'Mongo IDs of failed Policies are:' in log_handler.messages['error'][1]
         assert "[1, 4, '6']" in log_handler.messages['error'][1]
