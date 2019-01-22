@@ -22,3 +22,4 @@ from vakt.rules.string import StringPairsEqualRule
 def test_string_pairs_equal_satisfied(against, result):
     c = StringPairsEqualRule()
     assert result == c.satisfied(against)
+    assert result == StringPairsEqualRule.from_json(c.to_json()).satisfied(against)

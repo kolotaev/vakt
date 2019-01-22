@@ -137,12 +137,12 @@ Example usage:
 
 ```python
 from pymongo import MongoClient
-from vakt.storage.mongo import MongoStorage, Migration0To1x0x3, Migration1x0x3To2
+from vakt.storage.mongo import MongoStorage, Migration0To1x1x0, Migration1x0x3To2
 
 client = MongoClient('localhost', 27017)
 storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
 
-migrations = (Migration0To1x0x3(storage), Migration1x0x3To2(storage))
+migrations = (Migration0To1x1x0(storage), Migration1x0x3To2(storage))
 for m in sorted(migrations, key=lambda x: x.order):
   m.up()
 ```

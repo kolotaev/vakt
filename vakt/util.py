@@ -2,9 +2,9 @@
 Utility functions and classes for Vakt.
 """
 
-import json
 import logging
-from abc import abstractmethod
+
+import jsonpickle
 
 
 log = logging.getLogger(__name__)
@@ -16,27 +16,25 @@ class JsonSerializer:
     """
 
     @classmethod
-    @abstractmethod
     def from_json(cls, data):
         """
         Create object from a JSON string
         Returns a new instance of a class
         """
-        pass
+        return cls._parse(data)
 
     def to_json(self, sort=False):
         """
         Get JSON representation of an object
         """
-        return json.dumps(self._data(),
-                          sort_keys=sort,
-                          default=lambda o: o.to_json() if isinstance(o, JsonSerializer) else vars(o))
+        jsonpickle.set_encoder_options('json', sort_keys=sort)
+        return jsonpickle.encode(self._data())
 
     @classmethod
     def _parse(cls, data):
         """Parse JSON string and return data"""
         try:
-            return json.loads(data)
+            return jsonpickle.decode(data)
         except ValueError as err:
             log.exception('Error creating %s from json.', cls.__name__)
             raise err

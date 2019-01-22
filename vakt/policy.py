@@ -36,13 +36,6 @@ class Policy(JsonSerializer, PrettyPrint):
         if 'uid' not in props:
             log.exception("Error creating policy from json. 'uid' attribute is required")
             raise PolicyCreationError("Error creating policy from json. 'uid' attribute is required")
-
-        rules = {}
-        if 'rules' in props:
-            for k, clazz in props['rules'].items():
-                rules[k] = Rule.from_json(clazz)
-        props['rules'] = rules
-
         return cls(**props)
 
     def allow_access(self):
@@ -58,3 +51,11 @@ class Policy(JsonSerializer, PrettyPrint):
     def end_tag(self):
         """Policy expression end tag"""
         return '>'
+
+    def _data(self):
+        data = vars(self)
+        # get rid of "py/tuple" for tuples upon serialization in favor of simple json-array
+        for k, prop in data.items():
+            if isinstance(prop, tuple):
+                data[k] = list(prop)
+        return data

@@ -17,3 +17,4 @@ def test_action_equal_satisfied(what, action, result):
     i = Inquiry(action=action, resource=None, subject=None)
     c = ActionEqualRule()
     assert result == c.satisfied(what, i)
+    assert result == ActionEqualRule.from_json(c.to_json()).satisfied(what, i)
