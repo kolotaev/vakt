@@ -278,7 +278,7 @@ class TestMigration0To1x0x3:
 
 
 # Custom classes for TestMigration1x1x0To1x1x1
-class WithObject(Rule):
+class WithObject(Rule):  # pragma: no cover
     def __init__(self, val):
         self.val = re.compile(val)
 
@@ -286,7 +286,7 @@ class WithObject(Rule):
         return True
 
 
-class Simple(Rule):
+class Simple(Rule):   # pragma: no cover
     def __init__(self, val):
         self.val = val
 
