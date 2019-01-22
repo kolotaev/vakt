@@ -1,7 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [1.1.1] - 2019-01-14
+## [1.1.1] - 2019-01-22
+### Added
+- Irreversible exception for migrations
+- MongoStorage migration between 1.1.0 and 1.1.1
+
 ### Fixed
 - Failing JSON deserialization of some Rules.
 - Migration Migration0To1x0x3 was properly renamed to Migration0To1x1x0

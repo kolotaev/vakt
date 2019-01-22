@@ -53,7 +53,7 @@ policies = [
         actions=['<.*>'],
         resources=['<.*>'],
         rules={
-            'secret': vakt.rules.string.StringEqualRule('i-am-a-teacher'),
+            'secret': vakt.rules.string.RegexMatchRule('[Ii]-am-a-teacher'),
         },
     ),
     Policy(
@@ -77,7 +77,7 @@ def init():
     if os.environ.get('STORAGE') == 'mongo':
         user, password, host = 'root', 'example', 'localhost:27017'
         uri = 'mongodb://%s:%s@%s' % (user, password, host)
-        st = MongoStorage(MongoClient(uri), 'vakt_db', collection='vakt_policies')
+        st = MongoStorage(MongoClient(host=host), 'vakt_db', collection='vakt_policies')
         # We run migrations.
         migrations = (Migration0To1x1x0(st), Migration1x1x0To1x1x1(st))
         for m in sorted(migrations, key=lambda x: x.order):
