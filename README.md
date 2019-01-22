@@ -419,6 +419,8 @@ $ docker run --rm -d -p 27017:27017 mongo
 $ pytest -m integration
 ```
 
+Optionally you can use `make` to perform development tasks.
+
 ### License
 
 The source code is licensed under Apache License Version 2.0
