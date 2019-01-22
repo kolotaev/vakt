@@ -494,16 +494,21 @@ class TestMigration1x1x0To1x1x1:
             new_doc = migration.storage.collection.find_one({'uid': json.loads(doc)['uid']})
             assertions.assertDictEqual(json.loads(expected_doc), new_doc)
         # test failed policies report
+        # info
         assert 'info' in log_handler.messages
         assert 9 == len(log_handler.messages['info'])
         assert 'Trying to migrate Policy with UID: 5' in log_handler.messages['info']
         assert 'Policy with UID was migrated: 5' in log_handler.messages['info']
+        # warn
         assert 'warning' in log_handler.messages
         assert 2 == len(log_handler.messages['warning'])
-        assert "(Probably) custom Policy is irreversible:" in log_handler.messages['warning'][0]
+        assert "Irreversible Policy. vakt.rules.string.RegexMatchRule could not be stored in v1.1.0. Mongo doc:" in \
+               log_handler.messages['warning'][0]
         assert "'_id': 1" in log_handler.messages['warning'][0]
-        assert "(Probably) custom Policy is irreversible:" in log_handler.messages['warning'][1]
+        assert "Irreversible Policy. Custom rule class contains non-primitive data {'" in \
+               log_handler.messages['warning'][1]
         assert "'_id': 4" in log_handler.messages['warning'][1]
+        # error
         assert 'error' in log_handler.messages
         assert 2 == len(log_handler.messages['warning'])
         assert "Unexpected exception occurred while migrating Policy:" in log_handler.messages['error'][0]

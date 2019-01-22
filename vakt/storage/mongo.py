@@ -10,7 +10,7 @@ from pymongo.errors import DuplicateKeyError
 import jsonpickle.tags
 
 from ..storage.abc import Storage, Migration
-from ..exceptions import PolicyExistsError, UnknownCheckerType
+from ..exceptions import PolicyExistsError, UnknownCheckerType, Irreversible
 from ..policy import Policy
 from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker
 
@@ -168,9 +168,6 @@ class Migration1x1x0To1x1x1(Migration):
     Migration between versions 1.1.0 and 1.1.1
     """
 
-    class Irreversible(Exception):
-        pass
-
     def __init__(self, storage):
         self.storage = storage
         self._type_marker = jsonpickle.tags.OBJECT
@@ -206,11 +203,11 @@ class Migration1x1x0To1x1x1(Migration):
                     for value in rule_contents.values():
                         # if rule has non-primitive data as its contents - we can't revert it to 1.1.0
                         if isinstance(value, dict) and jsonpickle.tags.RESERVED.intersection(value.keys()):
-                            raise self.Irreversible
+                            raise Irreversible('Custom rule class contains non-primitive data %s' % value)
                 # vakt's own RegexMatchRule couldn't be stored in mongo because is has non-primitive data,
                 # so it's impossible to put it to storage if we revert time back to 1.1.0
                 elif rule_type == 'vakt.rules.string.RegexMatchRule':
-                    raise self.Irreversible
+                    raise Irreversible('vakt.rules.string.RegexMatchRule could not be stored in v1.1.0')
                 rule_to_save['contents'].update(rule_contents)
                 rules_to_save[name] = b_json.dumps(rule_to_save, sort_keys=True)
             # report or save document
@@ -227,8 +224,8 @@ class Migration1x1x0To1x1x1(Migration):
                 new_doc = processor(doc)
                 self.storage.collection.update_one({'_id': new_doc['uid']}, {"$set": new_doc}, upsert=False)
                 log.info('Policy with UID was migrated: %s' % doc['uid'])
-            except self.Irreversible:
-                log.warning('(Probably) custom Policy is irreversible: %s', doc)
+            except Irreversible as e:
+                log.warning('Irreversible Policy. %s. Mongo doc: %s', e, doc)
                 failed_policies.append(doc)
             except Exception as e:
                 log.exception('Unexpected exception occurred while migrating Policy: %s', doc)
