@@ -17,10 +17,11 @@ If set to `True`, string case-insensitive comparison is performed.
 - [Logging] Rename logging message "Conflicting ID" -> "Conflicting UID".
 - [Logging] Changed several exception logs to error level.
 - [Guard] Guard's method `are_rules_satisfied` is now `check_context_restriction`.
-- [Policy] Policy constructor signature is now: `Policy(uid, subjects, effect, resources, actions, context, rules, description)`.
-- [Policy] `Policy()` is now a factory-method, but not a class, that returns policies of different type based on the representation.
-of its attributes (string, dict, etc.). Those policies are subtypes of an abstract type `BasePolicy`.
-- [JSON] Objects are now serialized via `jsonpickle` library. This affects Rule JSON representation as JSON string.
+- [Policy] Policy constructor signature is now:
+`Policy(uid, subjects, effect, resources, actions, context, rules, description)`.
+- [Policy] `Policy()` is now a factory-method, but not a class, that returns policies of different type based on 
+the representation of its attributes (string, dict, etc.).
+Those policies are subtypes of an abstract type `BasePolicy`.
 
 ### Deprecated
 - [Rules] `Rules` from `string`, `net`, `inquiry` were renamed to their shorter equivalents.
@@ -28,6 +29,19 @@ Old-named Rules are now deprecated for usage and will be removed in the next maj
 Deprecated rules are: SubjectEqualRule, ActionEqualRule, ResourceInRule, CIDRRule, StringEqualRule, RegexMatchRule,
 StringPairsEqualRule.
 - [Policy] `rules` argument is now deprecated. Use 'context' argument for the same purpose.
+
+
+## [1.1.1] - 2019-01-22
+### Added
+- [Storage] Irreversible exception for migrations.
+- [Storage] MongoStorage migration between 1.1.0 and 1.1.1
+
+### Fixed
+- [Rules] Failing JSON deserialization of some Rules.
+- [Storage] Migration Migration0To1x0x3 was properly renamed to Migration0To1x1x0.
+
+### Changed
+- [Util] Objects are now serialized via `jsonpickle` library. This affects Rule JSON representation as JSON string.
 
 
 ## [1.1.0] - 2018-09-03

@@ -1,17 +1,24 @@
 from setuptools import setup, find_packages
 from os import path
 
-here = path.abspath(path.dirname(__file__))
 
+here = path.abspath(path.dirname(__file__))
 about = {}
 with open(path.join(here, 'vakt', '__version__.py'), mode='r', encoding='utf-8') as f:
     exec(f.read(), about)
 
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+readme_path = path.join(here, 'README.md')
+try:
+    import pypandoc
+    long_description = pypandoc.convert(readme_path, 'rst')
+    long_description = long_description.replace("\r", '')  # the first line of the original readme appears on pypi
+except (IOError, ImportError):
+    print('Long_description conversion failure')
+    with open(readme_path, encoding='utf-8') as f:
+        long_description = f.read()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     setup(
         name='vakt',
         description='Attribute-based access control (ABAC) SDK for Python',

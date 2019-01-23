@@ -30,3 +30,4 @@ def test_regex_match_rule_satisfied(arg, against, result):
     # test deprecated class
     c = RegexMatchRule(arg)
     assert result == c.satisfied(against)
+    assert result == RegexMatchRule.from_json(c.to_json()).satisfied(against)

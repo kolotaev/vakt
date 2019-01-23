@@ -18,3 +18,4 @@ def test_cidr_satisfied(cidr, ip, result):
     # test deprecated class
     c = CIDRRule(cidr)
     assert result == c.satisfied(ip)
+    assert result == CIDRRule.from_json(c.to_json()).satisfied(ip)

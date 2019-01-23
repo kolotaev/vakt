@@ -1,4 +1,4 @@
-vakt>=1.1.0
+vakt>=1.1.1
 requests==2.20.0
 pymongo==3.7.2
 Flask==1.0.2

@@ -25,3 +25,4 @@ def test_subject_equal_satisfied(what, subject, result):
     i = Inquiry(action='get', resource=None, subject=subject)
     c = SubjectEqualRule()
     assert result == c.satisfied(what, i)
+    assert result == SubjectEqualRule.from_json(c.to_json()).satisfied(what, i)

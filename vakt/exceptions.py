@@ -28,3 +28,8 @@ class UnknownCheckerType(Exception):
     """Storage can't determine Checker type based on provided one."""
     def __init__(self, obj):
         super().__init__("Can't determine Checker type. Given: %s" % type(obj).__name__)
+
+
+class Irreversible(Exception):
+    """Storage migration can't convert record back to a lower version."""
+    pass

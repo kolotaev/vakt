@@ -27,3 +27,4 @@ def test_string_pairs_equal_satisfied(against, result):
     # test deprecated class
     c = StringPairsEqualRule()
     assert result == c.satisfied(against)
+    assert result == StringPairsEqualRule.from_json(c.to_json()).satisfied(against)
