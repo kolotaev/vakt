@@ -34,3 +34,8 @@ lint:
 release: test
 	${PIP} install pypandoc
 	${PYTHON} setup.py sdist upload -r pypi
+
+.PHONY: mutation
+mutation:
+	${PIP} install mutmut
+	mutmut run --runner="${PY_TEST}" --paths-to-mutate="vakt/" --dict-synonyms="Struct, NamedStruct"
