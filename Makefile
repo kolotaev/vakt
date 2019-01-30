@@ -43,5 +43,5 @@ mutation:
 
 .PHONY: mutation-report
 mutation-report:
-	ruby -e '`mutmut results`.split("\n").select{ |i| i =~ /\d,/ }.join(",").split(","). \
+	@ruby -e '`mutmut results`.lines.select{ |i| i =~ /\d,/ }.join(",").split(","). \
 			 map(&:strip).each { |f| puts " Survived ##{f}"; system "mutmut show #{f}" }'

@@ -364,24 +364,24 @@ class TestMigration1x1x0To1x1x1:
                 """
                 { "_id" : 40, "uid" : 40, "description" : null, "subjects" : [ "<.*>" ], "effect" : "allow", 
                 "resources" : [ "<.*>" ], "actions" : [ "<.*>" ], "rules" : 
-                { "num" : "{\\"type\\": \\"test_storage_mongo.Simple\\", \\"contents\\": {\\"val\\": \\"123\\"}}", 
+                { "num" : "{\\"type\\": \\"test_mongo.Simple\\", \\"contents\\": {\\"val\\": \\"123\\"}}", 
                 "a" : "{\\"type\\": \\"vakt.rules.string.StringEqualRule\\", \\"contents\\": {\\"val\\": \\"foo\\"}}" }}
                 """,
                 """
                 { "_id" : 40, "actions" : [ "<.*>" ], "description" : null, "effect" : "allow",  "resources" : ["<.*>"],
                 "rules" : { "a" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "foo"},
-                "num" : { "py/object": "test_storage_mongo.Simple", "val": "123"} }, "subjects" : ["<.*>"], "uid" : 40 }
+                "num" : { "py/object": "test_mongo.Simple", "val": "123"} }, "subjects" : ["<.*>"], "uid" : 40 }
                 """
             ),
             (
                 """
                 { "_id" : 50, "uid" : 50, "description" : null, "subjects" : [ ], "effect" : "allow", "resources" : [ ], 
                 "actions" : [ ], "rules" : { "num" : 
-                "{\\"type\\": \\"test_storage_mongo.Simple\\", \\"contents\\": {\\"val\\": \\"46\\"}}" } }
+                "{\\"type\\": \\"test_mongo.Simple\\", \\"contents\\": {\\"val\\": \\"46\\"}}" } }
                 """,
                 """
                 { "_id" : 50, "actions" : [ ], "description" : null, "effect" : "allow", "resources" : [ ],
-                "rules" : { "num" : { "py/object": "test_storage_mongo.Simple", "val": "46"} },
+                "rules" : { "num" : { "py/object": "test_mongo.Simple", "val": "46"} },
                 "subjects" : [ ], "uid" : 50 }
                 """
             ),
@@ -396,15 +396,16 @@ class TestMigration1x1x0To1x1x1:
         assert len(docs) == migration.storage.collection.count()
         # test Policy.from_json() is called without errors for each doc (implicitly)
         assert len(docs) == len(list(migration.storage.get_all(1000, 0)))
-        # test string contents of each doc and full guard allowance run
-        g = Guard(migration.storage, RegexChecker())
-        inq = Inquiry(action='foo', resource='bar', subject='Max', context={'val': 'foo', 'num': '123'})
+        # test string contents of each doc
         for (doc, result_doc) in docs:
             new_doc = migration.storage.collection.find_one({'uid': json.loads(doc)['uid']})
             expected = result_doc.replace("\n", '').replace(' ', '')
             actual = json.dumps(new_doc, sort_keys=True).replace("\n", '').replace(' ', '')
             assert expected == actual
-            assert g.is_allowed(inq)
+        # test full guard allowance run
+        g = Guard(migration.storage, RegexChecker())
+        inq = Inquiry(action='foo', resource='bar', subject='Max', context={'val': 'foo', 'num': '123'})
+        assert g.is_allowed(inq)
 
     def test_down(self, storage):
         assertions = unittest.TestCase('__init__')
@@ -449,18 +450,18 @@ class TestMigration1x1x0To1x1x1:
                 {"_id":4,"actions":[],"description":null,"effect":"deny","resources":[],
                 "rules":{"digit":{"py/object":"test_storage_mongo.WithObject",
                 "val":{"pattern":"\\\\d+","py/object":"_sre.SRE_Pattern"}},
-                "num":{"py/object":"test_storage_mongo.Simple","val":"123"}},"subjects":[],"uid":4}
+                "num":{"py/object":"test_mongo.Simple","val":"123"}},"subjects":[],"uid":4}
                 """,
                 None
             ),
             (
                 """
                 {"_id":5,"actions":[],"description":null,"effect":"deny","resources":[],"rules":
-                {"num":{"py/object":"test_storage_mongo.Simple","val":"46"}},"subjects":[],"uid":5}
+                {"num":{"py/object":"test_mongo.Simple","val":"46"}},"subjects":[],"uid":5}
                 """,
                 """
                 {"_id":5,"actions":[],"description":null,"effect":"deny","resources":[],"rules":
-                {"num":"{\\"contents\\": {\\"val\\": \\"46\\"}, \\"type\\": \\"test_storage_mongo.Simple\\"}"},
+                {"num":"{\\"contents\\": {\\"val\\": \\"46\\"}, \\"type\\": \\"test_mongo.Simple\\"}"},
                 "subjects":[],"uid":5}
                 """
             ),
