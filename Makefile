@@ -35,7 +35,13 @@ release: test
 	${PIP} install pypandoc
 	${PYTHON} setup.py sdist upload -r pypi
 
+# runs mutation testing
 .PHONY: mutation
 mutation:
 	${PIP} install mutmut
 	mutmut run --runner="${PY_TEST}" --paths-to-mutate="vakt/" --dict-synonyms="Struct, NamedStruct"
+
+.PHONY: mutation-report
+mutation-report:
+	ruby -e '`mutmut results`.split("\n").select{ |i| i =~ /\d,/ }.join(",").split(","). \
+			 map(&:strip).each { |f| puts " Survived ##{f}"; system "mutmut show #{f}" }'
