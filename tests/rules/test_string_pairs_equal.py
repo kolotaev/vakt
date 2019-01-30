@@ -25,6 +25,7 @@ def test_string_pairs_equal_satisfied(against, result):
     # test after (de)serialization
     assert result == PairsEqual.from_json(PairsEqual().to_json()).satisfied(against)
     # test deprecated class
-    c = StringPairsEqualRule()
-    assert result == c.satisfied(against)
-    assert result == StringPairsEqualRule.from_json(c.to_json()).satisfied(against)
+    with pytest.deprecated_call():
+        c = StringPairsEqualRule()
+        assert result == c.satisfied(against)
+        assert result == StringPairsEqualRule.from_json(c.to_json()).satisfied(against)

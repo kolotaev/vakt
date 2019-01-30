@@ -16,6 +16,7 @@ def test_cidr_satisfied(cidr, ip, result):
     # test after (de)serialization
     assert result == CIDR.from_json(CIDR(cidr).to_json()).satisfied(ip)
     # test deprecated class
-    c = CIDRRule(cidr)
-    assert result == c.satisfied(ip)
-    assert result == CIDRRule.from_json(c.to_json()).satisfied(ip)
+    with pytest.deprecated_call():
+        c = CIDRRule(cidr)
+        assert result == c.satisfied(ip)
+        assert result == CIDRRule.from_json(c.to_json()).satisfied(ip)

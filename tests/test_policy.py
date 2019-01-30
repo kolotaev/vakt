@@ -11,12 +11,12 @@ from vakt import TYPE_STRING_BASED, TYPE_RULE_BASED
 def test_properties():
     policy = Policy('123', description='readme',
                     subjects=['user'], effect=ALLOW_ACCESS,
-                    resources='books:{\d+}', actions=['create', 'delete'], context={})
+                    resources=r'books:{\d+}', actions=['create', 'delete'], context={})
     assert '123' == policy.uid
     assert 'readme' == policy.description
     assert ['user'] == policy.subjects
     assert ALLOW_ACCESS == policy.effect
-    assert 'books:{\d+}' == policy.resources
+    assert r'books:{\d+}' == policy.resources
     assert ['create', 'delete'] == policy.actions
     assert {} == policy.context
 
@@ -101,18 +101,19 @@ def test_json_roundtrip_of_a_policy_with_context():
     assert not hasattr(p1, 'rules')
 
     # 'rules' are allowed, but they become a 'context' class field
-    p = Policy('789', rules={'ip': CIDR('127.0.0.1'), 'sub': Equal('baz')})
-    s = p.to_json()
-    p1 = Policy.from_json(s)
-    assert '789' == p1.uid
-    assert 2 == len(p1.context)
-    assert 'ip' in p1.context
-    assert 'sub' in p1.context
-    assert isinstance(p1.context['ip'], CIDR)
-    assert isinstance(p1.context['sub'], Equal)
-    assert p1.context['sub'].satisfied('baz')
-    assert p1.context['ip'].satisfied('127.0.0.1')
-    assert not hasattr(p1, 'rules')
+    with pytest.deprecated_call():
+        p = Policy('789', rules={'ip': CIDR('127.0.0.1'), 'sub': Equal('baz')})
+        s = p.to_json()
+        p1 = Policy.from_json(s)
+        assert '789' == p1.uid
+        assert 2 == len(p1.context)
+        assert 'ip' in p1.context
+        assert 'sub' in p1.context
+        assert isinstance(p1.context['ip'], CIDR)
+        assert isinstance(p1.context['sub'], Equal)
+        assert p1.context['sub'].satisfied('baz')
+        assert p1.context['ip'].satisfied('127.0.0.1')
+        assert not hasattr(p1, 'rules')
 
 
 @pytest.mark.parametrize('data, exception, msg', [

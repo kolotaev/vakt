@@ -1,6 +1,6 @@
 PYTHON = python3
 PIP = ${PYTHON} -m pip
-PY_TEST = ${PYTHON} -m pytest -v
+PY_TEST = ${PYTHON} -m pytest
 
 
 .PHONY: default

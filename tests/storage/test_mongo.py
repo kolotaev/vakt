@@ -35,7 +35,7 @@ class TestMongoStorage:
     def st(self):
         client = create_client()
         yield MongoStorage(client, DB_NAME, collection=COLLECTION)
-        client[DB_NAME][COLLECTION].remove()
+        client[DB_NAME][COLLECTION].delete_many({})
         client.close()
 
     def test_add(self, st):
@@ -257,7 +257,7 @@ class TestMigration0To1x0x3:
         client = create_client()
         storage = MongoStorage(client, DB_NAME, collection=COLLECTION)
         yield Migration0To1x1x0(storage)
-        client[DB_NAME][COLLECTION].remove()
+        client[DB_NAME][COLLECTION].delete_many({})
         client.close()
 
     def test_order(self, migration):
@@ -312,7 +312,7 @@ class TestMigration1x1x0To1x1x1:
         client = create_client()
         storage = MongoStorage(client, DB_NAME, collection=COLLECTION)
         yield storage
-        client[DB_NAME][COLLECTION].remove()
+        client[DB_NAME][COLLECTION].delete_many({})
         client.close()
 
     def test_order(self, storage):
@@ -393,7 +393,7 @@ class TestMigration1x1x0To1x1x1:
         migration.up()
 
         # test no new docs were added and no docs deleted
-        assert len(docs) == migration.storage.collection.count()
+        assert len(docs) == len(list(migration.storage.collection.find({})))
         # test Policy.from_json() is called without errors for each doc (implicitly)
         assert len(docs) == len(list(migration.storage.get_all(1000, 0)))
         # test string contents of each doc
@@ -485,7 +485,7 @@ class TestMigration1x1x0To1x1x1:
         migration.down()
 
         # test no new docs were added and no docs deleted
-        assert len(docs) == migration.storage.collection.count()
+        assert len(docs) == len(list(migration.storage.collection.find({})))
         # test Policy.from_json() is called without errors for each doc (implicitly)
         assert len(docs) == len(list(migration.storage.get_all(1000, 0)))
         # test string contents of each doc

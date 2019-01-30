@@ -6,7 +6,7 @@ from vakt.rules.base import Rule
 
 def test_regex_match_construct_fails():
     with pytest.raises(TypeError) as excinfo:
-        RegexMatchRule('[lll')
+        RegexMatch('[lll')
     assert 'pattern should be a valid regexp string' in str(excinfo.value)
     assert 'unterminated character set at position 0' in str(excinfo.value) \
            or 'unexpected end of regular expression' in str(excinfo.value)
@@ -28,6 +28,7 @@ def test_regex_match_rule_satisfied(arg, against, result):
     js = RegexMatch(arg).to_json()
     assert result == Rule.from_json(js).satisfied(against)
     # test deprecated class
-    c = RegexMatchRule(arg)
-    assert result == c.satisfied(against)
-    assert result == RegexMatchRule.from_json(c.to_json()).satisfied(against)
+    with pytest.deprecated_call():
+        c = RegexMatchRule(arg)
+        assert result == c.satisfied(against)
+        assert result == RegexMatchRule.from_json(c.to_json()).satisfied(against)

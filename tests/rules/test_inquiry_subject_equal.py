@@ -22,7 +22,8 @@ def test_subject_equal_satisfied(what, subject, result):
     c1 = SubjectEqual.from_json(jsn)
     assert result == c1.satisfied(what, i)
     # test deprecated class
-    i = Inquiry(action='get', resource=None, subject=subject)
-    c = SubjectEqualRule()
-    assert result == c.satisfied(what, i)
-    assert result == SubjectEqualRule.from_json(c.to_json()).satisfied(what, i)
+    with pytest.deprecated_call():
+        i = Inquiry(action='get', resource=None, subject=subject)
+        c = SubjectEqualRule()
+        assert result == c.satisfied(what, i)
+        assert result == SubjectEqualRule.from_json(c.to_json()).satisfied(what, i)

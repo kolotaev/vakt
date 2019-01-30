@@ -3,9 +3,9 @@ import pytest
 from vakt.rules.string import Equal, StringEqualRule
 
 
-def test_string_equal_construct_fails():
+def test_string_equal_constructor_fails():
     with pytest.raises(TypeError) as excinfo:
-        StringEqualRule(dict())
+        Equal(dict())
     assert 'Initial property should be a string' in str(excinfo.value)
 
 
@@ -25,8 +25,9 @@ def test_string_equal_satisfied(arg, against, result):
     # test after (de)serialization
     assert result == Equal.from_json(Equal(arg).to_json()).satisfied(against)
     # test deprecated class
-    c = StringEqualRule(arg)
-    assert result == c.satisfied(against)
+    with pytest.deprecated_call():
+        c = StringEqualRule(arg)
+        assert result == c.satisfied(against)
 
 
 @pytest.mark.parametrize('arg, against, result', [

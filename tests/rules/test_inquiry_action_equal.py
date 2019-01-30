@@ -22,7 +22,8 @@ def test_action_equal_satisfied(what, action, result):
     c1 = ActionEqual.from_json(jsn)
     assert result == c1.satisfied(what, i)
     # test deprecated class
-    i = Inquiry(action=action, resource=None, subject=None)
-    c = ActionEqualRule()
-    assert result == c.satisfied(what, i)
-    assert result == ActionEqualRule.from_json(c.to_json()).satisfied(what, i)
+    with pytest.deprecated_call():
+        i = Inquiry(action=action, resource=None, subject=None)
+        c = ActionEqualRule()
+        assert result == c.satisfied(what, i)
+        assert result == ActionEqualRule.from_json(c.to_json()).satisfied(what, i)

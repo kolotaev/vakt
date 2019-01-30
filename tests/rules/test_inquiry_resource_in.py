@@ -22,7 +22,8 @@ def test_resource_in_satisfied(what, resource, result):
     c1 = ResourceIn.from_json(jsn)
     assert result == c1.satisfied(what, i)
     # test deprecated class
-    i = Inquiry(action='get', resource=resource, subject='Max')
-    c = ResourceInRule()
-    assert result == c.satisfied(what, i)
-    assert result == ResourceInRule.from_json(c.to_json()).satisfied(what, i)
+    with pytest.deprecated_call():
+        i = Inquiry(action='get', resource=resource, subject='Max')
+        c = ResourceInRule()
+        assert result == c.satisfied(what, i)
+        assert result == ResourceInRule.from_json(c.to_json()).satisfied(what, i)

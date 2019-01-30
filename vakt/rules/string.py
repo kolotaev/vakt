@@ -68,13 +68,19 @@ class RegexMatch(Rule):
 
 # Classes marked for removal in next releases
 class StringEqualRule(Equal):
-    warnings.warn('StringEqualRule will be removed in version 2.0. Use Equal', DeprecationWarning, stacklevel=2)
+    def __init__(self, *args, **kwargs):
+        warnings.warn('StringEqualRule will be removed in version 2.0. Use Equal', DeprecationWarning, stacklevel=2)
+        super().__init__(*args, **kwargs)
 
 
 class RegexMatchRule(RegexMatch):
-    warnings.warn('RegexMatchRule will be removed in version 2.0. Use RegexMatch', DeprecationWarning, stacklevel=2)
+    def __init__(self, *args, **kwargs):
+        warnings.warn('RegexMatchRule will be removed in version 2.0. Use RegexMatch', DeprecationWarning, stacklevel=2)
+        super().__init__(*args, **kwargs)
 
 
 class StringPairsEqualRule(PairsEqual):
-    warnings.warn('StringPairsEqualRule will be removed in version 2.0. Use PairsEqual',
-                  DeprecationWarning, stacklevel=2)
+    def __init__(self, *args, **kwargs):
+        warnings.warn('StringPairsEqualRule will be removed in version 2.0. Use PairsEqual',
+                      DeprecationWarning, stacklevel=2)
+        super().__init__(*args, **kwargs)
