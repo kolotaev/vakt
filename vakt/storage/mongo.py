@@ -20,7 +20,6 @@ DEFAULT_COLLECTION = 'vakt_policies'
 log = logging.getLogger(__name__)
 
 
-# todo - update mongo driver
 class MongoStorage(Storage):
     """Stores all policies in MongoDB"""
 

@@ -37,7 +37,7 @@ policies = [
         but only when they connect from local library's computer
         """,
         effect=ALLOW_ACCESS,
-        subjects=['<[\w]+ M[\w]+>'],
+        subjects=[r'<[\w]+ M[\w]+>'],
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
         context={
