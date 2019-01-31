@@ -39,7 +39,7 @@ if __name__ == '__main__':
             'dev': [
                 'pytest~=4.0',
                 'pytest-cov~=2.6',
-                'pylint',
+                'pylint~=1.0',
             ],
             'mongo': [
                 'pymongo~=3.5',
