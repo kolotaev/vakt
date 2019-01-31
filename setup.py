@@ -42,7 +42,7 @@ if __name__ == '__main__':
                 'pylint',
             ],
             'mongo': [
-                'pymongo>=3.5',
+                'pymongo~=3.5',
             ],
         },
         packages=find_packages(exclude='tests'),
