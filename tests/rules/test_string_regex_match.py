@@ -16,10 +16,10 @@ def test_regex_match_construct_fails():
     ('.*', 'foo', True),
     ('aaa', 'aaa', True),
     ('aaa', 'aab', False),
-    ('[\d\w]+', '567asd', True),
+    (r'[\d\w]+', '567asd', True),
     ('', '', True),
-    ('^python\?exe$', 'python?exe', True),
-    ('^python?exe$', 'python?exe', False),
+    (r'^python\?exe$', 'python?exe', True),
+    (r'^python?exe$', 'python?exe', False),
 ])
 def test_regex_match_rule_satisfied(arg, against, result):
     c = RegexMatch(arg)

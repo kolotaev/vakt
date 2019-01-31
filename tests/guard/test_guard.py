@@ -52,7 +52,7 @@ policies = [
         effect=ALLOW_ACCESS,
         subjects=['Nina'],
         actions=['update'],
-        resources=['<[\d]+>'],
+        resources=[r'<[\d]+>'],
     ),
 ]
 for p in policies:
