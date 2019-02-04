@@ -12,7 +12,8 @@ import jsonpickle.tags
 from ..storage.abc import Storage, Migration
 from ..exceptions import PolicyExistsError, UnknownCheckerType, Irreversible
 from ..policy import Policy
-from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker
+from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker, MixedChecker
+from .. import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 
 DEFAULT_COLLECTION = 'vakt_policies'
@@ -80,7 +81,11 @@ class MongoStorage(Storage):
             # We do not use Reverse-regexp match since it's not implemented yet in MongoDB.
             # Doing it via Javascript function gives no benefits over Vakt final Guard check.
             # See: https://jira.mongodb.org/browse/SERVER-11947
-        elif isinstance(checker, RegexChecker) or not checker:  # opt to RegexChecker as default.
+        elif isinstance(checker, RegexChecker):
+            return {'type': TYPE_STRING_BASED}
+        elif isinstance(checker, RulesChecker):
+            return {'type': TYPE_RULE_BASED}
+        elif isinstance(checker, MixedChecker) or not checker:  # opt to MixedChecker as default.
             return {}
         else:
             log.error('Provided Checker type is not supported.')
@@ -90,7 +95,9 @@ class MongoStorage(Storage):
         """
         Construct MongoDB query.
         """
-        conditions = []
+        conditions = [
+            {'type': TYPE_STRING_BASED}
+        ]
         for field in self.condition_fields:
             conditions.append(
                 {

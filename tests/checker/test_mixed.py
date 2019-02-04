@@ -52,3 +52,8 @@ from vakt.rules.operator import *
 def test_fits(checkers, policy, field, what, result):
     c = MixedChecker(*checkers)
     assert result == c.fits(policy, field, what)
+
+
+def test_empty_init_args():
+    with pytest.raises(TypeError) as excinfo:
+        MixedChecker()

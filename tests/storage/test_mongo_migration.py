@@ -7,7 +7,7 @@ import pytest
 from vakt.storage.mongo import *
 from vakt.rules.base import Rule
 from vakt.guard import Inquiry, Guard
-from vakt.checker import RegexChecker
+from vakt.checker import MixedChecker
 from .test_mongo import DB_NAME, COLLECTION, create_client
 
 
@@ -126,24 +126,26 @@ class TestMigration1x1x0To1x1x1:
                 """
                 { "_id" : 40, "uid" : 40, "description" : null, "subjects" : [ "<.*>" ], "effect" : "allow", 
                 "resources" : [ "<.*>" ], "actions" : [ "<.*>" ], "rules" : 
-                { "num" : "{\\"type\\": \\"test_mongo.Simple\\", \\"contents\\": {\\"val\\": \\"123\\"}}", 
+                { "num" : 
+                "{\\"type\\": \\"storage.test_mongo_migration.Simple\\", \\"contents\\": {\\"val\\": \\"123\\"}}", 
                 "a" : "{\\"type\\": \\"vakt.rules.string.StringEqualRule\\", \\"contents\\": {\\"val\\": \\"foo\\"}}" }}
                 """,
                 """
                 { "_id" : 40, "actions" : [ "<.*>" ], "description" : null, "effect" : "allow",  "resources" : ["<.*>"],
                 "rules" : { "a" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "foo"},
-                "num" : { "py/object": "test_mongo.Simple", "val": "123"} }, "subjects" : ["<.*>"], "uid" : 40 }
+                "num" : { "py/object": "storage.test_mongo_migration.Simple", "val": "123"} }, "subjects" : ["<.*>"],
+                "uid" : 40 }
                 """
             ),
             (
                 """
                 { "_id" : 50, "uid" : 50, "description" : null, "subjects" : [ ], "effect" : "allow", "resources" : [ ], 
                 "actions" : [ ], "rules" : { "num" : 
-                "{\\"type\\": \\"test_mongo.Simple\\", \\"contents\\": {\\"val\\": \\"46\\"}}" } }
+                "{\\"type\\": \\"storage.test_mongo_migration.Simple\\", \\"contents\\": {\\"val\\": \\"46\\"}}" } }
                 """,
                 """
                 { "_id" : 50, "actions" : [ ], "description" : null, "effect" : "allow", "resources" : [ ],
-                "rules" : { "num" : { "py/object": "test_mongo.Simple", "val": "46"} },
+                "rules" : { "num" : { "py/object": "storage.test_mongo_migration.Simple", "val": "46"} },
                 "subjects" : [ ], "uid" : 50 }
                 """
             ),
@@ -165,7 +167,7 @@ class TestMigration1x1x0To1x1x1:
             actual = json.dumps(new_doc, sort_keys=True).replace("\n", '').replace(' ', '')
             assert expected == actual
         # test full guard allowance run
-        g = Guard(migration.storage, RegexChecker())
+        g = Guard(migration.storage, MixedChecker(RegexChecker()))
         inq = Inquiry(action='foo', resource='bar', subject='Max', context={'val': 'foo', 'num': '123'})
         assert g.is_allowed(inq)
 
@@ -212,18 +214,19 @@ class TestMigration1x1x0To1x1x1:
                 {"_id":4,"actions":[],"description":null,"effect":"deny","resources":[],
                 "rules":{"digit":{"py/object":"test_storage_mongo.WithObject",
                 "val":{"pattern":"\\\\d+","py/object":"_sre.SRE_Pattern"}},
-                "num":{"py/object":"test_mongo.Simple","val":"123"}},"subjects":[],"uid":4}
+                "num":{"py/object":"storage.test_mongo_migration.Simple","val":"123"}},"subjects":[],"uid":4}
                 """,
                 None
             ),
             (
                 """
                 {"_id":5,"actions":[],"description":null,"effect":"deny","resources":[],"rules":
-                {"num":{"py/object":"test_mongo.Simple","val":"46"}},"subjects":[],"uid":5}
+                {"num":{"py/object":"storage.test_mongo_migration.Simple","val":"46"}},"subjects":[],"uid":5}
                 """,
                 """
                 {"_id":5,"actions":[],"description":null,"effect":"deny","resources":[],"rules":
-                {"num":"{\\"contents\\": {\\"val\\": \\"46\\"}, \\"type\\": \\"test_mongo.Simple\\"}"},
+                {"num":
+                "{\\"contents\\": {\\"val\\": \\"46\\"}, \\"type\\": \\"storage.test_mongo_migration.Simple\\"}"},
                 "subjects":[],"uid":5}
                 """
             ),
