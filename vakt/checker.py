@@ -14,7 +14,16 @@ from .exceptions import InvalidPatternError
 log = logging.getLogger(__name__)
 
 
-class RegexChecker:
+class Checker(metaclass=ABCMeta):
+    """
+    Abstract class for Checker typing.
+    """
+    @abstractmethod
+    def fits(self, policy, field, what):
+        pass
+
+
+class RegexChecker(Checker):
     """
     Checker that uses regular expressions.
     E.g. 'Dog', 'Doge', 'Dogs' fit <Dog[se]?>
@@ -45,7 +54,7 @@ class RegexChecker:
         return False
 
 
-class StringChecker(metaclass=ABCMeta):
+class StringChecker(Checker):
     """
     Checker that uses string equality.
     You have to redefine `compare` method.
@@ -90,7 +99,7 @@ class StringFuzzyChecker(StringChecker):
         return needle in haystack
 
 
-class RulesChecker:
+class RulesChecker(Checker):
     """
     Checker that uses Rules defined inside dictionaries to determine match.
     """
@@ -122,13 +131,17 @@ class RulesChecker:
         return False
 
 
-class MixedChecker:
+class MixedChecker(Checker):
     """
     Checker that uses other Checkers that it's comprised of.
     Checks are performed in the order in which the Checkers were added to MixedChecker
     """
-
     def __init__(self, *checkers):
+        if len(checkers) == 0:
+            raise TypeError('Mixed Checker must be comprised of at least one Checker')
+        for checker in checkers:
+            if not isinstance(checker, Checker):
+                raise TypeError('Mixed Checker can only be comprised of other Checkers, but %s given' % type(checker))
         self.checkers = checkers
 
     def fits(self, policy, field, what):

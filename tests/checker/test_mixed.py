@@ -7,13 +7,6 @@ from vakt.rules.operator import *
 
 @pytest.mark.parametrize('checkers, policy, field, what, result', [
     (
-        [],
-        Policy(0, subjects=('baz', {'name': Eq('Max')}, '<bar.*>')),
-        'subjects',
-        {'name': 'Max'},
-        False
-    ),
-    (
         [RegexChecker()],
         Policy(1, subjects=('baz', {'name': Eq('Max')}, '<bar.*>')),
         'subjects',
@@ -54,6 +47,20 @@ def test_fits(checkers, policy, field, what, result):
     assert result == c.fits(policy, field, what)
 
 
-def test_empty_init_args():
-    with pytest.raises(TypeError) as excinfo:
-        MixedChecker()
+@pytest.mark.parametrize('checkers, exception, msg', [
+    ([], TypeError, 'Mixed Checker must be comprised of at least one Checker'),
+    (
+        [RegexChecker],
+        TypeError,
+        "Mixed Checker can only be comprised of other Checkers, but <class 'abc.ABCMeta'> given"
+    ),
+    (
+        [RegexChecker(), RulesChecker],
+        TypeError,
+        "Mixed Checker can only be comprised of other Checkers, but <class 'abc.ABCMeta'> given"
+    ),
+])
+def test_bad_init_args(checkers, exception, msg):
+    with pytest.raises(exception) as excinfo:
+        MixedChecker(*checkers)
+    assert msg in str(excinfo.value)
