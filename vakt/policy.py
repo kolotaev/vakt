@@ -82,8 +82,9 @@ class Policy(JsonSerializer, PrettyPrint):
 
     def _calculate_type(self):
         for elements in [getattr(self, f, ()) for f in self._definition_fields]:
-            if any([isinstance(e, dict) for e in elements]):
+            if all([isinstance(e, dict) for e in elements]):
                 return TYPE_RULE_BASED
+            # elif all([isinstance(e, str) for e in elements]):
         return TYPE_STRING_BASED
 
     def _check_fields_type(self):
