@@ -16,7 +16,7 @@ from vakt.rules.string import StringEqualRule
 from vakt.rules.base import Rule
 from vakt.exceptions import PolicyExistsError, UnknownCheckerType
 from vakt.guard import Inquiry, Guard
-from effects import *
+from vakt.effects import *
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker
 
 
