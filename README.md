@@ -317,6 +317,7 @@ Syntax for description of Policy fields is:
  '<foo.*>'
  'foo<[abc]{2}>bar'
  'foo<\w+>'
+ 'foo'
 ```
 Where `<>` are delimiters of a regular expression boundaries part. Custom Policy can redefine them by overriding
 `start_tag` and `end_tag` properties. Generally you always want to use the first variant: `<foo.*>`.
