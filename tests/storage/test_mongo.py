@@ -8,7 +8,7 @@ from bson.objectid import ObjectId
 
 from vakt.storage.mongo import *
 from vakt.storage.memory import MemoryStorage
-from effects import ALLOW_ACCESS
+from vakt.effects import ALLOW_ACCESS
 from vakt.policy import Policy
 from vakt.rules.string import Equal
 from vakt.exceptions import PolicyExistsError, UnknownCheckerType
