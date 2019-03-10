@@ -10,11 +10,13 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 
 from vakt.storage.mongo import *
+from vakt.storage.memory import MemoryStorage
 from vakt.policy import Policy
 from vakt.rules.string import StringEqualRule
 from vakt.rules.base import Rule
 from vakt.exceptions import PolicyExistsError, UnknownCheckerType
 from vakt.guard import Inquiry, Guard
+from effects import *
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker
 
 
@@ -184,6 +186,70 @@ class TestMongoStorage:
         found = list(found)
         assert 1 == len(found)
         assert '3' == found[0].uid
+
+    @pytest.mark.parametrize('policies, inquiry, expected_reference', [
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['get', 'post'],
+                    effect=ALLOW_ACCESS,
+                    resources=['<.*>'],
+                    subjects=['<[Mm]ax>', '<Jim>']
+                ),
+            ],
+            Inquiry(action='get', resource='printer', subject='Max'),
+            True,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['<.*>'],
+                    effect=ALLOW_ACCESS,
+                    resources=['<.*>'],
+                    subjects=['<.*>']
+                ),
+            ],
+            Inquiry(action='get', resource='printer', subject='Max'),
+            True,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['<.*>'],
+                    effect=ALLOW_ACCESS,
+                    resources=['library:books:<.+>'],
+                    subjects=['<.*>']
+                ),
+            ],
+            Inquiry(action='get', resource='library:books:dracula', subject='Max'),
+            True,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=[r'<\d+>'],
+                    effect=ALLOW_ACCESS,
+                    resources=[r'<\w{1,3}>'],
+                    subjects=[r'<\w{2}-\d+>']
+                ),
+            ],
+            Inquiry(action='12', resource='Pie', subject='Jo-1'),
+            True,
+        ),
+    ])
+    def test_find_for_inquiry_with_regex_checker(self, st, policies, inquiry, expected_reference):
+        mem_storage = MemoryStorage()  # it returns all stored policies so we consider Guard as a reference
+        for p in policies:
+            st.add(p)
+            mem_storage.add(p)
+        reference_answer = Guard(mem_storage, RegexChecker()).is_allowed(inquiry)
+        assert expected_reference == reference_answer, 'Check reference answer'
+        assert reference_answer == Guard(st, RegexChecker()).is_allowed(inquiry), \
+            'Mongo storage should give the same answers as reference'
 
     def test_find_for_inquiry_returns_generator(self, st):
         st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
