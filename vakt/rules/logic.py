@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 class BooleanRule(Rule, metaclass=ABCMeta):
     """
-    Boolean Rule that is satisfied when 'what' is evaluated to a boolean 'true'/'false'.
+    Boolean Rule that is satisfied when 'what' is evaluated to a boolean true/false.
     Its `satisfied` accepts:
      - a callable without arguments
      - non-callable
@@ -31,14 +31,20 @@ class BooleanRule(Rule, metaclass=ABCMeta):
 
 
 class IsTrue(BooleanRule):
-    """Rule that is satisfied when 'what' is evaluated to a boolean 'true'."""
+    """
+    Rule that is satisfied when 'what' is evaluated to a boolean 'true'.
+    For example: subject={'role': IsTrue(user.is_admin()), 'name': Eq('Jimmy')}
+    """
     @property
     def val(self):
         return True
 
 
 class IsFalse(BooleanRule):
-    """Rule that is satisfied when 'what' is evaluated to a boolean 'false'."""
+    """
+    Rule that is satisfied when 'what' is evaluated to a boolean 'false'.
+    For example: subject={'role': IsFalse(user.is_admin()), 'name': Eq('Jimmy')}
+    """
     @property
     def val(self):
         return False
@@ -59,6 +65,7 @@ class CompositionRule(Rule, metaclass=ABCMeta):
 class And(CompositionRule):
     """
     Rule that is satisfied when all the rules it's composed of are satisfied.
+    For example: subject={'stars': And(Greater(50), Less(120)), 'name': Eq('Jimmy')}
     """
     def satisfied(self, what, inquiry):
         answers = [x.satisfied(what, inquiry) for x in self.rules]
@@ -69,6 +76,7 @@ class Or(CompositionRule):
     """
     Rule that is satisfied when at least one of the rules it's composed of is satisfied.
     Uses short-circuit evaluation.
+    For example: subject={'stars': Or(Greater(50), Less(120)), 'name': Eq('Jimmy')}
     """
     def satisfied(self, what, inquiry):
         for rule in self.rules:
@@ -80,6 +88,7 @@ class Or(CompositionRule):
 class Not(Rule):
     """
     Rule that negates another Rule.
+    For example: subject={'stars': Eq(555), 'name': Not(Eq('Jimmy'))}
     """
     def __init__(self, rule):
         if not isinstance(rule, Rule):
@@ -94,7 +103,7 @@ class Not(Rule):
 class Any(Rule):
     """
     Rule that is always satisfied.
-    For example: resource={'endpoint': Any(), 'method': 'POST'}
+    For example: resource={'endpoint': Any(), 'method': Eq('POST')}
     """
 
     def satisfied(self, what=None, inquiry=None):
@@ -104,7 +113,7 @@ class Any(Rule):
 class Neither(Rule):
     """
     Rule that always isn't satisfied.
-    For example: resource={'endpoint': Neither(), 'method': 'GET'}
+    For example: resource={'endpoint': Neither(), 'method': Eq('GET')}
     """
 
     def satisfied(self, what=None, inquiry=None):

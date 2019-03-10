@@ -13,7 +13,10 @@ log = logging.getLogger(__name__)
 
 
 class CIDR(Rule):
-    """Rule that is satisfied when inquiry's IP address is in the provided CIDR"""
+    """
+    Rule that is satisfied when inquiry's IP address is in the provided CIDR.
+    For example: context={'ip': CIDR('127.0.0.1/32')}
+    """
 
     def __init__(self, cidr):
         self.cidr = cidr

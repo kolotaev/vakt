@@ -7,19 +7,31 @@ from ..rules.base import Rule
 
 
 class SubjectEqual(Rule):
-    """Rule that is satisfied if the string value equals the Inquiry's Subject"""
+    """
+    Rule that is satisfied if the string value equals the Inquiry's Subject.
+    For example: context={'user': SubjectEqual('Max')}
+    This is an old Rule. Most often operator Rules will be enough.
+    """
     def satisfied(self, what, inquiry):
         return isinstance(what, str) and what == inquiry.subject
 
 
 class ActionEqual(Rule):
-    """Rule that is satisfied if the string value equals the Inquiry's Action"""
+    """
+    Rule that is satisfied if the string value equals the Inquiry's Action.
+    For example: context={'user': ActionEqual('Get')}
+    This is an old Rule. Most often operator Rules will be enough.
+    """
     def satisfied(self, what, inquiry):
         return isinstance(what, str) and what == inquiry.action
 
 
 class ResourceIn(Rule):
-    """Rule that is satisfied if list contains the Inquiry's Resource"""
+    """
+    Rule that is satisfied if list contains the Inquiry's Resource.
+    For example: context={'user': ResourceIn('books', 'magazines')}
+    This is an old Rule. Most often list Rules will be enough.
+    """
     def satisfied(self, what, inquiry):
         return isinstance(what, list) and inquiry.resource in what
 

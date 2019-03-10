@@ -17,6 +17,7 @@ class Equal(Rule):
     """
     Rule that is satisfied if the string value equals the specified property of this rule.
     Performs case-sensitive and case-sensitive comparisons (based on `case_insensitive` flag).
+    For example: context={'country': Equal('Mozambique', True)}
     """
     def __init__(self, val, case_insensitive=False):
         if not isinstance(val, str):
@@ -35,9 +36,11 @@ class Equal(Rule):
 
 
 class PairsEqual(Rule):
-    """Rule that is satisfied when given data is an array of pairs and
-       those pairs are represented by equal to each other strings"""
-
+    """
+    Rule that is satisfied when given data is an array of pairs and
+    those pairs are represented by equal to each other strings.
+    For example: context={'users': PairsEqual()}
+    """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
             return False
@@ -52,9 +55,11 @@ class PairsEqual(Rule):
 
 
 class RegexMatch(Rule):
-    """Rule that is satisfied when given data matches the provided regular expression.
-       Note, that you should provide syntactically valid regular-expression string."""
-
+    """
+    Rule that is satisfied when given data matches the provided regular expression.
+    Note, that you should provide syntactically valid regular-expression string.
+    For example: context={'file': PairsEqual(r'\.(rb|sh|py|ex)$')}
+    """
     def __init__(self, pattern):
         try:
             self.regex = re.compile(pattern)

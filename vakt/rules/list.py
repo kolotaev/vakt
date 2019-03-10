@@ -42,6 +42,7 @@ class ListRule(Rule):
 class InList(ListRule):
     """
     Is item in list?
+    For example: action={'method': InList('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         return _one_in_list(what, self.data)
@@ -50,6 +51,7 @@ class InList(ListRule):
 class NotInList(ListRule):
     """
     Is not item in the list?
+    For example: action={'method': NotInList('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         return not _one_in_list(what, self.data)
@@ -58,6 +60,7 @@ class NotInList(ListRule):
 class AllInList(ListRule):
     """
     Are all the items in the list?
+    For example: action={'methods': AllInList('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -68,6 +71,7 @@ class AllInList(ListRule):
 class AllNotInList(ListRule):
     """
     Are all the items not in the list?
+    For example: action={'methods': AllNotInList('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -78,6 +82,7 @@ class AllNotInList(ListRule):
 class AnyInList(ListRule):
     """
     Are any of the items in the list?
+    For example: action={'methods': AnyInList('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -88,6 +93,7 @@ class AnyInList(ListRule):
 class AnyNotInList(ListRule):
     """
     Are any of the items not in the list?
+    For example: action={'methods': AnyNotInList('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
