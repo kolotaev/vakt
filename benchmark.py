@@ -2,8 +2,12 @@ import random
 import uuid
 import timeit
 import argparse
+import contextlib
+
+from pymongo import MongoClient
 
 from vakt.storage.memory import MemoryStorage
+from vakt.storage.mongo import MongoStorage
 from vakt.rules.net import CIDR
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import Policy
@@ -90,33 +94,40 @@ def print_generation(generator, factor=10, line_len=80):
     print()
 
 
-def single_inquiry_benchmark():
-    global guard
-    if guard.is_allowed(inq):
-        return True
-    return False
+@contextlib.contextmanager
+def get_storage():
+    if ARGS.storage == 'mongo':
+        db_name = 'vakt_db'
+        collection = 'vakt_policies_benchmark'
+        client = MongoClient('127.0.0.1', 27017)
+        yield MongoStorage(client, db_name, collection=collection)
+        client[db_name][collection].delete_many({})
+        client.close()
+    else:
+        yield MemoryStorage()
 
 
+store = None
 overall_policies_created = 0
 similar_regexp_policies_created = 0
-store = MemoryStorage()
 checker = RegexChecker(ARGS.cache) if ARGS.cache else RegexChecker()
-guard = Guard(store, checker)
 inq = Inquiry(action='get', subject='xo', resource='library:books:1234', context={'ip': '127.0.0.1'})
 
 
 if __name__ == '__main__':
-    line_length = 80
-    print('=' * line_length)
-    print('Populating MemoryStorage with Policies')
-    print_generation(populate_storage, int(ARGS.policies_number / 100 * 1), line_length)
-    print('START BENCHMARK!')
-    start = timeit.default_timer()
-    allowed = single_inquiry_benchmark()
-    stop = timeit.default_timer()
-    print('Number of unique Policies in DB: {:,}'.format(overall_policies_created))
-    print('Among them there are Policies with the same regexp pattern: {:,}'.format(similar_regexp_policies_created))
-    print('Are Policies defined in Regexp syntax?: %s' % ARGS.regexp)
-    print('Decision for 1 Inquiry took: %0.4f seconds' % (stop - start))
-    print('Inquiry passed the guard? %s' % allowed)
-    print('=' * line_length)
+    with get_storage() as st:
+        store = st
+        line_length = 80
+        print('=' * line_length)
+        print('Populating MemoryStorage with Policies')
+        print_generation(populate_storage, int(ARGS.policies_number / 100 * 1), line_length)
+        print('START BENCHMARK!')
+        start = timeit.default_timer()
+        allowed = Guard(store, checker).is_allowed(inq)
+        stop = timeit.default_timer()
+        print('Number of unique Policies in DB: {:,}'.format(overall_policies_created))
+        print('Among them Policies with the same regexp pattern: {:,}'.format(similar_regexp_policies_created))
+        print('Are Policies defined in Regexp syntax?: %s' % ARGS.regexp)
+        print('Decision for 1 Inquiry took: %0.4f seconds' % (stop - start))
+        print('Inquiry passed the guard? %s' % allowed)
+        print('=' * line_length)
