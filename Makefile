@@ -45,3 +45,9 @@ mutation:
 mutation-report:
 	@ruby -e '`mutmut results`.lines.select{ |i| i =~ /\d,/ }.join(",").split(","). \
 			 map(&:strip).each { |f| puts " Survived ##{f}"; system "mutmut show #{f}" }'
+
+.PHONY: bench
+bench:
+	${PYTHON} benchmark.py --checker regex
+	@echo "\n"
+	${PYTHON} benchmark.py --checker rules

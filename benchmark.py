@@ -11,8 +11,16 @@ from vakt.storage.mongo import MongoStorage
 from vakt.rules.net import CIDR
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import Policy
-from vakt.checker import RegexChecker
+from vakt.checker import RegexChecker, RulesChecker
 from vakt.guard import Guard, Inquiry
+from vakt.rules import operator, logic, list
+
+
+# Globals
+store = None
+overall_policies_created = 0
+similar_regexp_policies_created = 0
+LINE_LEN = 80
 
 
 # Define and parse possible arguments
@@ -21,6 +29,8 @@ parser.add_argument('policies_number', nargs='?', type=int, default=100000,
                     help='number of policies to create in DB (default: %(default)s)')
 parser.add_argument('--storage', choices=('mongo', 'memory'), default='memory',
                     help='type of storage (default: %(default)s)')
+parser.add_argument('--checker', choices=('regex', 'rules', 'exact', 'fuzzy', 'mixed'), default='regex',
+                    help='type of checker (default: %(default)s)')
 
 regex_group = parser.add_argument_group('regex policy related')
 regex_group.add_argument('--regexp', action='store_false', default=True,
@@ -50,11 +60,31 @@ def gen_regexp():
     return '<[\d]{3}[%s]*>' % a, '<[%s]{2}>' % b
 
 
-def populate_storage():
-    global store, overall_policies_created, similar_regexp_policies_created
-    static_subjects = gen_regexp()
-
-    for x in range(ARGS.policies_number):
+def gen_policy():
+    if ARGS.checker == 'rules':
+        return Policy(
+            uid=gen_id(),
+            effect=ALLOW_ACCESS if rand_true() else DENY_ACCESS,
+            subjects=(
+                {
+                    'name': logic.And(operator.NotEq(rand_string()), operator.NotEq(rand_string())),
+                    'stars': operator.Greater(random.randint(0, 102002))
+                }
+            ),
+            resources=(
+                {'method': list.AnyInList(['get', 'post', 'delete'])}
+            ),
+            actions=(
+                {'val': operator.Eq(rand_string())},
+                {'values': list.InList([rand_string(), rand_string(), rand_string()])},
+            ),
+            context={
+                'ip': CIDR('127.0.0.1'),
+            },
+        )
+    else:
+        global similar_regexp_policies_created
+        static_subjects = gen_regexp()
         if ARGS.regexp:
             if similar_regexp_policies_created < ARGS.same:
                 subjects = static_subjects
@@ -63,23 +93,45 @@ def populate_storage():
                 subjects = gen_regexp()
         else:
             subjects = (rand_string(), rand_string())
-
-        policy = Policy(
+        return Policy(
             uid=gen_id(),
             effect=ALLOW_ACCESS if rand_true() else DENY_ACCESS,
             subjects=subjects,
             resources=('library:books:<.+>', 'office:magazines:<.+>'),
-            actions=['<read|get>'],
+            actions=['<' + rand_string() + '|' + rand_string() + '>'],
             context={
                 'ip': CIDR('127.0.0.1'),
             },
         )
+
+
+def get_checker():
+    if ARGS.checker == 'rules':
+        return RulesChecker()
+    return RegexChecker(ARGS.cache) if ARGS.cache else RegexChecker()
+
+
+def get_inquiry():
+    if ARGS.checker == 'rules':
+        return Inquiry(
+            action={'val': rand_string()},
+            subject={'name': rand_string(), 'stars': 900},
+            resource={'method': 'put'},
+            context={'ip': '127.0.0.1'}
+        )
+    return Inquiry(action='get', subject='xo', resource='library:books:1234', context={'ip': '127.0.0.1'})
+
+
+def populate_storage():
+    global store, overall_policies_created
+    for x in range(ARGS.policies_number):
+        policy = gen_policy()
         store.add(policy)
         overall_policies_created += 1
         yield
 
 
-def print_generation(generator, factor=10, line_len=80):
+def print_generation(generator, factor=10, line_len=LINE_LEN):
     cl, cf = 0, 0
     for _ in generator():
         if cf < factor:
@@ -107,27 +159,22 @@ def get_storage():
         yield MemoryStorage()
 
 
-store = None
-overall_policies_created = 0
-similar_regexp_policies_created = 0
-checker = RegexChecker(ARGS.cache) if ARGS.cache else RegexChecker()
-inq = Inquiry(action='get', subject='xo', resource='library:books:1234', context={'ip': '127.0.0.1'})
-
-
 if __name__ == '__main__':
     with get_storage() as st:
         store = st
-        line_length = 80
-        print('=' * line_length)
-        print('Populating MemoryStorage with Policies')
-        print_generation(populate_storage, int(ARGS.policies_number / 100 * 1), line_length)
+        print('=' * LINE_LEN)
+        print('Populating %s with Policies' % store.__class__.__name__)
+        print_generation(populate_storage, int(ARGS.policies_number / 100 * 1), LINE_LEN)
         print('START BENCHMARK!')
         start = timeit.default_timer()
-        allowed = Guard(store, checker).is_allowed(inq)
+        checker = get_checker()
+        inq = get_inquiry()
+        allowed = Guard(store, checker).is_allowed(inquiry=inq)
         stop = timeit.default_timer()
         print('Number of unique Policies in DB: {:,}'.format(overall_policies_created))
         print('Among them Policies with the same regexp pattern: {:,}'.format(similar_regexp_policies_created))
-        print('Are Policies defined in Regexp syntax?: %s' % ARGS.regexp)
+        print('Checker used: %s' % checker.__class__.__name__)
+        # print('Inquiry looks like: %s' % vars(inq))
         print('Decision for 1 Inquiry took: %0.4f seconds' % (stop - start))
         print('Inquiry passed the guard? %s' % allowed)
-        print('=' * line_length)
+        print('=' * LINE_LEN)
