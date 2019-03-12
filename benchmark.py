@@ -1,7 +1,7 @@
 import random
 import uuid
 import timeit
-import sys
+import argparse
 
 from vakt.storage.memory import MemoryStorage
 from vakt.rules.net import CIDR
@@ -11,14 +11,22 @@ from vakt.checker import RegexChecker
 from vakt.guard import Guard, Inquiry
 
 
-# Grab number of policies in DB from the CLI argument
-POLICIES_NUMBER = int(sys.argv[1]) if len(sys.argv) > 1 else 100000
-# Grab should Policies be defined without Regex syntax? from CLI argument
-USE_REGEXP_POLICIES = False if len(sys.argv) > 2 and sys.argv[2] == 'no' else True
-# Grab number of similar regexps in policy
-SAME_REGEX_POLICIES_NUMBER = int(sys.argv[3]) if len(sys.argv) > 3 else 0
-# Grab number of LRU-cache for RegexChecker
-CACHE_SIZE = int(sys.argv[4]) if len(sys.argv) > 4 else None
+# Define and parse possible arguments
+parser = argparse.ArgumentParser(description='Run vakt benchmark.')
+parser.add_argument('policies_number', nargs='?', type=int, default=100000,
+                    help='number of policies to create in DB (default: %(default)s)')
+parser.add_argument('--storage', choices=('mongo', 'memory'), default='memory',
+                    help='type of storage (default: %(default)s)')
+
+regex_group = parser.add_argument_group('regex policy related')
+regex_group.add_argument('--regexp', action='store_false', default=True,
+                         help='should Policies be defined without Regex syntax? (default: %(default)s)')
+regex_group.add_argument('--same', type=int, default=0,
+                         help='number of similar regexps in Policy')
+regex_group.add_argument('--cache', type=int,
+                         help="number of LRU-cache for RegexChecker (default: RegexChecker's default cache-size)")
+
+ARGS = parser.parse_args()
 
 
 def rand_string():
@@ -42,9 +50,9 @@ def populate_storage():
     global store, overall_policies_created, similar_regexp_policies_created
     static_subjects = gen_regexp()
 
-    for x in range(POLICIES_NUMBER):
-        if USE_REGEXP_POLICIES:
-            if similar_regexp_policies_created < SAME_REGEX_POLICIES_NUMBER:
+    for x in range(ARGS.policies_number):
+        if ARGS.regexp:
+            if similar_regexp_policies_created < ARGS.same:
                 subjects = static_subjects
                 similar_regexp_policies_created += 1
             else:
@@ -92,7 +100,7 @@ def single_inquiry_benchmark():
 overall_policies_created = 0
 similar_regexp_policies_created = 0
 store = MemoryStorage()
-checker = RegexChecker(CACHE_SIZE) if CACHE_SIZE else RegexChecker()
+checker = RegexChecker(ARGS.cache) if ARGS.cache else RegexChecker()
 guard = Guard(store, checker)
 inq = Inquiry(action='get', subject='xo', resource='library:books:1234', context={'ip': '127.0.0.1'})
 
@@ -101,14 +109,14 @@ if __name__ == '__main__':
     line_length = 80
     print('=' * line_length)
     print('Populating MemoryStorage with Policies')
-    print_generation(populate_storage, int(POLICIES_NUMBER / 100 * 1), line_length)
+    print_generation(populate_storage, int(ARGS.policies_number / 100 * 1), line_length)
     print('START BENCHMARK!')
     start = timeit.default_timer()
     allowed = single_inquiry_benchmark()
     stop = timeit.default_timer()
     print('Number of unique Policies in DB: {:,}'.format(overall_policies_created))
     print('Among them there are Policies with the same regexp pattern: {:,}'.format(similar_regexp_policies_created))
-    print('Are Policies defined in Regexp syntax?: %s' % USE_REGEXP_POLICIES)
+    print('Are Policies defined in Regexp syntax?: %s' % ARGS.regexp)
     print('Decision for 1 Inquiry took: %0.4f seconds' % (stop - start))
     print('Inquiry passed the guard? %s' % allowed)
     print('=' * line_length)
