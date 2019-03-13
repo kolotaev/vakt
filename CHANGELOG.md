@@ -11,6 +11,9 @@ All notable changes to this project will be documented in this file.
 - [Checker] New `RulesChecker` based on definition of attributes via dictionaries w/ various Rules.
 - [Checker] New `MixedChecker` that performs checks based on its comprising Checkers.
 
+### Removed
+- Drop Python 3.3 support. Minimal Python version is 3.4 now.
+
 ### Changed
 - [Rules] String-based `Rule` Equal now has flag `case_insensitive`.
 If set to `True`, string case-insensitive comparison is performed.

@@ -67,7 +67,7 @@ For example of usage see [examples folder](examples).
 
 ### Install
 
-Vakt runs on Python >= 3.3.
+Vakt runs on Python >= 3.4.
 PyPy implementation is supported as well.
 
 For in-memory storage:
