@@ -3,6 +3,7 @@ import uuid
 import timeit
 import argparse
 import contextlib
+from functools import partial
 
 from pymongo import MongoClient
 
@@ -17,19 +18,18 @@ from vakt.rules import operator, logic, list
 
 
 # Globals
-store = None
+LINE_LEN = 80
 overall_policies_created = 0
 similar_regexp_policies_created = 0
-LINE_LEN = 80
 
 
 # Define and parse possible arguments
 parser = argparse.ArgumentParser(description='Run vakt benchmark.')
-parser.add_argument('policies_number', nargs='?', type=int, default=100000,
-                    help='number of policies to create in DB (default: %(default)s)')
-parser.add_argument('--storage', choices=('mongo', 'memory'), default='memory',
+parser.add_argument('-n', '--number', dest='policies_number', nargs='?', type=int, default=100000,
+                    help='number of policies to create in DB (default: %(default)d)')
+parser.add_argument('-d', '--storage', choices=('mongo', 'memory'), default='memory',
                     help='type of storage (default: %(default)s)')
-parser.add_argument('--checker', choices=('regex', 'rules', 'exact', 'fuzzy', 'mixed'), default='regex',
+parser.add_argument('-c', '--checker', choices=('regex', 'rules', 'exact', 'fuzzy', 'mixed'), default='regex',
                     help='type of checker (default: %(default)s)')
 
 regex_group = parser.add_argument_group('regex policy related')
@@ -65,18 +65,30 @@ def gen_policy():
         return Policy(
             uid=gen_id(),
             effect=ALLOW_ACCESS if rand_true() else DENY_ACCESS,
-            subjects=(
+            subjects=[
                 {
-                    'name': logic.And(operator.NotEq(rand_string()), operator.NotEq(rand_string())),
-                    'stars': operator.Greater(random.randint(0, 102002))
+                    'name': logic.Or(operator.Eq('Nicky'), operator.Eq('Nick')),
+                    'stars': logic.And(
+                        operator.Greater(random.randint(-1000, -1)),
+                        operator.Less(random.randint(1000, 3000)),
+                        operator.Eq(900)
+                    ),
+                    'status': operator.Eq('registered')
+                },
+            ],
+            resources=(
+                {
+                    'method': list.AnyInList(['get', 'post', 'delete']),
+                    'path': list.NotInList(['org/custom', 'vacations/pending', 'должность/повысить']),
+                    'id': operator.Eq(rand_string())
+                },
+                {
+                    'method': operator.Eq('violate'),
                 }
             ),
-            resources=(
-                {'method': list.AnyInList(['get', 'post', 'delete'])}
-            ),
             actions=(
-                {'val': operator.Eq(rand_string())},
-                {'values': list.InList([rand_string(), rand_string(), rand_string()])},
+                {'before': operator.Eq('foo')},
+                {'after': list.InList([rand_string(), rand_string(), rand_string()])},
             ),
             context={
                 'ip': CIDR('127.0.0.1'),
@@ -114,16 +126,16 @@ def get_checker():
 def get_inquiry():
     if ARGS.checker == 'rules':
         return Inquiry(
-            action={'val': rand_string()},
-            subject={'name': rand_string(), 'stars': 900},
-            resource={'method': 'put'},
+            subject={'name': 'Nick', 'stars': 900, 'status': 'registered'},
+            resource={'method': ['post', 'get'], 'path': '/acme/users', 'id': rand_string()},
+            action={'before': 'foo', 'after': rand_string()},
             context={'ip': '127.0.0.1'}
         )
     return Inquiry(action='get', subject='xo', resource='library:books:1234', context={'ip': '127.0.0.1'})
 
 
-def populate_storage():
-    global store, overall_policies_created
+def populate_storage(store):
+    global overall_policies_created
     for x in range(ARGS.policies_number):
         policy = gen_policy()
         store.add(policy)
@@ -161,15 +173,14 @@ def get_storage():
 
 if __name__ == '__main__':
     with get_storage() as st:
-        store = st
         print('=' * LINE_LEN)
-        print('Populating %s with Policies' % store.__class__.__name__)
-        print_generation(populate_storage, int(ARGS.policies_number / 100 * 1), LINE_LEN)
+        print('Populating %s with Policies' % st.__class__.__name__)
+        print_generation(partial(populate_storage, st), int(ARGS.policies_number / 100 * 1), LINE_LEN)
         print('START BENCHMARK!')
         start = timeit.default_timer()
         checker = get_checker()
         inq = get_inquiry()
-        allowed = Guard(store, checker).is_allowed(inquiry=inq)
+        allowed = Guard(st, checker).is_allowed(inquiry=inq)
         stop = timeit.default_timer()
         print('Number of unique Policies in DB: {:,}'.format(overall_policies_created))
         print('Among them Policies with the same regexp pattern: {:,}'.format(similar_regexp_policies_created))

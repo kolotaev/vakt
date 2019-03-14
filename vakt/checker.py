@@ -105,8 +105,8 @@ class RulesChecker(Checker):
     """
     def fits(self, policy, field, what):
         """Does Policy fit the given 'what' value by its 'field' property"""
-        where = getattr(policy, field, [])
-        for i in where:
+        where_list = getattr(policy, field, [])
+        for i in where_list:
             item_result = False
             if not isinstance(i, dict):
                 continue  # if not dict, skip it - we are not meant to handle it
@@ -115,7 +115,8 @@ class RulesChecker(Checker):
                     what_value = what[key]
                     item_result = rule.satisfied(what_value)
                 # at least one missing key in inquiry's data means no match for this item
-                except (KeyError, TypeError):
+                except (KeyError, TypeError) as e:
+                    # todo - add more specific handling
                     log.debug('Error matching Policy, because data has no key "%s" required by Policy' % key)
                     item_result = False
                 # broad exception for possible custom exceptions. Any exception -> no match

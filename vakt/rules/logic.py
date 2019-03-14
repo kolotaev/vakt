@@ -67,7 +67,7 @@ class And(CompositionRule):
     Rule that is satisfied when all the rules it's composed of are satisfied.
     For example: subject={'stars': And(Greater(50), Less(120)), 'name': Eq('Jimmy')}
     """
-    def satisfied(self, what, inquiry):
+    def satisfied(self, what, inquiry=None):
         answers = [x.satisfied(what, inquiry) for x in self.rules]
         return len(answers) > 0 and all(answers)
 
@@ -78,7 +78,7 @@ class Or(CompositionRule):
     Uses short-circuit evaluation.
     For example: subject={'stars': Or(Greater(50), Less(120)), 'name': Eq('Jimmy')}
     """
-    def satisfied(self, what, inquiry):
+    def satisfied(self, what, inquiry=None):
         for rule in self.rules:
             if rule.satisfied(what, inquiry):
                 return True

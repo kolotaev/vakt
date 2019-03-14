@@ -71,6 +71,19 @@ class RegexMatch(Rule):
         return bool(self.regex.match(str(what)))
 
 
+# todo: implement
+class StartsWith(Rule):
+    pass
+
+# todo: implement
+class EndsWith(Rule):
+    pass
+
+# todo: implement
+class Contains(Rule):
+    pass
+
+
 # Classes marked for removal in next releases
 class StringEqualRule(Equal):
     def __init__(self, *args, **kwargs):
