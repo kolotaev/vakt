@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - [Rules] List-based `Rules`: (InList, NotInList, AllInList, AllNotInList, AnyInList, AnyNotInList) in `vakt.rules.list`.
 - [Rules] Comparison operator `Rules`:(Eq, NotEq, Greater, Less, GreaterOrEqual, LessOrEqual) in `vakt.rules.operator`.
 - [Rules] Logic-related operator `Rules`:(IsTrue, IsFalse, Not, And, Or, Any, Neither) in `vakt.rules.logic`.
+- [Rules] Substring-related `Rules`:(StartsWith, EndsWith, Contains) in `vakt.rules.string`.
 - [Policy] Policy now checks field type on it's creation or setting.
 - [Checker] New `RulesChecker` based on definition of attributes via dictionaries w/ various Rules.
 

@@ -6,6 +6,7 @@ It may be subject, object, etc.
 import re
 import logging
 import warnings
+from abc import ABCMeta
 
 from ..rules.base import Rule
 
@@ -71,17 +72,48 @@ class RegexMatch(Rule):
         return bool(self.regex.match(str(what)))
 
 
-# todo: implement
-class StartsWith(Rule):
-    pass
+class SubstringRule(Rule, metaclass=ABCMeta):
+    """
+    Rule that is a base class for different substring-related rules.
+    """
+    def __init__(self, val):
+        if not isinstance(val, str):
+            log.error('%s creation. Initial property should be a string', type(self).__name__)
+            raise TypeError('Initial property should be a string')
+        self.val = val
 
-# todo: implement
-class EndsWith(Rule):
-    pass
 
-# todo: implement
-class Contains(Rule):
-    pass
+class StartsWith(SubstringRule):
+    """
+    Rule that is satisfied when given string starts with initially provided substring.
+    For example: context={'file': StartsWith('Route-')}
+    """
+    def satisfied(self, what, inquiry=None):
+        if isinstance(what, str):
+            return what.startswith(self.val)
+        return False
+
+
+class EndsWith(SubstringRule):
+    """
+    Rule that is satisfied when given string ends with initially provided substring.
+    For example: context={'file': EndsWith('.txt')}
+    """
+    def satisfied(self, what, inquiry=None):
+        if isinstance(what, str):
+            return what.endswith(self.val)
+        return False
+
+
+class Contains(SubstringRule):
+    """
+    Rule that is satisfied when given string contains initially provided substring.
+    For example: context={'file': Contains('sun')}
+    """
+    def satisfied(self, what, inquiry=None):
+        if isinstance(what, str):
+            return self.val in what
+        return False
 
 
 # Classes marked for removal in next releases
