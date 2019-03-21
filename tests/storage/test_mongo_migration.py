@@ -7,7 +7,6 @@ import pytest
 from vakt.storage.mongo import *
 from vakt.rules.base import Rule
 from vakt.guard import Inquiry, Guard
-from vakt.checker import MixedChecker
 from .test_mongo import DB_NAME, COLLECTION, create_client
 
 
@@ -167,7 +166,7 @@ class TestMigration1x1x0To1x1x1:
             actual = json.dumps(new_doc, sort_keys=True).replace("\n", '').replace(' ', '')
             assert expected == actual
         # test full guard allowance run
-        g = Guard(migration.storage, MixedChecker(RegexChecker()))
+        g = Guard(migration.storage, RegexChecker())
         inq = Inquiry(action='foo', resource='bar', subject='Max', context={'val': 'foo', 'num': '123'})
         assert g.is_allowed(inq)
 

@@ -12,7 +12,7 @@ import jsonpickle.tags
 from ..storage.abc import Storage, Migration
 from ..exceptions import PolicyExistsError, UnknownCheckerType, Irreversible
 from ..policy import Policy
-from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker, MixedChecker
+from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
 from .. import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 
@@ -85,7 +85,7 @@ class MongoStorage(Storage):
             return {'type': TYPE_STRING_BASED}
         elif isinstance(checker, RulesChecker):
             return {'type': TYPE_RULE_BASED}
-        elif isinstance(checker, MixedChecker) or not checker:  # opt to MixedChecker as default.
+        elif not checker:
             return {}
         else:
             log.error('Provided Checker type is not supported.')

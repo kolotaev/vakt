@@ -168,15 +168,10 @@ def test_pretty_print():
     (Policy(1, actions=['<foo.bar>'], resources=['asdf']), TYPE_STRING_BASED),
     (Policy(1, actions=['<foo.bar>'], resources=['asdf'], subjects=['<qwerty>']), TYPE_STRING_BASED),
     (Policy(1, actions=['<foo.bar>'], resources=['asdf'], subjects=['<qwerty>'], context={}), TYPE_STRING_BASED),
+    (Policy(1, actions=['books:<foo.bar>'], resources=['asdf'], subjects=['<qwerty>'], context={}), TYPE_STRING_BASED),
     (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}]), TYPE_RULE_BASED),
-    (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}, '<.*>']), TYPE_RULE_BASED),
-    (Policy(1, resources=[{'ip': CIDR('127.0.0.1')}, '<.*>']), TYPE_RULE_BASED),
-    (Policy(1, subjects=[{'ip': CIDR('127.0.0.1')}, '<.*>']), TYPE_RULE_BASED),
     (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}, {'ip': CIDR('10.12.35.88')}]), TYPE_RULE_BASED),
-    (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}], resources=['asdf']), TYPE_RULE_BASED),
     (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}], resources=[{'ip': CIDR('127.0.0.1')}]), TYPE_RULE_BASED),
-    (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}],
-            resources=[{'ip': CIDR('127.0.0.1')}], subjects=['<qwerty>']), TYPE_RULE_BASED),
     (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}],
             resources=[{'ip': CIDR('127.0.0.1')}], subjects=[{'ip': CIDR('0.0.0.0')}]), TYPE_RULE_BASED)
 ])
@@ -184,17 +179,35 @@ def test_policy_type_on_creation(policy, policy_type):
     assert policy_type == policy.type
 
 
+@pytest.mark.parametrize('policy_data', [
+    {'uid': 1, 'actions': [{'ip': CIDR('127.0.0.1')}, '<.*>']},
+    {'uid': 1, 'resources': [{'ip': CIDR('127.0.0.1')}, '<.*>']},
+    {'uid': 1, 'subjects': [{'ip': CIDR('127.0.0.1')}, '<.*>']},
+    {'uid': 1, 'subjects': [{'ip': CIDR('127.0.0.1')}, '<.*>'], 'resources': ['asdf']},
+    {'uid': 1, 'subjects': [{'ip': CIDR('127.0.0.1')}], 'resources': ['<asdf>']},
+    {'uid': 1, 'subjects': [{'ip': CIDR('127.0.0.1')}], 'actions': ['foo']},
+    # (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}], resources=['asdf']), TYPE_RULE_BASED),
+    # (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}],
+    #     resources=[{'ip': CIDR('127.0.0.1')}], subjects=['<qwerty>']), TYPE_RULE_BASED),
+])
+def test_policy_raises_exception_if_mixed_elements(policy_data):
+    with pytest.raises(PolicyCreationError):
+        Policy(**policy_data)
+
+
 def test_policy_type_on_attribute_change():
     p = Policy(1, actions=['<foo.bar>'], resources=['asdf'], subjects=['<qwerty>'])
     assert TYPE_STRING_BASED == p.type
     p.effect = ALLOW_ACCESS
     assert TYPE_STRING_BASED == p.type
-    p.actions = [{'ip': CIDR('0.0.0.0')}]
-    assert TYPE_RULE_BASED == p.type
-    p.subjects = [{'ip': CIDR('0.0.0.0')}]
-    assert TYPE_RULE_BASED == p.type
+    with pytest.raises(PolicyCreationError):
+        p.actions = [{'ip': CIDR('0.0.0.0')}]
+    assert TYPE_STRING_BASED == p.type
+    with pytest.raises(PolicyCreationError):
+        p.subjects = [{'ip': CIDR('0.0.0.0')}]
+    assert TYPE_STRING_BASED == p.type
     p.actions = ['<.*>']
-    assert TYPE_RULE_BASED == p.type
+    assert TYPE_STRING_BASED == p.type
     p.subjects = ['<.*>']
     assert TYPE_STRING_BASED == p.type
     p.type = TYPE_RULE_BASED  # explicit assign doesn't help

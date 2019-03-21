@@ -9,7 +9,6 @@ All notable changes to this project will be documented in this file.
 - [Rules] Logic-related operator `Rules`:(IsTrue, IsFalse, Not, And, Or, Any, Neither) in `vakt.rules.logic`.
 - [Policy] Policy now checks field type on it's creation or setting.
 - [Checker] New `RulesChecker` based on definition of attributes via dictionaries w/ various Rules.
-- [Checker] New `MixedChecker` that performs checks based on its comprising Checkers.
 
 ### Removed
 - Drop Python 3.3 support. Minimal Python version is 3.4 now.

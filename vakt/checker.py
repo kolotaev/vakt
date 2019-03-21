@@ -130,28 +130,3 @@ class RulesChecker(Checker):
             if item_result:
                 return True
         return False
-
-
-class MixedChecker(Checker):
-    """
-    Checker that uses other Checkers that it's comprised of.
-    Checks are performed in the order in which the Checkers were added to MixedChecker
-    """
-    def __init__(self, *checkers):
-        if len(checkers) == 0:
-            raise TypeError('Mixed Checker must be comprised of at least one Checker')
-        for checker in checkers:
-            if not isinstance(checker, Checker):
-                raise TypeError('Mixed Checker can only be comprised of other Checkers, but %s given' % type(checker))
-        self.checkers = checkers
-
-    def fits(self, policy, field, what):
-        for checker in self.checkers:
-            try:
-                result = checker.fits(policy, field, what)
-            # Use broad exception to prevent unknown exceptions in custom checkers
-            except Exception:
-                result = False
-            if result:
-                return True
-        return False

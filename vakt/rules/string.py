@@ -58,7 +58,7 @@ class RegexMatch(Rule):
     """
     Rule that is satisfied when given data matches the provided regular expression.
     Note, that you should provide syntactically valid regular-expression string.
-    For example: context={'file': PairsEqual(r'\.(rb|sh|py|ex)$')}
+    For example: context={'file': RegexMatch(r'\.(rb|sh|py|ex)$')}
     """
     def __init__(self, pattern):
         try:

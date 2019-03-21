@@ -115,28 +115,16 @@ from vakt.rules.operator import *
         False
     ),
     (
-        Policy(8, subjects=('baz', {'name': Eq('Max')}, '<bar.*>')),
+        Policy(8, subjects=[{'name': Eq('Max')}]),
         'subjects',
         {'name': 'Jimmy'},
         False
     ),
     (
-        Policy(8.1, subjects=('baz', {'name': Eq('Max')}, '<bar.*>')),
+        Policy(8.1, subjects=({'name': Eq('Max')},)),
         'subjects',
         {'name': 'Max'},
         True
-    ),
-    (
-        Policy(9, subjects=('baz', {'name': Eq('Max')}, '<bar.*>')),
-        'subjects',
-        'baz',
-        False
-    ),
-    (
-        Policy(9.1, subjects=('baz', {'name': Eq('Max')}, '<bar.*>')),
-        'subjects',
-        'foo',
-        False
     ),
 ])
 def test_fits(policy, field, what, result):

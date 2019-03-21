@@ -4,6 +4,7 @@ Namespace for a basic Policy class.
 
 import logging
 import warnings
+import copy
 
 from .effects import ALLOW_ACCESS, DENY_ACCESS
 from .exceptions import PolicyCreationError
@@ -19,7 +20,7 @@ class Policy(JsonSerializer, PrettyPrint):
     over some resources under a set of context restrictions.
     """
 
-    # Fields that affect Policy definition and further logic.
+    # Fields that affect Policy definition and further logic for `fit`.
     _definition_fields = ['subjects', 'resources', 'actions']
 
     def __init__(self, uid, subjects=(), effect=DENY_ACCESS, resources=(),
@@ -66,37 +67,54 @@ class Policy(JsonSerializer, PrettyPrint):
 
     @property
     def start_tag(self):
-        """Policy expression start tag"""
+        """
+        Policy expression start tag.
+        Used for policies defined with regexp.
+        """
         return '<'
 
     @property
     def end_tag(self):
-        """Policy expression end tag"""
+        """
+        Policy expression end tag.
+        Used for policies defined with regexp.
+        """
         return '>'
 
     def __setattr__(self, name, value):
+        self._check_field_type(name, value)
+        # Always calculate type. Even if type is set explicitly.
+        calculated_type = self._calculate_type(name, value)
         object.__setattr__(self, name, value)
-        self._check_fields_type()
-        # always calculate type. Even if type is set explicitly. Dict assign eliminates recursion
-        self.__dict__['type'] = self._calculate_type()
+        # Dict assign eliminates recursion
+        self.__dict__['type'] = calculated_type
 
-    def _calculate_type(self):
-        for elements in [getattr(self, f, ()) for f in self._definition_fields]:
-            if all([isinstance(e, dict) for e in elements]):
-                return TYPE_RULE_BASED
-            # elif all([isinstance(e, str) for e in elements]):
-        return TYPE_STRING_BASED
+    def _calculate_type(self, new_element_name, new_element_value):
+        all_elements = dict_elements = str_elements = 0
+        self_copy = copy.copy(self)
+        self_copy.__dict__[new_element_name] = new_element_value
+        for elements in [getattr(self_copy, f, ()) for f in self._definition_fields]:
+            for e in elements:
+                all_elements += 1
+                if isinstance(e, dict):
+                    dict_elements += 1
+                elif isinstance(e, str):
+                    str_elements += 1
+        if all_elements == str_elements or all_elements == 0:
+            return TYPE_STRING_BASED
+        if all_elements == dict_elements:
+            return TYPE_RULE_BASED
+        raise PolicyCreationError(
+            'Policy elements should all be either dict (for rule-based) or string (for string-based)'
+        )
 
-    def _check_fields_type(self):
+    def _check_field_type(self, name, value):
         """Checks type of a field that defines Policy"""
-        for field_name in self._definition_fields:
-            if hasattr(self, field_name):
-                for e in getattr(self, field_name):
-                    if not isinstance(e, (str, dict)):
-                        raise PolicyCreationError(
-                            'Field "%s" element must be of `str` or `dict` type. But given: %s' % (field_name, e)
-                        )
-        if hasattr(self, 'context') and not isinstance(self.context, dict):
+        if name in self._definition_fields and not all(map(lambda x: isinstance(x, (str, dict)), value)):
+            raise PolicyCreationError(
+                'Field "%s" element must be of `str` or `dict` type. But given: %s' % (name, value)
+            )
+        if name == 'context' and not isinstance(value, dict):
             raise PolicyCreationError('Error creating Policy. Context must be a dictionary')
 
     def _data(self):
