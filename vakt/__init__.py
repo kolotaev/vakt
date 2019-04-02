@@ -23,4 +23,5 @@ TYPE_RULE_BASED = 2
 ################
 
 from .__version__ import __version__
+from .__version__ import version_info
 from . import TYPE_STRING_BASED, TYPE_RULE_BASED

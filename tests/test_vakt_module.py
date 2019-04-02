@@ -7,4 +7,8 @@ def test_types():
 
 
 def test_version():
-    assert '1.1.0' == vakt.__version__
+    assert '1.2.0' == vakt.__version__
+
+
+def test_version_info():
+    assert (1, 2, 0) == vakt.version_info()

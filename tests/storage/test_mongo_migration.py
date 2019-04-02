@@ -7,6 +7,7 @@ import pytest
 from vakt.storage.mongo import *
 from vakt.rules.base import Rule
 from vakt.guard import Inquiry, Guard
+from vakt import version_info
 from .test_mongo import DB_NAME, COLLECTION, create_client
 
 
@@ -56,6 +57,8 @@ class Simple(Rule):   # pragma: no cover
 
 
 @pytest.mark.integration
+@pytest.mark.skipif(version_info() >= (1, 2, 0),
+                    reason='Version >= 1.2 introduced Policy types')
 class TestMigration1x1x0To1x1x1:
     class MockLoggingHandler(logging.Handler):
         def __init__(self, *args, **kwargs):
