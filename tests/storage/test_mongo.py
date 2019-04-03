@@ -1,6 +1,8 @@
 import uuid
 import random
 import types
+import operator
+import unittest
 
 import pytest
 from pymongo import MongoClient
@@ -13,7 +15,7 @@ from vakt.policy import Policy
 from vakt.rules.string import Equal
 from vakt.exceptions import PolicyExistsError, UnknownCheckerType
 from vakt.guard import Inquiry, Guard
-from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker
+from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
 
 
 MONGO_HOST = '127.0.0.1'
@@ -247,6 +249,25 @@ class TestMongoStorage:
         assert reference_answer == Guard(st, RegexChecker()).is_allowed(inquiry), \
             'Mongo storage should give the same answers as reference'
 
+    def test_find_for_inquiry_with_rules_checker(self, st):
+        assertions = unittest.TestCase('__init__')
+        st.add(Policy(1, subjects=[{'name': Equal('Max')}], actions=[{'foo': Equal('bar')}]))
+        st.add(Policy(2, subjects=[{'name': Equal('Max')}], actions=[{'foo': Equal('bar2')}]))
+        st.add(Policy(3, subjects=['sam', 'nina']))
+        st.add(Policy(4, actions=[r'<\d+>'], effect=ALLOW_ACCESS, resources=[r'<\w{1,3}>'], subjects=[r'<\w{2}-\d+>']))
+        st.add(Policy(5, subjects=[{'name': Equal('Jim')}], actions=[{'foo': Equal('bar3')}]))
+        inquiry = Inquiry(subject={'name': 'max'}, action='get', resource='books')
+        found = st.find_for_inquiry(inquiry, RulesChecker())
+        found = list(found)
+        assert 3 == len(found)
+        assertions.assertListEqual([1, 2, 5], list(map(operator.attrgetter('uid'), found)))
+
+    def test_find_for_inquiry_with_unknown_checker(self, st):
+        st.add(Policy('1'))
+        inquiry = Inquiry(subject='sam', action='get', resource='books')
+        with pytest.raises(UnknownCheckerType):
+            list(st.find_for_inquiry(inquiry, Inquiry()))
+
     def test_find_for_inquiry_returns_generator(self, st):
         st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
         st.add(Policy('2', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
@@ -257,12 +278,6 @@ class TestMongoStorage:
         for p in found:
             l.append(p.uid)
         assert 2 == len(l)
-
-    def test_find_for_inquiry_with_unknown_checker(self, st):
-        st.add(Policy('1'))
-        inquiry = Inquiry(subject='sam', action='get', resource='books')
-        with pytest.raises(UnknownCheckerType):
-            list(st.find_for_inquiry(inquiry, Inquiry()))
 
     def test_update(self, st):
         id = str(uuid.uuid4())

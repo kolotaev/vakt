@@ -26,6 +26,7 @@ def test_substring_rule_classes_constructor_fails():
     ('тест', 'нет', False),
     ('тест', 'тест2', True),
     ('', '', True),
+    ('456', ['456'], False),
 ])
 def test_string_starts_with_satisfied(arg, against, result):
     c = StartsWith(arg)
@@ -44,6 +45,7 @@ def test_string_starts_with_satisfied(arg, against, result):
     ('тест', 'нет', False),
     ('тест', '2тест', True),
     ('', '', True),
+    ('456', 456, False),
 ])
 def test_string_ends_with_satisfied(arg, against, result):
     c = EndsWith(arg)
@@ -64,6 +66,7 @@ def test_string_ends_with_satisfied(arg, against, result):
     ('тест', 'нет', False),
     ('тест', '2тест7', True),
     ('', '', True),
+    ('456', 456, False),
 ])
 def test_string_contains_satisfied(arg, against, result):
     c = Contains(arg)
