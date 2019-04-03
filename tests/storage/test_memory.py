@@ -73,6 +73,7 @@ def test_find_for_inquiry(st):
     st.add(Policy('2', subjects=['sam', 'nina']))
     inquiry = Inquiry(subject='sam', action='get', resource='books')
     found = st.find_for_inquiry(inquiry)
+    found = list(found)
     assert 2 == len(found)
     assert ['max', 'bob'] == found[0].subjects or ['max', 'bob'] == found[1].subjects
 

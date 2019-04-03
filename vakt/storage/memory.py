@@ -42,7 +42,7 @@ class MemoryStorage(Storage):
 
     def find_for_inquiry(self, inquiry, checker=None):
         with self.lock:
-            return list(self.policies.values())
+            return self.policies.values()
 
     def update(self, policy):
         self.policies[policy.uid] = policy
