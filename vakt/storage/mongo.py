@@ -170,7 +170,7 @@ class Migration0To1x1x0(Migration):
             self.storage.collection.drop_index(self.index_name(field))
 
 
-class Migration1x1x0To1x1x1(Migration):
+class Migration1x1x0To1x1x1(Migration):  # pragma: no cover
     """
     Migration between versions 1.1.0 and 1.1.1
     """

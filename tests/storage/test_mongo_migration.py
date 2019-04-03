@@ -59,7 +59,7 @@ class Simple(Rule):   # pragma: no cover
 @pytest.mark.integration
 @pytest.mark.skipif(version_info() >= (1, 2, 0),
                     reason='Version >= 1.2 introduced Policy types')
-class TestMigration1x1x0To1x1x1:
+class TestMigration1x1x0To1x1x1:  # pragma: no cover
     class MockLoggingHandler(logging.Handler):
         def __init__(self, *args, **kwargs):
             self.messages = {}
