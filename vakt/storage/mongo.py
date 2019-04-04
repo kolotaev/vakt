@@ -12,6 +12,7 @@ import jsonpickle.tags
 from ..storage.abc import Storage, Migration
 from ..exceptions import PolicyExistsError, UnknownCheckerType, Irreversible
 from ..policy import Policy
+from ..rules.base import Rule
 from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
 from .. import TYPE_STRING_BASED, TYPE_RULE_BASED
 
@@ -209,7 +210,7 @@ class Migration1x1x0To1x1x1(Migration):  # pragma: no cover
                 if not rule_type.startswith('vakt.rules.'):
                     for value in rule_contents.values():
                         # if rule has non-primitive data as its contents - we can't revert it to 1.1.0
-                        if isinstance(value, dict) and jsonpickle.tags.RESERVED.intersection(value.keys()):
+                        if isinstance(value, (dict, Rule)) and jsonpickle.tags.RESERVED.intersection(value.keys()):
                             raise Irreversible('Custom rule class contains non-primitive data %s' % value)
                 # vakt's own RegexMatchRule couldn't be stored in mongo because is has non-primitive data,
                 # so it's impossible to put it to storage if we revert time back to 1.1.0

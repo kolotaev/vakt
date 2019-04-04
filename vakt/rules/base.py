@@ -16,7 +16,7 @@ class Rule(JsonSerializer, PrettyPrint, metaclass=ABCMeta):
     """Basic Rule"""
 
     @abstractmethod
-    def satisfied(self, what, inquiry):
+    def satisfied(self, what, inquiry=None):
         """Is rule satisfied by the inquiry"""
         pass
 

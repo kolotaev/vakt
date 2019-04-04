@@ -5,6 +5,9 @@ from vakt.effects import ALLOW_ACCESS, DENY_ACCESS
 from vakt.exceptions import PolicyCreationError
 from vakt.rules.net import CIDR
 from vakt.rules.string import Equal
+from vakt.rules.operator import Eq, Greater
+from vakt.rules.logic import And, Any
+from vakt.rules.list import AnyInList
 from vakt import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 
@@ -116,6 +119,18 @@ def test_json_roundtrip_of_a_policy_with_context():
         assert not hasattr(p1, 'rules')
 
 
+@pytest.mark.parametrize('policy', [
+    Policy(1, subjects=[{'name': Eq('Max'), 'rate': Greater(90)}], actions=[Eq('get'), Eq('post')], resources=[Any()]),
+    Policy(2, subjects=[{'login': Eq('sally')}], actions=[Eq('get'), Eq('post')], context={'ip': Eq('127.0.0.1')}),
+    Policy(3, subjects=[{'login': AnyInList(['sally', 'patric'])}], actions=[And(Eq('get'), Eq('post'))]),
+    Policy(3, subjects=[{'login': AnyInList(['sally', 'patric'])}], actions=[And(Eq('get'), Eq('post'))]),
+])
+def test_json_roundtrip_of_a_rules_based_policy(policy):
+    pj = policy.to_json()
+    p2 = Policy.from_json(pj)
+    assert policy.to_json() == p2.to_json()
+
+
 @pytest.mark.parametrize('data, exception, msg', [
     ('{}', PolicyCreationError, "'uid'"),
     ('{"uid":}', ValueError, ''),
@@ -170,10 +185,14 @@ def test_pretty_print():
     (Policy(1, actions=['<foo.bar>'], resources=['asdf'], subjects=['<qwerty>'], context={}), TYPE_STRING_BASED),
     (Policy(1, actions=['books:<foo.bar>'], resources=['asdf'], subjects=['<qwerty>'], context={}), TYPE_STRING_BASED),
     (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}]), TYPE_RULE_BASED),
+    (Policy(1, actions=[Eq('get')]), TYPE_RULE_BASED),
+    (Policy(1, actions=[Eq('get'), {'read': Eq(True)}]), TYPE_RULE_BASED),
     (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}, {'ip': CIDR('10.12.35.88')}]), TYPE_RULE_BASED),
     (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}], resources=[{'ip': CIDR('127.0.0.1')}]), TYPE_RULE_BASED),
     (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}],
-            resources=[{'ip': CIDR('127.0.0.1')}], subjects=[{'ip': CIDR('0.0.0.0')}]), TYPE_RULE_BASED)
+            resources=[{'ip': CIDR('127.0.0.1')}], subjects=[{'ip': CIDR('0.0.0.0')}]), TYPE_RULE_BASED),
+    (Policy(1, subjects=[{'name': Eq('Max'), 'rate': Greater(90)}], actions=[Eq('get'), Eq('post')],
+            resources=[{'ip': CIDR('127.0.0.1')}]), TYPE_RULE_BASED)
 ])
 def test_policy_type_on_creation(policy, policy_type):
     assert policy_type == policy.type
@@ -186,9 +205,7 @@ def test_policy_type_on_creation(policy, policy_type):
     {'uid': 1, 'subjects': [{'ip': CIDR('127.0.0.1')}, '<.*>'], 'resources': ['asdf']},
     {'uid': 1, 'subjects': [{'ip': CIDR('127.0.0.1')}], 'resources': ['<asdf>']},
     {'uid': 1, 'subjects': [{'ip': CIDR('127.0.0.1')}], 'actions': ['foo']},
-    # (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}], resources=['asdf']), TYPE_RULE_BASED),
-    # (Policy(1, actions=[{'ip': CIDR('127.0.0.1')}],
-    #     resources=[{'ip': CIDR('127.0.0.1')}], subjects=['<qwerty>']), TYPE_RULE_BASED),
+    {'uid': 1, 'subjects': [Eq('Molly')], 'actions': ['foo']},
 ])
 def test_policy_raises_exception_if_mixed_elements(policy_data):
     with pytest.raises(PolicyCreationError):
@@ -205,6 +222,8 @@ def test_policy_type_on_attribute_change():
     assert TYPE_STRING_BASED == p.type
     with pytest.raises(PolicyCreationError):
         p.subjects = [{'ip': CIDR('0.0.0.0')}]
+    with pytest.raises(PolicyCreationError):
+        p.actions = [Any()]
     assert TYPE_STRING_BASED == p.type
     p.actions = ['<.*>']
     assert TYPE_STRING_BASED == p.type
@@ -215,12 +234,12 @@ def test_policy_type_on_attribute_change():
 
 
 @pytest.mark.parametrize('args, msg', [
-    ({'actions': (1, 2)}, 'Field "actions" element must be of `str` or `dict` type.'),
-    ({'actions': (1, 'abc')}, 'Field "actions" element must be of `str` or `dict` type.'),
-    ({'actions': ('2', 1)}, 'Field "actions" element must be of `str` or `dict` type.'),
-    ({'actions': ([3])}, 'Field "actions" element must be of `str` or `dict` type.'),
-    ({'actions': ([], [])}, 'Field "actions" element must be of `str` or `dict` type.'),
-    ({'subjects': (1, {})}, 'Field "subjects" element must be of `str` or `dict` type'),
+    ({'actions': (1, 2)}, 'Field "actions" element must be of `str`, `dict` or `Rule` type.'),
+    ({'actions': (1, 'abc')}, 'Field "actions" element must be of `str`, `dict` or `Rule` type.'),
+    ({'actions': ('2', 1)}, 'Field "actions" element must be of `str`, `dict` or `Rule` type.'),
+    ({'actions': ([3])}, 'Field "actions" element must be of `str`, `dict` or `Rule` type.'),
+    ({'actions': ([], [])}, 'Field "actions" element must be of `str`, `dict` or `Rule` type.'),
+    ({'subjects': (1, {})}, 'Field "subjects" element must be of `str`, `dict` or `Rule` type'),
     ({'context': ()}, 'Error creating Policy. Context must be a dictionary'),
     ({'context': 5}, 'Error creating Policy. Context must be a dictionary'),
     ({'context': 'data'}, 'Error creating Policy. Context must be a dictionary'),

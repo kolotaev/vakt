@@ -9,6 +9,7 @@ import copy
 from .effects import ALLOW_ACCESS, DENY_ACCESS
 from .exceptions import PolicyCreationError
 from .util import JsonSerializer, PrettyPrint
+from .rules.base import Rule
 from . import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 
@@ -90,29 +91,29 @@ class Policy(JsonSerializer, PrettyPrint):
         self.__dict__['type'] = calculated_type
 
     def _calculate_type(self, new_element_name, new_element_value):
-        all_elements = dict_elements = str_elements = 0
+        all_elements = rule_elements = str_elements = 0
         self_copy = copy.copy(self)
         self_copy.__dict__[new_element_name] = new_element_value
         for elements in [getattr(self_copy, f, ()) for f in self._definition_fields]:
             for e in elements:
                 all_elements += 1
-                if isinstance(e, dict):
-                    dict_elements += 1
+                if isinstance(e, (dict, Rule)):
+                    rule_elements += 1
                 elif isinstance(e, str):
                     str_elements += 1
         if all_elements == str_elements or all_elements == 0:
             return TYPE_STRING_BASED
-        if all_elements == dict_elements:
+        if all_elements == rule_elements:
             return TYPE_RULE_BASED
         raise PolicyCreationError(
-            'Policy elements should all be either dict (for rule-based) or string (for string-based)'
+            'Policy elements should all be either dict, Rule (for rule-based) or string (for string-based)'
         )
 
     def _check_field_type(self, name, value):
         """Checks type of a field that defines Policy"""
-        if name in self._definition_fields and not all(map(lambda x: isinstance(x, (str, dict)), value)):
+        if name in self._definition_fields and not all(map(lambda x: isinstance(x, (str, dict, Rule)), value)):
             raise PolicyCreationError(
-                'Field "%s" element must be of `str` or `dict` type. But given: %s' % (name, value)
+                'Field "%s" element must be of `str`, `dict` or `Rule` type. But given: %s' % (name, value)
             )
         if name == 'context' and not isinstance(value, dict):
             raise PolicyCreationError('Error creating Policy. Context must be a dictionary')

@@ -9,6 +9,7 @@ from abc import ABCMeta, abstractmethod
 
 from .parser import compile_regex
 from .exceptions import InvalidPatternError
+from .rules.base import Rule
 
 
 log = logging.getLogger(__name__)
@@ -108,25 +109,34 @@ class RulesChecker(Checker):
         where_list = getattr(policy, field, [])
         for i in where_list:
             item_result = False
-            if not isinstance(i, dict):
-                continue  # if not dict, skip it - we are not meant to handle it
-            for key, rule in i.items():
-                try:
-                    what_value = what[key]
-                    item_result = rule.satisfied(what_value)
-                # at least one missing key in inquiry's data means no match for this item
-                except (KeyError, TypeError) as e:
-                    # todo - add more specific handling
-                    log.debug('Error matching Policy, because data has no key "%s" required by Policy' % key)
-                    item_result = False
-                # broad exception for possible custom exceptions. Any exception -> no match
-                except Exception as e:
-                    log.exception('Error matching Policy, because of raised exception', e)
-                    item_result = False
-                # at least one item's key didn't satisfy -> fail fast: policy doesn't fit anyway
-                if not item_result:
-                    break
+            # if not dict or Rule, skip it - we are not meant to handle it
+            if isinstance(i, Rule):
+                item_result = self._check_satisfaction(i, what_value=what)
+            elif isinstance(i, dict):
+                for key, rule in i.items():
+                    if not isinstance(what, dict):
+                        log.debug('Error matching Policy, because data in Inquiry is not `dict`')
+                        item_result = False
+                    # at least one missing key in inquiry's data means no match for this item
+                    elif key not in what:
+                        log.debug('Error matching Policy, because data has no key "%s" required by Policy' % key)
+                        item_result = False
+                    else:
+                        what_value = what[key]
+                        item_result = self._check_satisfaction(rule, what_value=what_value)
+                    # at least one item's key didn't satisfy -> fail fast: policy doesn't fit anyway
+                    if not item_result:
+                        break
             # If at least one item fits -> policy fits for this field
             if item_result:
                 return True
         return False
+
+    @staticmethod
+    def _check_satisfaction(rule, what_value):
+        try:
+            return rule.satisfied(what_value)
+        # broad exception for possible custom exceptions. Any exception -> no match
+        except Exception as e:
+            log.exception('Error matching Policy, because of raised exception', e)
+            return False
