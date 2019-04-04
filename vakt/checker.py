@@ -9,7 +9,6 @@ from abc import ABCMeta, abstractmethod
 
 from .parser import compile_regex
 from .exceptions import InvalidPatternError
-from .rules.base import Rule
 
 
 log = logging.getLogger(__name__)
@@ -107,14 +106,14 @@ class RulesChecker(Checker):
     def fits(self, policy, field, what):
         """Does Policy fit the given 'what' value by its 'field' property"""
         where_list = getattr(policy, field, [])
+        is_what_dict = isinstance(what, dict)
         for i in where_list:
             item_result = False
-            # if not dict or Rule, skip it - we are not meant to handle it
-            if isinstance(i, Rule):
-                item_result = self._check_satisfaction(i, what_value=what)
-            elif isinstance(i, dict):
+            # If not dict or Rule, skip it - we are not meant to handle it.
+            # Do not use isinstance for higher execution speed
+            if type(i) == dict:
                 for key, rule in i.items():
-                    if not isinstance(what, dict):
+                    if not is_what_dict:
                         log.debug('Error matching Policy, because data in Inquiry is not `dict`')
                         item_result = False
                     # at least one missing key in inquiry's data means no match for this item
@@ -123,17 +122,19 @@ class RulesChecker(Checker):
                         item_result = False
                     else:
                         what_value = what[key]
-                        item_result = self._check_satisfaction(rule, what_value=what_value)
+                        item_result = self._check_satisfied(rule, what_value=what_value)
                     # at least one item's key didn't satisfy -> fail fast: policy doesn't fit anyway
                     if not item_result:
                         break
+            elif callable(getattr(i, 'satisfied', None)):
+                item_result = self._check_satisfied(i, what_value=what)
             # If at least one item fits -> policy fits for this field
             if item_result:
                 return True
         return False
 
     @staticmethod
-    def _check_satisfaction(rule, what_value):
+    def _check_satisfied(rule, what_value):
         try:
             return rule.satisfied(what_value)
         # broad exception for possible custom exceptions. Any exception -> no match
