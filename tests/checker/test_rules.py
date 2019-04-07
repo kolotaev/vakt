@@ -115,6 +115,12 @@ from vakt.rules.operator import *
         False
     ),
     (
+        Policy(7.4, subjects=({}, {})),
+        'subjects',
+        {'name': 'Bob', 'stars': 890},
+        False
+    ),
+    (
         Policy(8, subjects=[{'name': Eq('Max')}]),
         'subjects',
         {'name': 'Jimmy'},
@@ -125,6 +131,66 @@ from vakt.rules.operator import *
         'subjects',
         {'name': 'Max'},
         True
+    ),
+    (
+        Policy(9, subjects=[Eq('Max')]),
+        'subjects',
+        'Max',
+        True
+    ),
+    (
+        Policy(9.1, subjects=[Eq('Max'), Eq('Sally')]),
+        'subjects',
+        'Sally',
+        True
+    ),
+    (
+        Policy(9.2, subjects=[Eq('Max'), Eq('Sally'), Greater(50)]),
+        'subjects',
+        900,
+        True
+    ),
+    (
+        Policy(9.3, subjects=[Eq('Max'), Eq('Sally')]),
+        'subjects',
+        'Sam',
+        False
+    ),
+    (
+        Policy(10, subjects=[Eq('Max'), {'name': Eq('Sally')}]),
+        'subjects',
+        'Max',
+        True
+    ),
+    (
+        Policy(10.1, subjects=[Eq('Max'), {'name': Eq('Sally')}]),
+        'subjects',
+        'Bob',
+        False
+    ),
+    (
+        Policy(10.2, subjects=[Eq('Max'), {'name': Eq('Sally')}]),
+        'subjects',
+        {'name': 'Max'},
+        False
+    ),
+    (
+        Policy(10.3, subjects=[Eq('Max'), {'name': Eq('Sally')}]),
+        'subjects',
+        {'name': 'Sally'},
+        True
+    ),
+    (
+        Policy(10.4, subjects=[Eq('Max'), {'name': Eq('Sally')}]),
+        'subjects',
+        {'name': 'Bob'},
+        False
+    ),
+    (
+        Policy(10.5, subjects=[Eq('Max'), {'name': Eq('Sally')}]),
+        'subjects',
+        {'nick': 'Bob'},
+        False
     ),
 ])
 def test_fits(policy, field, what, result):

@@ -126,7 +126,7 @@ class RulesChecker(Checker):
                     # at least one item's key didn't satisfy -> fail fast: policy doesn't fit anyway
                     if not item_result:
                         break
-            elif callable(getattr(i, 'satisfied', None)):
+            elif callable(getattr(i, 'satisfied')):
                 item_result = self._check_satisfied(i, what_value=what)
             # If at least one item fits -> policy fits for this field
             if item_result:
