@@ -123,7 +123,8 @@ def test_json_roundtrip_of_a_policy_with_context():
     Policy(1, subjects=[{'name': Eq('Max'), 'rate': Greater(90)}], actions=[Eq('get'), Eq('post')], resources=[Any()]),
     Policy(2, subjects=[{'login': Eq('sally')}], actions=[Eq('get'), Eq('post')], context={'ip': Eq('127.0.0.1')}),
     Policy(3, subjects=[{'login': AnyInList(['sally', 'patric'])}], actions=[And(Eq('get'), Eq('post'))]),
-    Policy(3, subjects=[{'login': AnyInList(['sally', 'patric'])}], actions=[And(Eq('get'), Eq('post'))]),
+    Policy(4, subjects=[{'login': AnyInList(['sally', 'patric'])}], actions=[And(Eq('get'), Eq('post'))]),
+    Policy(5, actions=[Eq('get')]),
 ])
 def test_json_roundtrip_of_a_rules_based_policy(policy):
     pj = policy.to_json()
@@ -174,6 +175,15 @@ def test_pretty_print():
     assert "'resources': ()" in str(p)
     assert "'actions': ()" in str(p)
     assert "'context': {}" in str(p)
+    p = Policy('2', actions=[Eq('get'), Eq('post')])
+    assert "<class 'vakt.policy.Policy'>" in str(p)
+    assert "'uid': '2'" in str(p)
+    assert "'description': 'readme'" in str(p)
+    assert "'subjects': []" in str(p)
+    assert "'effect': 'deny'" in str(p)
+    assert "'resources': ()" in str(p)
+    assert "'actions': ()" in str(p)
+    assert "'context': {}" in str(p)
 
 
 @pytest.mark.parametrize('policy, policy_type', [
@@ -206,6 +216,7 @@ def test_policy_type_on_creation(policy, policy_type):
     {'uid': 1, 'subjects': [{'ip': CIDR('127.0.0.1')}], 'resources': ['<asdf>']},
     {'uid': 1, 'subjects': [{'ip': CIDR('127.0.0.1')}], 'actions': ['foo']},
     {'uid': 1, 'subjects': [Eq('Molly')], 'actions': ['foo']},
+    {'uid': 1, 'subjects': ['Jane'], 'actions': [Eq('run')]},
 ])
 def test_policy_raises_exception_if_mixed_elements(policy_data):
     with pytest.raises(PolicyCreationError):
@@ -231,6 +242,25 @@ def test_policy_type_on_attribute_change():
     assert TYPE_STRING_BASED == p.type
     p.type = TYPE_RULE_BASED  # explicit assign doesn't help
     assert TYPE_STRING_BASED == p.type
+    # testing the from the opposite direction
+    p = Policy(2, actions=[Any()], resources=[{'book': Eq('UX Manual')}], subjects=[Eq('Sally'), Eq('Bob')])
+    assert TYPE_RULE_BASED == p.type
+    p.effect = ALLOW_ACCESS
+    assert TYPE_RULE_BASED == p.type
+    with pytest.raises(PolicyCreationError):
+        p.actions = ['<foo.bar>']
+    assert TYPE_RULE_BASED == p.type
+    with pytest.raises(PolicyCreationError):
+        p.subjects = ['<foo.bar>', 'baz']
+    with pytest.raises(PolicyCreationError):
+        p.actions = ['baz<.*>']
+    assert TYPE_RULE_BASED == p.type
+    p.actions = [Any()]
+    assert TYPE_RULE_BASED == p.type
+    p.subjects = [Any()]
+    assert TYPE_RULE_BASED == p.type
+    p.type = TYPE_STRING_BASED  # explicit assign doesn't help
+    assert TYPE_RULE_BASED == p.type
 
 
 @pytest.mark.parametrize('args, msg', [

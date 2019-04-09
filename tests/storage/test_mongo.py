@@ -13,6 +13,8 @@ from vakt.storage.memory import MemoryStorage
 from vakt.effects import ALLOW_ACCESS
 from vakt.policy import Policy
 from vakt.rules.string import Equal
+from vakt.rules.logic import Any
+from vakt.rules.operator import Eq
 from vakt.exceptions import PolicyExistsError, UnknownCheckerType
 from vakt.guard import Inquiry, Guard
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
@@ -55,6 +57,14 @@ class TestMongoStorage:
         assert id == back.uid
         assert 'foo bar баз' == back.description
         assert isinstance(back.context['secret'], Equal)
+        st.add(Policy('2', actions=[Eq('get'), Eq('put')], subjects=[Any()], resources=[{'books': Eq('Harry')}]))
+        assert '2' == st.get('2').uid
+        assert 2 == len(st.get('2').actions)
+        assert 1 == len(st.get('2').subjects)
+        assert isinstance(st.get('2').subjects[0], Any)
+        assert 1 == len(st.get('2').resources)
+        assert isinstance(st.get('2').resources[0]['books'], Eq)
+        assert 'Harry' == st.get('2').resources[0]['books'].val
 
     def test_add_with_bson_object_id(self, st):
         id = str(ObjectId())
@@ -144,23 +154,28 @@ class TestMongoStorage:
             l.append(p.uid)
         assert 2 == len(l)
 
-    @pytest.mark.parametrize('checker', [
-        None,
-        RegexChecker(256),
+    @pytest.mark.parametrize('checker, expect_number', [
+        (None, 5),
+        (RegexChecker(), 3),
+        (RulesChecker(), 2),
+        (StringExactChecker(), 3),
+        (StringFuzzyChecker(), 3),
     ])
-    def test_find_for_inquiry_with_regex_or_none_checker_specified_return_all_existing_policies(self, st, checker):
+    def test_find_for_inquiry_returns_existing_policies(self, st, checker, expect_number):
         st.add(Policy('1', subjects=['max', 'bob']))
         st.add(Policy('2', subjects=['sam', 'foo']))
-        st.add(Policy('3', subjects=['bar']))
+        st.add(Policy('3', subjects=[{'stars': Eq(90)}, Eq('Max')]))
+        st.add(Policy('4', subjects=['bar']))
+        st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
         inquiry = Inquiry(subject='Jim', action='delete', resource='server')
         found = st.find_for_inquiry(inquiry, checker)
-        found = list(found)
-        assert 3 == len(found)
+        assert expect_number == len(list(found))
 
     def test_find_for_inquiry_with_exact_string_checker(self, st):
         st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['books', 'comics', 'magazines']))
         st.add(Policy('2', subjects=['maxim'], actions=['get'], resources=['books', 'comics', 'magazines']))
         st.add(Policy('3', subjects=['sam', 'nina']))
+        st.add(Policy('4', subjects=[Eq('sam'), Eq('nina')]))
         inquiry = Inquiry(subject='max', action='get', resource='books')
         found = st.find_for_inquiry(inquiry, StringExactChecker())
         found = list(found)
@@ -172,6 +187,7 @@ class TestMongoStorage:
         st.add(Policy('2', subjects=['maxim'], actions=['get'], resources=['books', 'foos']))
         st.add(Policy('3', subjects=['Max'], actions=['get'], resources=['books', 'comics']))
         st.add(Policy('4', subjects=['sam', 'nina']))
+        st.add(Policy('5', subjects=[Eq('sam'), Eq('nina')]))
         inquiry = Inquiry(subject='max', action='et', resource='oo')
         found = st.find_for_inquiry(inquiry, StringFuzzyChecker())
         found = list(found)
@@ -292,6 +308,13 @@ class TestMongoStorage:
         assert id == st.get(id).uid
         assert 'foo' == st.get(id).description
         assert ['a', 'b', 'c'] == st.get(id).actions
+        p = Policy(2, actions=[Any()], subjects=[Eq('max'), Eq('bob')])
+        st.add(p)
+        assert 2 == st.get(2).uid
+        p.actions = [Eq('get')]
+        st.update(p)
+        assert 1 == len(st.get(2).actions)
+        assert 'get' == st.get(2).actions[0].val
 
     def test_update_non_existing_does_not_create_anything(self, st):
         id = str(uuid.uuid4())

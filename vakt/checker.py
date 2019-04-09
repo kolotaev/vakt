@@ -38,6 +38,9 @@ class RegexChecker(Checker):
         """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
         for i in where:
+            # We are not meant to handle non-string values if they accidentally got here
+            if type(i) != str:
+                continue
             # check if 'where' item is not written in a policy-defined-regex syntax.
             if policy.start_tag not in i and policy.end_tag not in i:
                 if i != what:
@@ -64,6 +67,9 @@ class StringChecker(Checker):
         """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
         for item in where:
+            # We are not meant to handle non-string values if they accidentally got here
+            if type(item) != str:
+                continue
             if policy.start_tag == item[0] and policy.end_tag == item[-1]:
                 item = item[1:-1]
             if self.compare(what, item):
@@ -126,7 +132,7 @@ class RulesChecker(Checker):
                     # at least one item's key didn't satisfy -> fail fast: policy doesn't fit anyway
                     if not item_result:
                         break
-            elif callable(getattr(i, 'satisfied')):
+            elif callable(getattr(i, 'satisfied', '')):
                 item_result = self._check_satisfied(i, what_value=what)
             # If at least one item fits -> policy fits for this field
             if item_result:
