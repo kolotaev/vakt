@@ -131,30 +131,52 @@ See [this issue](https://jira.mongodb.org/browse/SERVER-11947).
 
 #### Migration
 
-Migration is a component that is useful from the perspective of the [Storage](#storage). It allows you to manage migrations.
+`vakt.migration` is a set of components that are useful from the perspective of the [Storage](#storage).
 It's recommended to favor it over manual actions on DB schema/data
 since it's aware of Vakt requirements to Policies data. But it's not mandatory, anyway.
+However it's up to a particular Storage to decide whether it needs migrations or not.
+It consists of 3 components:
+* `Migration`
+* `MigrationSet`
+* `Migrator`
+
+`Migration` allows you to describe data modifications between versions.
 Each storage can have a number of `Migration` classes to address different releases with the order of the migration
 specified in `order` property.
-It's up to a particular Storage to decide whether it needs migrations or not.
-Should be located inside particular storage module and implement `storage.abc.Migration`.
-Migration has 2 main methods (as you might guess). As well as 1 property:
+Should be located inside particular storage module and implement `vakt.storage.migration.Migration`.
+Migration has 2 main methods (as you might guess) and 1 property:
 - `up` - runs db "schema" upwards
 - `down` - runs db "schema" downwards (rolls back the actions of `up`)
 - `order` - tells the number of the current migration in a row
+
+`MigrationSet` is a component that represents a collection of Migrations for a Storage.
+You should define your own migration-set. It should be located inside particular storage module and implement
+`vakt.storage.migration.MigrationSet`. It has 3 methods that lest unimplemented:
+- `migrations` - should return all initialized Migration objects
+- `save_applied_number` - saves a number of a lst applied up migration in the Storage for later reference
+- `last_applied` - returns a number of a lst applied up migration from the Storage
+
+`Migrator` is an executor of a migrations. It can execute all migrations up or down, or execute a particular migration
+if `number` argument is provided.
 
 Example usage:
 
 ```python
 from pymongo import MongoClient
-from vakt.storage.mongo import MongoStorage, Migration0To1x1x0, Migration1x0x3To2
+from vakt.storage.mongo import MongoStorage, MongoMigrationSet
+from vakt.storage.migration import Migrator
 
 client = MongoClient('localhost', 27017)
 storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
 
-migrations = (Migration0To1x1x0(storage), Migration1x0x3To2(storage))
-for m in sorted(migrations, key=lambda x: x.order):
-  m.up()
+migrator = Migrator(MongoMigrationSet(storage))
+migrator.up()
+...
+migrator.down()
+...
+migrator.up(number=2)
+...
+migrator.down(number=2)
 ```
 
 **[Back to top](#documentation)**

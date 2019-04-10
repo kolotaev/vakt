@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 - [Rules] Substring-related `Rules`:(StartsWith, EndsWith, Contains) in `vakt.rules.string`.
 - [Policy] Policy now checks field type on it's creation or setting.
 - [Checker] New `RulesChecker` based on definition of attributes via dictionaries w/ various Rules.
+- [Storage] New `vakt.storage.migration.Migrator` class. Is used for migrations execution.
+- [Storage] New `vakt.storage.migration.MigrationSet` class. Represents a collection of migrations for a
+particular storage.
 
 ### Removed
 - Drop Python 3.3 support. Minimal Python version is 3.4 now.
@@ -25,6 +28,7 @@ If set to `True`, string case-insensitive comparison is performed.
 - [Policy] `Policy()` is now a factory-method, but not a class, that returns policies of different type based on 
 the representation of its attributes (string, dict, etc.).
 Those policies are subtypes of an abstract type `BasePolicy`.
+- [Storage] `vakt.storage.abc.Migration` abstract class was moved to `vakt.storage.migration.Migration` for scope consistency.
 
 ### Deprecated
 - [Rules] `Rules` from `string`, `net`, `inquiry` were renamed to their shorter equivalents.

@@ -34,27 +34,38 @@ class MigrationSet(metaclass=ABCMeta):
 
     @abstractmethod
     def migrations(self):
-        """ Get migrations. Subclasses should defile a list of migrations here """
+        """
+        Get migrations. Subclasses should defile a list of storage migrations here
+        """
         pass
 
     @abstractmethod
     def save_applied_number(self, number):
-        """ Save the last applied migration number """
+        """
+        Save the last applied up migration number
+        """
         pass
 
     @abstractmethod
     def last_applied(self):
-        """ Number of the last migration that was applied """
+        """
+        Number of the last migration that was applied up
+        """
         pass
 
     def _get_migrations(self, number=None, reverse=False):
-        """ Get all sorted migrations or a migration by number """
+        """
+        Get all sorted migrations or a migration by number
+        """
         if number is None:
             return sorted(self.migrations(), key=lambda x: x.order, reverse=reverse)
         else:
             return [m for m in self.migrations() if m.order == number]
 
     def up(self, number=None):
+        """
+        Runs migrations up. If number was specified, runs particular migration from the set
+        """
         for m in self._get_migrations(number, reverse=False):
             if m.order > self.last_applied():
                 log.info('Running migration #%i up', m.order)
@@ -63,6 +74,9 @@ class MigrationSet(metaclass=ABCMeta):
                 log.info('Completed migration #%i up. Last applied is now %i', m.order, m.order)
 
     def down(self, number=None):
+        """
+        Runs migrations down. If number was specified, runs particular migration from the set
+        """
         for m in self._get_migrations(number, reverse=True):
             if m.order <= self.last_applied():
                 log.info('Running migration #%i down', m.order)
@@ -73,7 +87,10 @@ class MigrationSet(metaclass=ABCMeta):
 
 
 class Migrator:
-    """ Migrations executor. Just pass a desired set of migrations to it and run up/down. """
+    """
+    Migrations executor. Just pass a desired set of migrations to it and run up/down.
+    If number was specified, runs particular migration
+    """
     def __init__(self, migration_set):
         self.migration_set = migration_set
 
