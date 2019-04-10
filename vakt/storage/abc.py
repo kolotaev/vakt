@@ -63,25 +63,3 @@ class Storage(metaclass=ABCMeta):
             raise ValueError("Limit can't be negative")
         if offset < 0:
             raise ValueError("Offset can't be negative")
-
-
-class Migration(metaclass=ABCMeta):
-    """
-    Manager for maintaining various migration actions of the storage: schema, indices, etc
-    """
-
-    @property
-    @abstractmethod
-    def order(self):
-        """ Number of this migration in the row of migrations """
-        pass
-
-    @abstractmethod
-    def up(self):
-        """ Migrate DB schema up """
-        pass
-
-    @abstractmethod
-    def down(self):
-        """ Migrate DB schema down """
-        pass
