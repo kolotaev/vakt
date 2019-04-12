@@ -22,8 +22,9 @@ from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, R
 
 MONGO_HOST = '127.0.0.1'
 MONGO_PORT = 27017
-DB_NAME = 'vakt_db'
-COLLECTION = 'vakt_policies'
+DB_NAME = 'vakt_db_test'
+COLLECTION = 'vakt_policies_test'
+MIGRATION_COLLECTION = 'vakt_policies_migration_ver_test'
 
 
 def create_client():

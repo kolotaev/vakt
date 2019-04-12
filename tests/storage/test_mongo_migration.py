@@ -8,7 +8,38 @@ from vakt.storage.mongo import *
 from vakt.rules.base import Rule
 from vakt.guard import Inquiry, Guard
 from vakt import version_info
-from .test_mongo import DB_NAME, COLLECTION, create_client
+from .test_mongo import DB_NAME, COLLECTION, MIGRATION_COLLECTION, create_client
+
+
+@pytest.mark.integration
+class TestMongoMigrationSet:
+
+    @pytest.fixture()
+    def migration_set(self):
+        client = create_client()
+        storage = MongoStorage(client, DB_NAME, collection=COLLECTION)
+        yield MongoMigrationSet(storage, MIGRATION_COLLECTION)
+        client[DB_NAME][COLLECTION].delete_many({})
+        client[DB_NAME][MIGRATION_COLLECTION].delete_many({})
+        client.close()
+
+    def test_application_of_migration_number(self, migration_set):
+        assert 0 == migration_set.last_applied()
+        migration_set.save_applied_number(6)
+        assert 6 == migration_set.last_applied()
+        migration_set.save_applied_number(2)
+        assert 2 == migration_set.last_applied()
+
+    def test_up_and_down(self, migration_set):
+        migration_set.save_applied_number(0)
+        migration_set.up()
+        assert 3 == migration_set.last_applied()
+        migration_set.up()
+        assert 3 == migration_set.last_applied()
+        migration_set.down()
+        assert 0 == migration_set.last_applied()
+        migration_set.down()
+        assert 0 == migration_set.last_applied()
 
 
 @pytest.mark.integration
