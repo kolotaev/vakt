@@ -176,14 +176,7 @@ def test_pretty_print():
     assert "'actions': ()" in str(p)
     assert "'context': {}" in str(p)
     p = Policy('2', actions=[Eq('get'), Eq('post')])
-    assert "<class 'vakt.policy.Policy'>" in str(p)
-    assert "'uid': '2'" in str(p)
-    assert "'description': 'readme'" in str(p)
-    assert "'subjects': []" in str(p)
-    assert "'effect': 'deny'" in str(p)
-    assert "'resources': ()" in str(p)
-    assert "'actions': ()" in str(p)
-    assert "'context': {}" in str(p)
+    assert "vakt.rules.operator.Eq" in str(p.actions)
 
 
 @pytest.mark.parametrize('policy, policy_type', [
