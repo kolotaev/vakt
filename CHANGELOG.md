@@ -23,12 +23,12 @@ If set to `True`, string case-insensitive comparison is performed.
 - [Logging] Rename logging message "Conflicting ID" -> "Conflicting UID".
 - [Logging] Changed several exception logs to error level.
 - [Guard] Guard's method `are_rules_satisfied` is now `check_context_restriction`.
-- [Policy] Policy constructor signature is now:
+- [Policy] Policy constructor signature now is:
 `Policy(uid, subjects, effect, resources, actions, context, rules, description)`.
-- [Policy] `Policy()` is now a factory-method, but not a class, that returns policies of different type based on 
-the representation of its attributes (string, dict, etc.).
-Those policies are subtypes of an abstract type `BasePolicy`.
-- [Storage] `vakt.storage.abc.Migration` abstract class was moved to `vakt.storage.migration.Migration` for scope consistency.
+- [Policy] `Policy()` is now polymorphic class. Based on given attributes it can represent string-based policy (used
+for RegexChecker, all StringCheckers) and rules-based policy (used for RulesChecker).
+- [Storage] `vakt.storage.abc.Migration` abstract class was moved to `vakt.storage.migration.Migration`
+for scope consistency.
 
 ### Deprecated
 - [Rules] `Rules` from `string`, `net`, `inquiry` were renamed to their shorter equivalents.
