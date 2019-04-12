@@ -159,14 +159,14 @@ class TestMongoStorage:
         (None, 5),
         (RegexChecker(), 3),
         (RulesChecker(), 2),
-        (StringExactChecker(), 3),
-        (StringFuzzyChecker(), 3),
+        (StringExactChecker(), 1),
+        (StringFuzzyChecker(), 1),
     ])
     def test_find_for_inquiry_returns_existing_policies(self, st, checker, expect_number):
-        st.add(Policy('1', subjects=['max', 'bob']))
-        st.add(Policy('2', subjects=['sam', 'foo']))
+        st.add(Policy('1', subjects=['<[mM]ax', '<.*>']))
+        st.add(Policy('2', subjects=['sam<.*>', 'foo']))
         st.add(Policy('3', subjects=[{'stars': Eq(90)}, Eq('Max')]))
-        st.add(Policy('4', subjects=['bar']))
+        st.add(Policy('4', subjects=['Jim'], actions=['delete'], resources=['server']))
         st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
         inquiry = Inquiry(subject='Jim', action='delete', resource='server')
         found = st.find_for_inquiry(inquiry, checker)
