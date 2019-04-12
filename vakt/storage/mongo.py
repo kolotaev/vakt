@@ -9,7 +9,8 @@ import bson.json_util as b_json
 from pymongo.errors import DuplicateKeyError
 import jsonpickle.tags
 
-from ..storage.abc import Storage, Migration
+from ..storage.abc import Storage
+from ..storage.migration import Migration, MigrationSet
 from ..exceptions import PolicyExistsError, UnknownCheckerType, Irreversible
 from ..policy import Policy
 from ..rules.base import Rule
@@ -18,6 +19,7 @@ from .. import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 
 DEFAULT_COLLECTION = 'vakt_policies'
+DEFAULT_MIGRATION_COLLECTION = 'vakt_policies_migration_version'
 
 log = logging.getLogger(__name__)
 
@@ -141,6 +143,33 @@ class MongoStorage(Storage):
 ##############
 # Migrations #
 ##############
+
+class MongoMigrationSet(MigrationSet):
+    """
+    Migrations Collection for MongoStorage
+    """
+    def __init__(self, storage, collection=DEFAULT_MIGRATION_COLLECTION):
+        self.storage = storage
+        self.collection = self.storage.database[collection]
+        self.key = 'version'
+        self.filter = {'_id': 'migration_version'}
+
+    def migrations(self):
+        return [
+            Migration0To1x1x0(self.storage),
+            Migration1x1x0To1x1x1(self.storage),
+            Migration1x1x1To1x2x0(self.storage),
+        ]
+
+    def save_applied_number(self, number):
+        self.collection.update_one(self.filter, {'$set': {self.key: number}}, upsert=True)
+
+    def last_applied(self):
+        data = self.collection.find_one(self.filter)
+        if data:
+            return int(data[self.key])
+        return 0
+
 
 class Migration0To1x1x0(Migration):
     """
