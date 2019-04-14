@@ -340,5 +340,5 @@ class Migration1x1x1To1x2x0(MongoMigration):
                 raise Irreversible('Policy is not of a string-based type, so not supported. Type %i' % doc_to_save.type)
             delattr(doc_to_save, 'type')
             return doc_to_save
-        self.storage.collection.drop_index(name=self.type_index)
+        self.storage.collection.drop_index(self.type_index)
         self._each_doc(processor=process)
