@@ -309,7 +309,6 @@ class Migration1x1x1To1x2x0(MongoMigration):
 
     def up(self):
         def process(doc):
-            # doc_to_save = copy.deepcopy(doc)
             doc['type'] = TYPE_STRING_BASED
             doc['context'] = doc['rules']
             del doc['rules']
@@ -320,7 +319,7 @@ class Migration1x1x1To1x2x0(MongoMigration):
     def down(self):
         def process(doc):
             if doc['type'] != TYPE_STRING_BASED:
-                raise Irreversible('Policy is not of a string-based type, so not supported in v < 1.2.0')
+                raise Irreversible('Policy is not of a string-based type, so not supported in < v1.2.0')
             for rule in doc['context'].values():
                 rule_type = rule[jsonpickle.tags.OBJECT]
                 if rule_type.startswith('vakt.rules.list') or \
