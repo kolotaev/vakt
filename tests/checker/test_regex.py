@@ -2,6 +2,7 @@ import pytest
 
 from vakt.checker import RegexChecker
 from vakt.policy import Policy
+from vakt.rules.operator import Eq
 
 
 @pytest.mark.parametrize('policy, field, what, result', [
@@ -18,6 +19,8 @@ from vakt.policy import Policy
     (Policy('1', resources=[r'<[\d]{1}>', r'<[\d]{2}>']), 'resources', 'y', False),
     (Policy('1', resources=[r'<[\d]{1}>', r'<[\d]{2}>']), 'resources', '12', True),
     (Policy('1', actions=['get', 'delete']), 'actions', 'create', False),
+    (Policy('1', actions=[Eq('create')]), 'actions', 'create', False),
+    (Policy('1', actions=[{'foo': Eq('create')}]), 'actions', 'create', False),
 ])
 def test_fits(policy, field, what, result):
     c = RegexChecker()

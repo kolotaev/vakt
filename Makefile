@@ -24,7 +24,7 @@ test-i:
 
 .PHONY: coverage
 coverage:
-	${PY_TEST} --cov-config .coveragerc --cov=./
+	${PY_TEST} --cov-config .coveragerc --cov=./ --cov-report html:htmlcov
 
 .PHONY: lint
 lint:

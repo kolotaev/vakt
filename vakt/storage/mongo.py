@@ -235,7 +235,7 @@ class Migration0To1x1x0(MongoMigration):
             self.storage.collection.drop_index(self.index_name(field))
 
 
-class Migration1x1x0To1x1x1(MongoMigration):  # pragma: no cover
+class Migration1x1x0To1x1x1(MongoMigration):
     """
     Migration between versions 1.1.0 and 1.1.1
     """

@@ -1,6 +1,8 @@
+from abc import abstractmethod
 import pytest
 
 from vakt.storage.migration import Migration, MigrationSet, Migrator
+
 
 # SETUP
 
@@ -9,8 +11,9 @@ class MMigration(Migration):
         self.db = db
 
     @property
+    @abstractmethod
     def letter(self):
-        return 'A'
+        pass
 
     def up(self):
         self.db['data'] += self.letter

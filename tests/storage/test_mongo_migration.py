@@ -88,9 +88,7 @@ class Simple(Rule):   # pragma: no cover
 
 
 @pytest.mark.integration
-@pytest.mark.skipif(version_info() >= (1, 2, 0),
-                    reason='Version >= 1.2 introduced Policy types')
-class TestMigration1x1x0To1x1x1:  # pragma: no cover
+class TestMigration1x1x0To1x1x1:
     class MockLoggingHandler(logging.Handler):
         def __init__(self, *args, **kwargs):
             self.messages = {}
@@ -200,9 +198,10 @@ class TestMigration1x1x0To1x1x1:  # pragma: no cover
             actual = json.dumps(new_doc, sort_keys=True).replace("\n", '').replace(' ', '')
             assert expected == actual
         # test full guard allowance run
-        g = Guard(migration.storage, RegexChecker())
-        inq = Inquiry(action='foo', resource='bar', subject='Max', context={'val': 'foo', 'num': '123'})
-        assert g.is_allowed(inq)
+        if version_info() < (1, 2, 0):  # pragma: no cover
+            g = Guard(migration.storage, RegexChecker())
+            inq = Inquiry(action='foo', resource='bar', subject='Max', context={'val': 'foo', 'num': '123'})
+            assert g.is_allowed(inq)
 
     def test_down(self, storage):
         assertions = unittest.TestCase('__init__')

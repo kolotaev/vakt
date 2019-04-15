@@ -192,6 +192,12 @@ from vakt.rules.operator import *
         {'nick': 'Bob'},
         False
     ),
+    (
+        Policy(11, description='should cause exception str is not Rule', subjects=[{'nick': 'Bob'}]),
+        'subjects',
+        {'nick': 'Bob'},
+        False
+    ),
 ])
 def test_fits(policy, field, what, result):
     c = RulesChecker()
