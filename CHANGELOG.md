@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
-- [Rules] List-based `Rules`: (InList, NotInList, AllInList, AllNotInList, AnyInList, AnyNotInList) in `vakt.rules.list`.
+- [Rules] List-based `Rules`: (In, NotIn, AllIn, AllNotIn, AnyIn, AnyNotIn) in `vakt.rules.list`.
 - [Rules] Comparison operator `Rules`:(Eq, NotEq, Greater, Less, GreaterOrEqual, LessOrEqual) in `vakt.rules.operator`.
 - [Rules] Logic-related operator `Rules`:(IsTrue, IsFalse, Not, And, Or, Any, Neither) in `vakt.rules.logic`.
 - [Rules] Substring-related `Rules`:(StartsWith, EndsWith, Contains) in `vakt.rules.string`.

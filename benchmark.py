@@ -78,8 +78,8 @@ def gen_policy():
             ],
             resources=(
                 {
-                    'method': list.AnyInList(['get', 'post', 'delete']),
-                    'path': list.NotInList(['org/custom', 'vacations/pending', 'должность/повысить']),
+                    'method': list.AnyIn(['get', 'post', 'delete']),
+                    'path': list.NotIn(['org/custom', 'vacations/pending', 'должность/повысить']),
                     'id': operator.Eq(rand_string())
                 },
                 {
@@ -88,7 +88,7 @@ def gen_policy():
             ),
             actions=(
                 {'before': operator.Eq('foo')},
-                {'after': list.InList([rand_string(), rand_string(), rand_string()])},
+                {'after': list.In([rand_string(), rand_string(), rand_string()])},
             ),
             context={
                 'ip': CIDR('127.0.0.1'),

@@ -4,7 +4,7 @@ All Rules relevant to list-related context.
 Initial list against which the search will be performed is cast to a Set to speed-up further search operations.
 Consequently beware that it may be slow on data insertion for large lists.
 
-For some of the checks where list is an input (e.g. AllInList, AllNotInList, ...)
+For some of the checks where list is an input (e.g. AllIn, AllNotIn, ...)
 cast of input to Set is also performed.
 
 Various search options are available:
@@ -39,28 +39,28 @@ class ListRule(Rule):
         pass
 
 
-class InList(ListRule):
+class In(ListRule):
     """
     Is item in list?
-    For example: action={'method': InList('read', 'write', 'delete')}
+    For example: action={'method': In('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         return _one_in_list(what, self.data)
 
 
-class NotInList(ListRule):
+class NotIn(ListRule):
     """
     Is not item in the list?
-    For example: action={'method': NotInList('read', 'write', 'delete')}
+    For example: action={'method': NotIn('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         return not _one_in_list(what, self.data)
 
 
-class AllInList(ListRule):
+class AllIn(ListRule):
     """
     Are all the items in the list?
-    For example: action={'methods': AllInList('read', 'write', 'delete')}
+    For example: action={'methods': AllIn('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -68,10 +68,10 @@ class AllInList(ListRule):
         return _all_in_list(what, self.data)
 
 
-class AllNotInList(ListRule):
+class AllNotIn(ListRule):
     """
     Are all the items not in the list?
-    For example: action={'methods': AllNotInList('read', 'write', 'delete')}
+    For example: action={'methods': AllNotIn('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -79,10 +79,10 @@ class AllNotInList(ListRule):
         return not _all_in_list(what, self.data)
 
 
-class AnyInList(ListRule):
+class AnyIn(ListRule):
     """
     Are any of the items in the list?
-    For example: action={'methods': AnyInList('read', 'write', 'delete')}
+    For example: action={'methods': AnyIn('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -90,10 +90,10 @@ class AnyInList(ListRule):
         return _any_in_list(what, self.data)
 
 
-class AnyNotInList(ListRule):
+class AnyNotIn(ListRule):
     """
     Are any of the items not in the list?
-    For example: action={'methods': AnyNotInList('read', 'write', 'delete')}
+    For example: action={'methods': AnyNotIn('read', 'write', 'delete')}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):

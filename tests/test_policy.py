@@ -7,7 +7,7 @@ from vakt.rules.net import CIDR
 from vakt.rules.string import Equal
 from vakt.rules.operator import Eq, Greater
 from vakt.rules.logic import And, Any
-from vakt.rules.list import AnyInList
+from vakt.rules.list import AnyIn
 from vakt import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 
@@ -122,8 +122,8 @@ def test_json_roundtrip_of_a_policy_with_context():
 @pytest.mark.parametrize('policy', [
     Policy(1, subjects=[{'name': Eq('Max'), 'rate': Greater(90)}], actions=[Eq('get'), Eq('post')], resources=[Any()]),
     Policy(2, subjects=[{'login': Eq('sally')}], actions=[Eq('get'), Eq('post')], context={'ip': Eq('127.0.0.1')}),
-    Policy(3, subjects=[{'login': AnyInList(['sally', 'patric'])}], actions=[And(Eq('get'), Eq('post'))]),
-    Policy(4, subjects=[{'login': AnyInList(['sally', 'patric'])}], actions=[And(Eq('get'), Eq('post'))]),
+    Policy(3, subjects=[{'login': AnyIn(['sally', 'patric'])}], actions=[And(Eq('get'), Eq('post'))]),
+    Policy(4, subjects=[{'login': AnyIn(['sally', 'patric'])}], actions=[And(Eq('get'), Eq('post'))]),
     Policy(5, actions=[Eq('get')]),
 ])
 def test_json_roundtrip_of_a_rules_based_policy(policy):

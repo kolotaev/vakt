@@ -291,12 +291,12 @@ There are a number of different Rule types:
 5. Network-related
   * CIDR
 6. List-related
-  * InList
-  * NotInList
-  * AllInList
-  * AllNotInList
-  * AnyInList
-  * AnyNotInList
+  * In
+  * NotIn
+  * AllIn
+  * AllNotIn
+  * AnyIn
+  * AnyNotIn
 
 See class documentation of a particular `Rule` for more.
 
