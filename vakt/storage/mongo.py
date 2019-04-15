@@ -180,7 +180,7 @@ class MongoMigration(Migration):
             try:
                 log.info('Trying to migrate Policy with UID: %s' % doc['uid'])
                 new_doc = processor(doc)
-                self.storage.collection.update_one({'_id': new_doc['uid']}, {"$set": new_doc}, upsert=False)
+                self.storage.collection.replace_one({'_id': new_doc['uid']}, new_doc)
                 log.info('Policy with UID was migrated: %s' % doc['uid'])
             except Irreversible as e:
                 log.warning('Irreversible Policy. %s. Mongo doc: %s', e, doc)
@@ -191,7 +191,7 @@ class MongoMigration(Migration):
         if failed_policies:
             msg = "\n".join([
                 'Migration was unable to convert some Policies, but they were left in the database as-is. ' +
-                'Some of them are custom ones, some are just malformed JSON docs.',
+                'They might be not automatically convertible, custom ones, malformed JSON docs.',
                 'You must convert them manually or delete entirely. See above log output for details of migration.',
                 'Mongo IDs of failed Policies are: %s' % [p['_id'] for p in failed_policies]
             ])
@@ -309,21 +309,23 @@ class Migration1x1x1To1x2x0(MongoMigration):
 
     def up(self):
         def process(doc):
-            doc_to_save = copy.deepcopy(doc)
-            doc_to_save.context = doc.rules
-            doc_to_save.type = TYPE_STRING_BASED
-            return doc_to_save
+            # doc_to_save = copy.deepcopy(doc)
+            doc['type'] = TYPE_STRING_BASED
+            doc['context'] = doc['rules']
+            del doc['rules']
+            return doc
         self.storage.collection.create_index(self.type_field, name=self.type_index)
         self._each_doc(processor=process)
 
     def down(self):
         def process(doc):
-            doc_to_save = copy.deepcopy(doc)
-            for rule in doc.context.items():
+            if doc['type'] != TYPE_STRING_BASED:
+                raise Irreversible('Policy is not of a string-based type, so not supported in v < 1.2.0')
+            for rule in doc['context'].values():
                 rule_type = rule[jsonpickle.tags.OBJECT]
-                if rule_type.startwith('vakt.rules.list') or \
-                        rule_type.startwith('vakt.rules.logic') or \
-                        rule_type.startwith('vakt.rules.operator') or \
+                if rule_type.startswith('vakt.rules.list') or \
+                        rule_type.startswith('vakt.rules.logic') or \
+                        rule_type.startswith('vakt.rules.operator') or \
                         rule_type in ['vakt.rules.string.Equal',
                                       'vakt.rules.string.RegexMatch',
                                       'vakt.rules.string.PairsEqual',
@@ -334,11 +336,10 @@ class Migration1x1x1To1x2x0(MongoMigration):
                                       'vakt.rules.inquiry.SubjectEqual',
                                       'vakt.rules.inquiry.ActionEqual',
                                       'vakt.rules.inquiry.ResourceIn']:
-                    raise Irreversible('Context contains rule that exist only in >= v1.2. %s' % rule)
-            doc_to_save.rules = doc.context
-            if doc_to_save.type != TYPE_STRING_BASED:
-                raise Irreversible('Policy is not of a string-based type, so not supported. Type %i' % doc_to_save.type)
-            delattr(doc_to_save, 'type')
-            return doc_to_save
+                    raise Irreversible('Context contains rule that exist only in >= v1.2.0: %s' % rule)
+            doc['rules'] = doc['context']
+            del doc['context']
+            del doc['type']
+            return doc
         self.storage.collection.drop_index(self.type_index)
         self._each_doc(processor=process)

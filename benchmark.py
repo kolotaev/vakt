@@ -29,7 +29,7 @@ parser.add_argument('-n', '--number', dest='policies_number', nargs='?', type=in
                     help='number of policies to create in DB (default: %(default)d)')
 parser.add_argument('-d', '--storage', choices=('mongo', 'memory'), default='memory',
                     help='type of storage (default: %(default)s)')
-parser.add_argument('-c', '--checker', choices=('regex', 'rules', 'exact', 'fuzzy', 'mixed'), default='regex',
+parser.add_argument('-c', '--checker', choices=('regex', 'rules', 'exact', 'fuzzy'), default='regex',
                     help='type of checker (default: %(default)s)')
 
 regex_group = parser.add_argument_group('regex policy related')
