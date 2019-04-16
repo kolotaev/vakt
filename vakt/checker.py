@@ -144,6 +144,7 @@ class RulesChecker(Checker):
         try:
             return rule.satisfied(what_value)
         # broad exception for possible custom exceptions. Any exception -> no match
-        except Exception as e:
-            log.exception('Error matching Policy, because of raised exception', e)
+        # todo - decide on granular handler
+        except Exception:
+            log.exception('Error matching Policy, because of raised exception')
             return False
