@@ -24,6 +24,16 @@ from ..rules.base import Rule
 log = logging.getLogger(__name__)
 
 
+__all__ = [
+    'In',
+    'NotIn',
+    'AllIn',
+    'AllNotIn',
+    'AnyIn',
+    'AnyNotIn'
+]
+
+
 class ListRule(Rule):
     """
     Generic Rule for List-related checks

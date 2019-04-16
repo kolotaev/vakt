@@ -10,10 +10,16 @@ from .effects import ALLOW_ACCESS, DENY_ACCESS
 from .exceptions import PolicyCreationError
 from .util import JsonSerializer, PrettyPrint
 from .rules.base import Rule
-from . import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 
 log = logging.getLogger(__name__)
+
+
+# Types for Policies and Inquiries:
+# String-based (simple strings, regexps)
+TYPE_STRING_BASED = 1
+# Rule-based definitions (Rules).
+TYPE_RULE_BASED = 2
 
 
 class Policy(JsonSerializer, PrettyPrint):

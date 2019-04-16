@@ -16,7 +16,7 @@ from ..exceptions import PolicyExistsError, UnknownCheckerType, Irreversible
 from ..policy import Policy
 from ..rules.base import Rule
 from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
-from .. import TYPE_STRING_BASED, TYPE_RULE_BASED
+from ..policy import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 
 DEFAULT_COLLECTION = 'vakt_policies'

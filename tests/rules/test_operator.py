@@ -3,6 +3,7 @@ from datetime import datetime as dt
 import pytest
 
 from vakt.rules.operator import *
+from vakt.rules.base import Rule
 
 
 class A:

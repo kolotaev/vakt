@@ -5,6 +5,12 @@ import warnings
 
 from ..rules.base import Rule
 
+__all__ = [
+    'SubjectEqual',
+    'ActionEqual',
+    'ResourceIn',
+]
+
 
 class SubjectEqual(Rule):
     """

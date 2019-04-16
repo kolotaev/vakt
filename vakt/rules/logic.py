@@ -12,6 +12,17 @@ from ..rules.base import Rule
 log = logging.getLogger(__name__)
 
 
+__all__ = [
+    'IsTrue',
+    'IsFalse',
+    'And',
+    'Or',
+    'Not',
+    'Any',
+    'Neither',
+]
+
+
 class BooleanRule(Rule, metaclass=ABCMeta):
     """
     Boolean Rule that is satisfied when 'what' is evaluated to a boolean true/false.

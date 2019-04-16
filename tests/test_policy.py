@@ -8,7 +8,12 @@ from vakt.rules.string import Equal
 from vakt.rules.operator import Eq, Greater
 from vakt.rules.logic import And, Any
 from vakt.rules.list import AnyIn
-from vakt import TYPE_STRING_BASED, TYPE_RULE_BASED
+from vakt.policy import TYPE_STRING_BASED, TYPE_RULE_BASED
+
+
+def test_types():
+    assert 1 == TYPE_STRING_BASED
+    assert 2 == TYPE_RULE_BASED
 
 
 def test_properties():

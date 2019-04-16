@@ -29,6 +29,8 @@ If set to `True`, string case-insensitive comparison is performed.
 for RegexChecker, all StringCheckers) and rules-based policy (used for RulesChecker).
 - [Storage] `vakt.storage.abc.Migration` abstract class was moved to `vakt.storage.migration.Migration`
 for scope consistency.
+- Enhanced imports. Now all the basic components like `Policy`, `Guard`, `Rule`s can be imported directly from `vakt`
+package.
 
 ### Deprecated
 - [Rules] `Rules` from `string`, `net`, `inquiry` were renamed to their shorter equivalents.

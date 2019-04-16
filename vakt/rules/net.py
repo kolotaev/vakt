@@ -12,6 +12,11 @@ from ..rules.base import Rule
 log = logging.getLogger(__name__)
 
 
+__all__ = [
+    'CIDR',
+]
+
+
 class CIDR(Rule):
     """
     Rule that is satisfied when inquiry's IP address is in the provided CIDR.
