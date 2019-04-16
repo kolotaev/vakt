@@ -8,10 +8,10 @@ services:
 cache: pip
 
 python:
-#  - "3.4"
-#  - "3.5"
-#  - "3.6"
-#  - "3.7-dev"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "3.7-dev"
   - "nightly"
   - "pypy3"  # Pypy3 5.8.0-beta0
 
