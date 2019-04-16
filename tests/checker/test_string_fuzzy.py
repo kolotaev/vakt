@@ -2,6 +2,7 @@ import pytest
 
 from vakt.checker import StringFuzzyChecker
 from vakt.policy import Policy
+from vakt.rules.operator import Eq
 
 
 @pytest.mark.parametrize('policy, field, what, result', [
@@ -20,7 +21,9 @@ from vakt.policy import Policy
     (Policy('1', resources=['books:1', 'books:2']), 'resources', 'books', True),
     (Policy('1', resources=['books:1', 'books:2']), 'resources', ':', True),
     (Policy('1', resources=['books:1', 'books:2']), 'resources', '3', False),
+    (Policy('1', actions=[Eq('create')]), 'actions', 'create', False),
+    (Policy('1', actions=[{'foo': Eq('create')}]), 'actions', 'create', False),
 ])
-def test_matches(policy, field, what, result):
+def test_fits(policy, field, what, result):
     c = StringFuzzyChecker()
     assert result == c.fits(policy, field, what)

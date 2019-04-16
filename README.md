@@ -46,6 +46,8 @@ implementation.
 
 See [concepts](#concepts) section for more details.
 
+*[Back to top](#documentation)*
+
 
 ### Concepts
 
@@ -60,10 +62,12 @@ answering the following questions:
 
 For example of usage see [examples folder](examples).
 
+*[Back to top](#documentation)*
+
 
 ### Install
 
-Vakt runs on Python >= 3.3.
+Vakt runs on Python >= 3.4.
 PyPy implementation is supported as well.
 
 For in-memory storage:
@@ -75,6 +79,9 @@ For MongoDB storage:
 ```bash
 pip install vakt[mongo]
 ```
+
+*[Back to top](#documentation)*
+
 
 ### Usage
 
@@ -119,33 +126,60 @@ Beware that currently MongoStorage supports indexed `find_for_inquiry()` only fo
 Regex checker simply returns all the Policies from the database.
 See [this issue](https://jira.mongodb.org/browse/SERVER-11947).
 
+*[Back to top](#documentation)*
+
+
 #### Migration
 
-Migration is a component that is useful in the context of the [Storage](#storage). It allows you to manage migrations.
+`vakt.migration` is a set of components that are useful from the perspective of the [Storage](#storage).
 It's recommended to favor it over manual actions on DB schema/data
 since it's aware of Vakt requirements to Policies data. But it's not mandatory, anyway.
+However it's up to a particular Storage to decide whether it needs migrations or not.
+It consists of 3 components:
+* `Migration`
+* `MigrationSet`
+* `Migrator`
+
+`Migration` allows you to describe data modifications between versions.
 Each storage can have a number of `Migration` classes to address different releases with the order of the migration
 specified in `order` property.
-It's up to a particular Storage to decide whether it needs migrations or not.
-Should be located inside particular storage module and implement `storage.abc.Migration`.
-Migration has 2 main methods (as you might guess). As well as 1 property:
+Should be located inside particular storage module and implement `vakt.storage.migration.Migration`.
+Migration has 2 main methods (as you might guess) and 1 property:
 - `up` - runs db "schema" upwards
 - `down` - runs db "schema" downwards (rolls back the actions of `up`)
 - `order` - tells the number of the current migration in a row
+
+`MigrationSet` is a component that represents a collection of Migrations for a Storage.
+You should define your own migration-set. It should be located inside particular storage module and implement
+`vakt.storage.migration.MigrationSet`. It has 3 methods that lest unimplemented:
+- `migrations` - should return all initialized Migration objects
+- `save_applied_number` - saves a number of a lst applied up migration in the Storage for later reference
+- `last_applied` - returns a number of a lst applied up migration from the Storage
+
+`Migrator` is an executor of a migrations. It can execute all migrations up or down, or execute a particular migration
+if `number` argument is provided.
 
 Example usage:
 
 ```python
 from pymongo import MongoClient
-from vakt.storage.mongo import MongoStorage, Migration0To1x1x0, Migration1x0x3To2
+from vakt.storage.mongo import MongoStorage, MongoMigrationSet
+from vakt.storage.migration import Migrator
 
 client = MongoClient('localhost', 27017)
 storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
 
-migrations = (Migration0To1x1x0(storage), Migration1x0x3To2(storage))
-for m in sorted(migrations, key=lambda x: x.order):
-  m.up()
+migrator = Migrator(MongoMigrationSet(storage))
+migrator.up()
+...
+migrator.down()
+...
+migrator.up(number=2)
+...
+migrator.down(number=2)
 ```
+
+*[Back to top](#documentation)*
 
 
 #### Policy
@@ -155,9 +189,9 @@ The main parts reflect questions described in [Concepts](#concepts) section:
 * resources - a list of resources. Answers: what is asked?
 * subjects  - a list of subjects. Answers: who asks access to resources?
 * actions - a list of actions. Answers: what actions are asked to be performed on resources?
-* rules - a list of context rules that should be satisfied in the given inquiry. See [Rule](#rule)
-* effect - If policy matches all the above conditions, what effect it implies?
-can be any either `vakt.effects.ALLOW_ACCESS` or `vakt.effects.DENY_ACCESS`
+* context - a list of rules that should be satisfied by the given inquiry's context.
+* effect - If policy matches all the above conditions, what effect does it imply?
+Can be either `vakt.effects.ALLOW_ACCESS` or `vakt.effects.DENY_ACCESS`
 
 All `resources`, `subjects`, `actions` can be described by a simple string or a regex. See [Checker](#checker) for more.
 
@@ -172,8 +206,8 @@ p = Policy(
         subjects=['<[\w]+ M[\w]+>'],
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
-        rules={
-            'ip': CIDRRule('192.168.2.0/24'),
+        context={
+        'ip': CIDR('192.168.2.0/24'),
         }
     )
 ```
@@ -186,6 +220,9 @@ st = MemoryStorage()
 for p in policies:
     st.add(p)
 ```
+
+*[Back to top](#documentation)*
+
 
 #### Inquiry
 Inquiry is an object that serves as a mediator between Vakt and outer world request for resource access. All you need
@@ -214,28 +251,71 @@ Inquiry has several constructor arguments:
 * subject - string. Who asks for it?
 * context - dictionary. The context of the request. Eventually it should be resolved to [Rule](#rule)
 
-If you are observant enough you might have noticed that Inquiry resembles Policy, where Policy describes multiple
+If you were observant enough you might have noticed that Inquiry resembles Policy, where Policy describes multiple
 variants of resource access from the owner side and Inquiry describes an concrete access scenario from consumer side.
+
+*[Back to top](#documentation)*
 
 
 #### Rule
-Rules allow you to make additional checks apart of Policy's `action`, `subject`, `resource`.
-Vakt takes additional context information from Inquiry and checks if it satisfies the defined Rules set described
-in the Policy that is being matched. If Rule is not satisfied Inquiry is rejected by given Policy.
+Rules allow you to make additional checks apart from Policy's `action`, `subject`, `resource`.
+Vakt takes additional context information from Inquiry's context and checks if it satisfies
+the defined Rule-set attached to the Policy that is being matched.
+If at least on Rule in the Rule-set is not satisfied Inquiry is rejected by given Policy.
+Generally Rules represent so called `contextual (environment) attributes` in the classic ABAC definition.
 There are a number of different Rule types:
 
-1. Inquiry-related
-  * SubjectEqualRule
-  * ActionEqualRule
-  * ResourceInRule
-2. Network-related
-  * CIDRRule
+1. Comparison-related
+  * Eq
+  * NotEq
+  * Greater
+  * Less
+  * GreaterOrEqual
+  * LessOrEqual
+2. Logic-related
+  * IsTrue
+  * IsFalse
+  * Not
+  * And
+  * Or
+  * Any
+  * Neither
 3. String-related
-  * StringEqualRule
-  * StringPairsEqualRule
-  * RegexMatchRule
+  * Equal
+  * PairsEqual
+  * RegexMatch
+4. Inquiry-related
+  * SubjectEqual
+  * ActionEqual
+  * ResourceIn
+5. Network-related
+  * CIDR
+6. List-related
+  * In
+  * NotIn
+  * AllIn
+  * AllNotIn
+  * AnyIn
+  * AnyNotIn
 
-See class documentation for more.
+See class documentation of a particular `Rule` for more.
+
+Attaching a Rule-set to a Policy is simple:
+
+```python
+import vakt.rules.net
+import vakt.rules.string
+
+Policy(
+    ...,
+    context={
+        'secret': vakt.rules.string.Equal('.KIMZihH0gsrc'),
+        'ip': vakt.rules.net.CIDR('192.168.0.15/24')
+    },
+),
+```
+
+*[Back to top](#documentation)*
 
 
 #### Checker
@@ -264,7 +344,7 @@ Syntax for description of Policy fields is:
 Where `<>` are delimiters of a regular expression boundaries part. Custom Policy can redefine them by overriding
 `start_tag` and `end_tag` properties. Generally you always want to use the first variant: `<foo.*>`.
 
-* StringExactChecker - most quick checker:
+* StringExactChecker - the most quick checker:
 ```
 Checker that uses exact string equality. Case-sensitive.
 E.g. 'sun' in 'sunny' - False
@@ -284,6 +364,8 @@ decide on the type of actions based on the checker class passed to [Guard](#guar
 
 Regardless of the results returned by a Storage the Checker is always the last row of control
 before Vakt makes a decision.
+
+*[Back to top](#documentation)*
 
 
 #### Guard
@@ -306,6 +388,9 @@ else:
     return "Go away, you violator!", 401
 ```
 
+*[Back to top](#documentation)*
+
+
 ### JSON
 
 All Policies, Inquiries and Rules can be JSON-serialized and deserialized.
@@ -319,7 +404,7 @@ policy = Policy('1')
 json_policy = policy.to_json()
 print(json_policy)
 # {"actions": [], "description": null, "effect": "deny", "uid": "1",
-# "resources": [], "rules": {}, "subjects": []}
+# "resources": [], "context": {}, "subjects": []}
 
 policy = Policy.from_json(json_policy)
 print(policy)
@@ -336,6 +421,9 @@ from vakt.util import JsonSerializer
 class CustomInquiry(JsonSerializer):
     pass
 ```
+
+*[Back to top](#documentation)*
+
 
 ### Logging
 
@@ -360,12 +448,16 @@ Vakt logs can be considered in 2 basic levels:
 1. *Error/Exception* - informs about exceptions and errors during Vakt work.
 2. *Info* - informs about incoming inquires and their resolution.
 
+*[Back to top](#documentation)*
+
 
 ### Acknowledgements
 
 Code ideas of Vakt are based on
 [Amazon IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md) and
 [Ladon](https://github.com/ory/ladon) Policies SDK as its reference implementation.
+
+*[Back to top](#documentation)*
 
 
 ### Benchmark
@@ -400,6 +492,8 @@ Script arguments:
 3. Int - Number of Policies with the same regexp pattern (Default: 0)
 3. Int - Cache size for RegexChecker (Default: 1024)
 
+*[Back to top](#documentation)*
+
 
 ### Development
 
@@ -422,6 +516,11 @@ $ pytest -m integration
 
 Optionally you can use `make` to perform development tasks.
 
+*[Back to top](#documentation)*
+
+
 ### License
 
 The source code is licensed under Apache License Version 2.0
+
+*[Back to top](#documentation)*

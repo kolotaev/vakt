@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.rules.string import StringPairsEqualRule
+from vakt.rules.string import PairsEqual, StringPairsEqualRule
 
 
 @pytest.mark.parametrize('against, result', [
@@ -20,6 +20,12 @@ from vakt.rules.string import StringPairsEqualRule
     ([['a', 'a'], ['b', 'c']], False),
 ])
 def test_string_pairs_equal_satisfied(against, result):
-    c = StringPairsEqualRule()
+    c = PairsEqual()
     assert result == c.satisfied(against)
-    assert result == StringPairsEqualRule.from_json(c.to_json()).satisfied(against)
+    # test after (de)serialization
+    assert result == PairsEqual.from_json(PairsEqual().to_json()).satisfied(against)
+    # test deprecated class
+    with pytest.deprecated_call():
+        c = StringPairsEqualRule()
+        assert result == c.satisfied(against)
+        assert result == StringPairsEqualRule.from_json(c.to_json()).satisfied(against)

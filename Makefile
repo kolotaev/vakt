@@ -1,6 +1,6 @@
 PYTHON = python3
 PIP = ${PYTHON} -m pip
-PY_TEST = ${PYTHON} -m pytest -v
+PY_TEST = ${PYTHON} -m pytest
 
 
 .PHONY: default
@@ -24,7 +24,7 @@ test-i:
 
 .PHONY: coverage
 coverage:
-	${PY_TEST} --cov-config .coveragerc --cov=./
+	${PY_TEST} --cov-config .coveragerc --cov=./ --cov-report html:htmlcov
 
 .PHONY: lint
 lint:
@@ -34,3 +34,20 @@ lint:
 release: test
 	${PIP} install pypandoc
 	${PYTHON} setup.py sdist upload -r pypi
+
+# runs mutation testing
+.PHONY: mutation
+mutation:
+	${PIP} install mutmut
+	mutmut run --runner="${PY_TEST}" --paths-to-mutate="vakt/" --dict-synonyms="Struct, NamedStruct"
+
+.PHONY: mutation-report
+mutation-report:
+	@ruby -e '`mutmut results`.lines.select{ |i| i =~ /\d,/ }.join(",").split(","). \
+			 map(&:strip).each { |f| puts " Survived ##{f}"; system "mutmut show #{f}" }'
+
+.PHONY: bench
+bench:
+	${PYTHON} benchmark.py --checker regex
+	@echo "\n"
+	${PYTHON} benchmark.py --checker rules

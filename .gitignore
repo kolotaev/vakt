@@ -86,3 +86,6 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# mutation testing
+.mutmut-cache

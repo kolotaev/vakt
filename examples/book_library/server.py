@@ -14,10 +14,9 @@ from vakt.guard import Guard, Inquiry
 from flask import Flask, request, session
 from pymongo import MongoClient
 
-
-#          Set up vakt          #
 # ============================= #
-
+#    Set up vakt and server     #
+# ============================= #
 
 # First of all we need to create Policies for our book library.
 # They can be added at any time via Storage.
@@ -38,11 +37,11 @@ policies = [
         but only when they connect from local library's computer
         """,
         effect=ALLOW_ACCESS,
-        subjects=['<[\w]+ M[\w]+>'],
+        subjects=[r'<[\w]+ M[\w]+>'],
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
-        rules={
-            'ip': vakt.rules.net.CIDRRule('127.0.0.1/32'),
+        context={
+            'ip': vakt.rules.net.CIDR('127.0.0.1/32'),
         },
     ),
     Policy(
@@ -72,6 +71,11 @@ guard = None
 
 
 def init():
+    # Set up logger.
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    root.addHandler(logging.StreamHandler())
+
     # Here we instantiate the Policy Storage.
     # In this case it's Memory or MongoDB Storage, but we can opt to SQL Storage, any other third-party storage, etc.
     if os.environ.get('STORAGE') == 'mongo':
@@ -93,12 +97,8 @@ def init():
     global guard
     guard = Guard(st, vakt.checker.RegexChecker())
 
-    # Set up logger.
-    root = logging.getLogger()
-    root.setLevel(logging.INFO)
-    root.addHandler(logging.StreamHandler())
 
-
+# ============================= #
 #         Running server        #
 # ============================= #
 

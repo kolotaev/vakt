@@ -2,9 +2,12 @@ from setuptools import setup, find_packages
 from os import path
 
 
-__version__ = '1.1.1'
+here = path.abspath(path.dirname(__file__))
+about = {}
+with open(path.join(here, 'vakt', '__version__.py'), mode='r', encoding='utf-8') as f:
+    exec(f.read(), about)
 
-readme_path = path.join(path.abspath(path.dirname(__file__)), 'README.md')
+readme_path = path.join(here, 'README.md')
 try:
     import pypandoc
     long_description = pypandoc.convert(readme_path, 'rst')
@@ -20,7 +23,7 @@ if __name__ == '__main__':
         name='vakt',
         description='Attribute-based access control (ABAC) SDK for Python',
         keywords='ACL ABAC access-control policy security authorization permission',
-        version=__version__,
+        version=about['__version__'],
         author='Egor Kolotaev',
         author_email='ekolotaev@gmail.com',
         license="Apache 2.0 license",
@@ -28,7 +31,7 @@ if __name__ == '__main__':
         long_description=long_description,
         long_description_content_type='text/markdown',
         py_modules=['vakt'],
-        python_requires='>=3.3',
+        python_requires='>=3.4',
         install_requires=[
             'jsonpickle~=1.0',
         ],
@@ -36,10 +39,10 @@ if __name__ == '__main__':
             'dev': [
                 'pytest~=4.0',
                 'pytest-cov~=2.6',
-                'pylint',
+                'pylint~=1.0',
             ],
             'mongo': [
-                'pymongo>=3.5',
+                'pymongo~=3.5',
             ],
         },
         packages=find_packages(exclude='tests'),
@@ -47,12 +50,19 @@ if __name__ == '__main__':
             'Intended Audience :: Developers',
             'License :: OSI Approved :: Apache Software License',
             'Operating System :: OS Independent',
+            'Topic :: System :: Systems Administration',
+            'Topic :: System :: Networking',
+            'Topic :: System :: Networking :: Firewalls',
+            'Topic :: Security',
+            'Topic :: Software Development',
+            'Topic :: Utilities',
+            'Natural Language :: English',
             'Programming Language :: Python',
-            'Programming Language :: Python :: 3.3',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: Implementation :: PyPy',
+            'Programming Language :: Python :: Implementation :: CPython',
         ],
     )

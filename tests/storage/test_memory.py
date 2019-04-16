@@ -4,6 +4,8 @@ from vakt.storage.memory import MemoryStorage
 from vakt.policy import Policy
 from vakt.guard import Inquiry
 from vakt.exceptions import PolicyExistsError
+from vakt.rules.operator import Eq
+from vakt.rules.logic import Any
 
 
 @pytest.fixture
@@ -15,6 +17,14 @@ def test_add(st):
     st.add(Policy('1', description='foo'))
     assert '1' == st.get('1').uid
     assert 'foo' == st.get('1').description
+    st.add(Policy('2', actions=[Eq('get'), Eq('put')], subjects=[Any()], resources=[{'books': Eq('Harry')}]))
+    assert '2' == st.get('2').uid
+    assert 2 == len(st.get('2').actions)
+    assert 1 == len(st.get('2').subjects)
+    assert isinstance(st.get('2').subjects[0], Any)
+    assert 1 == len(st.get('2').resources)
+    assert isinstance(st.get('2').resources[0]['books'], Eq)
+    assert 'Harry' == st.get('2').resources[0]['books'].val
 
 
 def test_policy_create_existing(st):
@@ -71,10 +81,14 @@ def test_get_all_with_incorrect_args(st):
 def test_find_for_inquiry(st):
     st.add(Policy('1', subjects=['max', 'bob']))
     st.add(Policy('2', subjects=['sam', 'nina']))
+    st.add(Policy('3', subjects=[Eq('max'), Eq('bob')]))
     inquiry = Inquiry(subject='sam', action='get', resource='books')
     found = st.find_for_inquiry(inquiry)
-    assert 2 == len(found)
-    assert ['max', 'bob'] == found[0].subjects or ['max', 'bob'] == found[1].subjects
+    found = list(found)
+    assert 3 == len(found)
+    assert ['max', 'bob'] == found[0].subjects or \
+           ['max', 'bob'] == found[1].subjects or \
+           ['max', 'bob'] == found[2].subjects
 
 
 def test_update(st):
@@ -86,6 +100,13 @@ def test_update(st):
     st.update(policy)
     assert '1' == st.get('1').uid
     assert 'foo' == st.get('1').description
+    p = Policy(2, actions=[Any()], subjects=[Eq('max'), Eq('bob')])
+    st.add(p)
+    assert 2 == st.get(2).uid
+    p.actions = [Eq('get')]
+    st.update(p)
+    assert 1 == len(st.get(2).actions)
+    assert 'get' == st.get(2).actions[0].val
 
 
 def test_delete(st):

@@ -4,18 +4,23 @@ MongoDB Storage and Migrations for Policies.
 
 import logging
 import copy
+from abc import abstractmethod
 
 import bson.json_util as b_json
 from pymongo.errors import DuplicateKeyError
 import jsonpickle.tags
 
-from ..storage.abc import Storage, Migration
+from ..storage.abc import Storage
+from ..storage.migration import Migration, MigrationSet
 from ..exceptions import PolicyExistsError, UnknownCheckerType, Irreversible
 from ..policy import Policy
-from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker
+from ..rules.base import Rule
+from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
+from ..policy import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 
 DEFAULT_COLLECTION = 'vakt_policies'
+DEFAULT_MIGRATION_COLLECTION = 'vakt_policies_migration_version'
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +44,7 @@ class MongoStorage(Storage):
         except DuplicateKeyError:
             log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
             raise PolicyExistsError(policy.uid)
-        log.info('Added Policy: %s.', policy)
+        log.info('Added Policy: %s', policy)
 
     def get(self, uid):
         ret = self.collection.find_one(uid)
@@ -63,7 +68,7 @@ class MongoStorage(Storage):
             {'_id': uid},
             {"$set": self.__prepare_doc(policy)},
             upsert=False)
-        log.info('Updated Policy with UID=%s. New value is: %s.', uid, policy)
+        log.info('Updated Policy with UID=%s. New value is: %s', uid, policy)
 
     def delete(self, uid):
         self.collection.delete_one({'_id': uid})
@@ -80,7 +85,11 @@ class MongoStorage(Storage):
             # We do not use Reverse-regexp match since it's not implemented yet in MongoDB.
             # Doing it via Javascript function gives no benefits over Vakt final Guard check.
             # See: https://jira.mongodb.org/browse/SERVER-11947
-        elif isinstance(checker, RegexChecker) or not checker:  # opt to RegexChecker as default.
+        elif isinstance(checker, RegexChecker):
+            return {'type': TYPE_STRING_BASED}
+        elif isinstance(checker, RulesChecker):
+            return {'type': TYPE_RULE_BASED}
+        elif not checker:
             return {}
         else:
             log.error('Provided Checker type is not supported.')
@@ -90,7 +99,9 @@ class MongoStorage(Storage):
         """
         Construct MongoDB query.
         """
-        conditions = []
+        conditions = [
+            {'type': TYPE_STRING_BASED}
+        ]
         for field in self.condition_fields:
             conditions.append(
                 {
@@ -134,7 +145,68 @@ class MongoStorage(Storage):
 # Migrations #
 ##############
 
-class Migration0To1x1x0(Migration):
+class MongoMigrationSet(MigrationSet):
+    """
+    Migrations Collection for MongoStorage
+    """
+    def __init__(self, storage, collection=DEFAULT_MIGRATION_COLLECTION):
+        self.storage = storage
+        self.collection = self.storage.database[collection]
+        self.key = 'version'
+        self.filter = {'_id': 'migration_version'}
+
+    def migrations(self):
+        return [
+            Migration0To1x1x0(self.storage),
+            Migration1x1x0To1x1x1(self.storage),
+            Migration1x1x1To1x2x0(self.storage),
+        ]
+
+    def save_applied_number(self, number):
+        self.collection.update_one(self.filter, {'$set': {self.key: number}}, upsert=True)
+
+    def last_applied(self):
+        data = self.collection.find_one(self.filter)
+        if data:
+            return int(data[self.key])
+        return 0
+
+
+class MongoMigration(Migration):
+    def _each_doc(self, processor):
+        failed_policies = []
+        cur = self.storage.collection.find()
+        for doc in cur:
+            try:
+                log.info('Trying to migrate Policy with UID: %s' % doc['uid'])
+                new_doc = processor(doc)
+                self.storage.collection.replace_one({'_id': new_doc['uid']}, new_doc)
+                log.info('Policy with UID was migrated: %s' % doc['uid'])
+            except Irreversible as e:
+                log.warning('Irreversible Policy. %s. Mongo doc: %s', e, doc)
+                failed_policies.append(doc)
+            except Exception as e:
+                log.exception('Unexpected exception occurred while migrating Policy: %s', doc)
+                failed_policies.append(doc)
+        if failed_policies:
+            msg = "\n".join([
+                'Migration was unable to convert some Policies, but they were left in the database as-is. ' +
+                'They might be not automatically convertible, custom ones, malformed JSON docs.',
+                'You must convert them manually or delete entirely. See above log output for details of migration.',
+                'Mongo IDs of failed Policies are: %s' % [p['_id'] for p in failed_policies]
+            ])
+            log.error(msg)
+
+    @abstractmethod
+    def up(self):
+        pass
+
+    @abstractmethod
+    def down(self):
+        pass
+
+
+class Migration0To1x1x0(MongoMigration):
     """
     Migration between versions 0 and 1.1.0
     """
@@ -163,7 +235,7 @@ class Migration0To1x1x0(Migration):
             self.storage.collection.drop_index(self.index_name(field))
 
 
-class Migration1x1x0To1x1x1(Migration):
+class Migration1x1x0To1x1x1(MongoMigration):
     """
     Migration between versions 1.1.0 and 1.1.1
     """
@@ -187,7 +259,7 @@ class Migration1x1x0To1x1x1(Migration):
                 rules_to_save[name] = rule_to_save
             doc_to_save['rules'] = rules_to_save
             return doc_to_save
-        self._docs_iteration(processor=process)
+        self._each_doc(processor=process)
 
     def down(self):
         def process(doc):
@@ -202,7 +274,7 @@ class Migration1x1x0To1x1x1(Migration):
                 if not rule_type.startswith('vakt.rules.'):
                     for value in rule_contents.values():
                         # if rule has non-primitive data as its contents - we can't revert it to 1.1.0
-                        if isinstance(value, dict) and jsonpickle.tags.RESERVED.intersection(value.keys()):
+                        if isinstance(value, (dict, Rule)) and jsonpickle.tags.RESERVED.intersection(value.keys()):
                             raise Irreversible('Custom rule class contains non-primitive data %s' % value)
                 # vakt's own RegexMatchRule couldn't be stored in mongo because is has non-primitive data,
                 # so it's impossible to put it to storage if we revert time back to 1.1.0
@@ -213,28 +285,60 @@ class Migration1x1x0To1x1x1(Migration):
             # report or save document
             doc_to_save['rules'] = rules_to_save
             return doc_to_save
-        self._docs_iteration(processor=process)
+        self._each_doc(processor=process)
 
-    def _docs_iteration(self, processor):
-        failed_policies = []
-        cur = self.storage.collection.find()
-        for doc in cur:
-            try:
-                log.info('Trying to migrate Policy with UID: %s' % doc['uid'])
-                new_doc = processor(doc)
-                self.storage.collection.update_one({'_id': new_doc['uid']}, {"$set": new_doc}, upsert=False)
-                log.info('Policy with UID was migrated: %s' % doc['uid'])
-            except Irreversible as e:
-                log.warning('Irreversible Policy. %s. Mongo doc: %s', e, doc)
-                failed_policies.append(doc)
-            except Exception as e:
-                log.exception('Unexpected exception occurred while migrating Policy: %s', doc)
-                failed_policies.append(doc)
-        if failed_policies:
-            msg = "\n".join([
-                'Migration was unable to convert some Policies, but they were left in the database as-is. ' +
-                'Some of them are custom ones, some are just malformed JSON docs.',
-                'You must convert them manually or delete entirely. See above log output for details of migration.',
-                'Mongo IDs of failed Policies are: %s' % [p['_id'] for p in failed_policies]
-            ])
-            log.error(msg)
+
+class Migration1x1x1To1x2x0(MongoMigration):
+    """
+    Migration between versions 1.1.1 and 1.2.0.
+    What it does:
+    - Adds index for `type` field
+    - Updates Policies to:
+        - have an appropriate type (all existing policies will become of a string-based type)
+        - have 'context' attribute instead of 'rules' attribute
+    """
+
+    def __init__(self, storage):
+        self.storage = storage
+        self.type_field = 'type'
+        self.type_index = 'type_idx'
+
+    @property
+    def order(self):
+        return 3
+
+    def up(self):
+        def process(doc):
+            doc['type'] = TYPE_STRING_BASED
+            doc['context'] = doc['rules']
+            del doc['rules']
+            return doc
+        self.storage.collection.create_index(self.type_field, name=self.type_index)
+        self._each_doc(processor=process)
+
+    def down(self):
+        def process(doc):
+            if doc['type'] != TYPE_STRING_BASED:
+                raise Irreversible('Policy is not of a string-based type, so not supported in < v1.2.0')
+            for rule in doc['context'].values():
+                rule_type = rule[jsonpickle.tags.OBJECT]
+                if rule_type.startswith('vakt.rules.list') or \
+                        rule_type.startswith('vakt.rules.logic') or \
+                        rule_type.startswith('vakt.rules.operator') or \
+                        rule_type in ['vakt.rules.string.Equal',
+                                      'vakt.rules.string.RegexMatch',
+                                      'vakt.rules.string.PairsEqual',
+                                      'vakt.rules.net.CIDRRule',
+                                      'vakt.rules.string.StartsWith',
+                                      'vakt.rules.string.EndsWith',
+                                      'vakt.rules.string.Contains',
+                                      'vakt.rules.inquiry.SubjectEqual',
+                                      'vakt.rules.inquiry.ActionEqual',
+                                      'vakt.rules.inquiry.ResourceIn']:
+                    raise Irreversible('Context contains rule that exist only in >= v1.2.0: %s' % rule)
+            doc['rules'] = doc['context']
+            del doc['context']
+            del doc['type']
+            return doc
+        self.storage.collection.drop_index(self.type_index)
+        self._each_doc(processor=process)

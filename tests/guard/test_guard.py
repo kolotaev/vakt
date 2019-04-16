@@ -1,12 +1,14 @@
 import pytest
 
-from vakt.checker import RegexChecker
+from vakt.checker import RegexChecker, RulesChecker
 from vakt.storage.memory import MemoryStorage
-from vakt.rules.net import CIDRRule
-from vakt.rules.inquiry import SubjectEqualRule
+from vakt.rules.net import CIDR
+from vakt.rules.inquiry import SubjectEqual
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import Policy
 from vakt.guard import Guard, Inquiry
+from vakt.rules.operator import Eq
+from vakt.rules.string import RegexMatch
 
 
 # Create all required test policies
@@ -22,9 +24,9 @@ policies = [
         subjects=('Max', 'Nina', '<Ben|Henry>'),
         resources=('myrn:example.com:resource:123', 'myrn:example.com:resource:345', 'myrn:something:foo:<.+>'),
         actions=('<create|delete>', 'get'),
-        rules={
-            'ip': CIDRRule('127.0.0.1/32'),
-            'owner': SubjectEqualRule(),
+        context={
+            'ip': CIDR('127.0.0.1/32'),
+            'owner': SubjectEqual(),
         },
     ),
     Policy(
@@ -52,18 +54,27 @@ policies = [
         effect=ALLOW_ACCESS,
         subjects=['Nina'],
         actions=['update'],
-        resources=['<[\d]+>'],
+        resources=[r'<[\d]+>'],
+    ),
+    Policy(
+        uid='6',
+        description='Allows Nina to update any resources that have only digits. Defined by rules',
+        effect=ALLOW_ACCESS,
+        subjects=[Eq('Nina')],
+        actions=[Eq('update'), Eq('read')],
+        resources=[{'id': RegexMatch(r'\d+'), 'magazine': RegexMatch(r'[\d\w]+')}],
     ),
 ]
 for p in policies:
     st.add(p)
 
 
-@pytest.mark.parametrize('desc, inquiry, should_be_allowed', [
+@pytest.mark.parametrize('desc, inquiry, should_be_allowed, checker', [
     (
         'Empty inquiry carries no information, so nothing is allowed, even empty Policy #4',
         Inquiry(),
         False,
+        RegexChecker(),
     ),
     (
         'Max is allowed to update anything',
@@ -73,6 +84,7 @@ for p in policies:
             action='update'
         ),
         True,
+        RegexChecker(),
     ),
     (
         'Max is allowed to update anything, even empty one',
@@ -82,6 +94,7 @@ for p in policies:
             action='update'
         ),
         True,
+        RegexChecker(),
     ),
     (
         'Max, but not max is allowed to update anything (case-sensitive comparison)',
@@ -91,6 +104,7 @@ for p in policies:
             action='update'
         ),
         False,
+        RegexChecker(),
     ),
     (
         'Max is not allowed to print anything',
@@ -100,6 +114,7 @@ for p in policies:
             action='print',
         ),
         False,
+        RegexChecker(),
     ),
     (
         'Max is not allowed to print anything, even if no resource is given',
@@ -108,6 +123,7 @@ for p in policies:
             action='print'
         ),
         False,
+        RegexChecker(),
     ),
     (
         'Max is not allowed to print anything, even an empty resource',
@@ -117,6 +133,7 @@ for p in policies:
             resource=''
         ),
         False,
+        RegexChecker(),
     ),
     (
         'Policy #1 matches and has allow-effect',
@@ -130,6 +147,7 @@ for p in policies:
             }
         ),
         True,
+        RegexChecker(),
     ),
     (
         'Policy #1 matches - Henry is listed in the allowed subjects regexp',
@@ -143,6 +161,21 @@ for p in policies:
             }
         ),
         True,
+        RegexChecker(),
+    ),
+    (
+        'Policy #1 does not match - Henry is listed in the allowed subjects regexp. But usage of inappropriate checker',
+        Inquiry(
+            subject='Henry',
+            action='get',
+            resource='myrn:example.com:resource:123',
+            context={
+                'owner': 'Henry',
+                'ip': '127.0.0.1'
+            }
+        ),
+        False,
+        RulesChecker(),
     ),
     (
         'Policy #1 does not match - one of the contexts was not found (misspelled)',
@@ -156,6 +189,7 @@ for p in policies:
             }
         ),
         False,
+        RegexChecker(),
     ),
     (
         'Policy #1 does not match - one of the contexts is missing',
@@ -168,6 +202,7 @@ for p in policies:
             }
         ),
         False,
+        RegexChecker(),
     ),
     (
         'Policy #1 does not match - context says that owner is Ben, not Nina',
@@ -181,6 +216,7 @@ for p in policies:
             }
         ),
         False,
+        RegexChecker(),
     ),
     (
         'Policy #1 does not match - context says IP is not in the allowed range',
@@ -194,6 +230,7 @@ for p in policies:
             }
         ),
         False,
+        RegexChecker(),
     ),
     (
         'Policy #5 does not match - action is update, but subjects does not match',
@@ -203,6 +240,7 @@ for p in policies:
             resource='88',
         ),
         False,
+        RegexChecker(),
     ),
     (
         'Policy #5 does not match - action is update, subject is Nina, but resource-name is not digits',
@@ -212,10 +250,51 @@ for p in policies:
             resource='abcd',
         ),
         False,
+        RegexChecker(),
+    ),
+    (
+        'Policy #6 does not match - Inquiry has wrong format for resource',
+        Inquiry(
+            subject='Nina',
+            action='update',
+            resource='abcd',
+        ),
+        False,
+        RulesChecker(),
+    ),
+    (
+        'Policy #6 does not match - Inquiry has string ID for resource',
+        Inquiry(
+            subject='Nina',
+            action='read',
+            resource={'id': 'abcd'},
+        ),
+        False,
+        RulesChecker(),
+    ),
+    (
+        'Policy #6 should match',
+        Inquiry(
+            subject='Nina',
+            action='read',
+            resource={'id': '00678', 'magazine': 'Playboy1'},
+        ),
+        True,
+        RulesChecker(),
+    ),
+    (
+        'Policy #6 should not match - usage of inappropriate checker',
+        Inquiry(
+            subject='Nina',
+            action='read',
+            resource={'id': '00678', 'magazine': 'Playboy1'},
+        ),
+        False,
+        RegexChecker(),
     ),
 ])
-def test_is_allowed(desc, inquiry, should_be_allowed):
-    g = Guard(st, RegexChecker())
+def test_is_allowed(desc, inquiry, should_be_allowed, checker):
+    g = Guard(st, checker)
     assert should_be_allowed == g.is_allowed(inquiry)
 
 

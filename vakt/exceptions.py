@@ -21,7 +21,7 @@ class RuleCreationError(Exception):
 class PolicyExistsError(Exception):
     """Error when the already existing policy is attempted to be created by Storage"""
     def __init__(self, uid):
-        super().__init__('Conflicting ID = %s' % uid)
+        super().__init__('Conflicting UID = %s' % uid)
 
 
 class UnknownCheckerType(Exception):

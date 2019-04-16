@@ -37,19 +37,19 @@ def test_compile_regex_raises_exception_if_unbalanced(phrase, start, end):
     assert 'unbalanced braces' in str(excinfo.value)
 
 
-@pytest.mark.parametrize('phrase, start, end, match_against, match_should_succeed', [
+@pytest.mark.parametrize('phrase, start, end, match_against, should_match_succeed', [
     ('foo:bar:<.*>', '<', '>', 'foo:bar:baz:me:python', True),
     ('foo:bar:<.*>', '<', '>', 'foo:bar:', True),
-    ('foo:bar:<me*>', '<', '>', 'foo:bar:', False),
     ('foo.bar:<.*>', '<', '>', 'foo:bar:', False),
+    ('foo:bar:<me*>', '<', '>', 'foo:bar:', False),
     ('foo:bar:<me*>', '<', '>', 'foo:bar:meeeeeeeeee', True),
     ('foo:bar:<me*>', '<', '>', 'foo:bar:m', True),
     ('[[abc]]', '[', ']', 'c', True),
     ('[.*]', '[', ']', '', True),
 ])
-def test_compile_regex_output_matches_correctly(phrase, start, end, match_against, match_should_succeed):
+def test_compile_regex_output_matches_correctly(phrase, start, end, match_against, should_match_succeed):
     result = compile_regex(phrase, start, end)
-    if match_should_succeed:
+    if should_match_succeed:
         assert result.match(match_against)
     else:
         assert not result.match(match_against)

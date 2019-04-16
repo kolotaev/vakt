@@ -14,7 +14,16 @@ from .exceptions import InvalidPatternError
 log = logging.getLogger(__name__)
 
 
-class RegexChecker:
+class Checker(metaclass=ABCMeta):
+    """
+    Abstract class for Checker typing.
+    """
+    @abstractmethod
+    def fits(self, policy, field, what):
+        pass
+
+
+class RegexChecker(Checker):
     """
     Checker that uses regular expressions.
     E.g. 'Dog', 'Doge', 'Dogs' fit <Dog[se]?>
@@ -29,6 +38,9 @@ class RegexChecker:
         """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
         for i in where:
+            # We are not meant to handle non-string values if they accidentally got here
+            if type(i) != str:
+                continue
             # check if 'where' item is not written in a policy-defined-regex syntax.
             if policy.start_tag not in i and policy.end_tag not in i:
                 if i != what:
@@ -45,7 +57,7 @@ class RegexChecker:
         return False
 
 
-class StringChecker(metaclass=ABCMeta):
+class StringChecker(Checker):
     """
     Checker that uses string equality.
     You have to redefine `compare` method.
@@ -55,6 +67,9 @@ class StringChecker(metaclass=ABCMeta):
         """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
         for item in where:
+            # We are not meant to handle non-string values if they accidentally got here
+            if type(item) != str:
+                continue
             if policy.start_tag == item[0] and policy.end_tag == item[-1]:
                 item = item[1:-1]
             if self.compare(what, item):
@@ -88,3 +103,48 @@ class StringFuzzyChecker(StringChecker):
 
     def compare(self, needle, haystack):
         return needle in haystack
+
+
+class RulesChecker(Checker):
+    """
+    Checker that uses Rules defined inside dictionaries to determine match.
+    """
+    def fits(self, policy, field, what):
+        """Does Policy fit the given 'what' value by its 'field' property"""
+        where_list = getattr(policy, field, [])
+        is_what_dict = isinstance(what, dict)
+        for i in where_list:
+            item_result = False
+            # If not dict or Rule, skip it - we are not meant to handle it.
+            # Do not use isinstance for higher execution speed
+            if type(i) == dict:
+                for key, rule in i.items():
+                    if not is_what_dict:
+                        log.debug('Error matching Policy, because data in Inquiry is not `dict`')
+                        item_result = False
+                    # at least one missing key in inquiry's data means no match for this item
+                    elif key not in what:
+                        log.debug('Error matching Policy, because data has no key "%s" required by Policy' % key)
+                        item_result = False
+                    else:
+                        what_value = what[key]
+                        item_result = self._check_satisfied(rule, what_value=what_value)
+                    # at least one item's key didn't satisfy -> fail fast: policy doesn't fit anyway
+                    if not item_result:
+                        break
+            elif callable(getattr(i, 'satisfied', '')):
+                item_result = self._check_satisfied(i, what_value=what)
+            # If at least one item fits -> policy fits for this field
+            if item_result:
+                return True
+        return False
+
+    @staticmethod
+    def _check_satisfied(rule, what_value):
+        try:
+            return rule.satisfied(what_value)
+        # broad exception for possible custom exceptions. Any exception -> no match
+        # todo - decide on granular handler
+        except Exception:
+            log.exception('Error matching Policy, because of raised exception')
+            return False

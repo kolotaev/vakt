@@ -8,7 +8,6 @@ services:
 cache: pip
 
 python:
-  - "3.3"
   - "3.4"
   - "3.5"
   - "3.6"
@@ -24,8 +23,8 @@ install:
   - pip install -e .[dev,mongo]
 
 script:
-  - python -m pytest -v --cov-config .coveragerc --cov=./
-  - python benchmark.py
+  - make coverage
+  - make bench
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
