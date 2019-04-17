@@ -82,6 +82,7 @@ class RegexMatch(Rule):
         return bool(self.regex.match(str(what)))
 
 
+# todo - add case sensivity
 class SubstringRule(Rule, metaclass=ABCMeta):
     """
     Rule that is a base class for different substring-related rules.

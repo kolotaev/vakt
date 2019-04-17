@@ -107,7 +107,7 @@ class Not(Rule):
             raise TypeError("Arguments should be of Rule class or it's derivatives")
         self.rule = rule
 
-    def satisfied(self, what, inquiry):
+    def satisfied(self, what, inquiry=None):
         return not self.rule.satisfied(what, inquiry)
 
 

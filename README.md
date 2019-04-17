@@ -14,7 +14,6 @@ Attribute-based access control (ABAC) SDK for Python.
 - [Description](#description)
 - [Concepts](#concepts)
 - [Install](#install)
-- [Usage](#usage)
 - [Components](#components)
     - [Storage](#storage)
         - [Memory](#memory)
@@ -82,8 +81,6 @@ pip install vakt[mongo]
 
 *[Back to top](#documentation)*
 
-
-### Usage
 
 ### Components
 #### Storage

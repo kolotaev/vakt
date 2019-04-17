@@ -2,14 +2,12 @@ import os
 import logging
 import uuid
 
-import vakt.rules.net
-import vakt.rules.string
-import vakt.checker
-from vakt.storage.mongo import MongoStorage, Migration0To1x1x0, Migration1x1x0To1x1x1
-from vakt.storage.memory import MemoryStorage
-from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
-from vakt.policy import Policy
-from vakt.guard import Guard, Inquiry
+from vakt import (
+    DENY_ACCESS, ALLOW_ACCESS,
+    MongoStorage, MemoryStorage,
+    Policy, Guard, Inquiry, RegexChecker,
+    rules,
+)
 
 from flask import Flask, request, session
 from pymongo import MongoClient
@@ -41,7 +39,7 @@ policies = [
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
         context={
-            'ip': vakt.rules.net.CIDR('127.0.0.1/32'),
+            'ip': rules.CIDR('127.0.0.1/32'),
         },
     ),
     Policy(
@@ -52,7 +50,7 @@ policies = [
         actions=['<.*>'],
         resources=['<.*>'],
         rules={
-            'secret': vakt.rules.string.RegexMatchRule('[Ii]-am-a-teacher'),
+            'secret': rules.RegexMatch('[Ii]-am-a-teacher'),
         },
     ),
     Policy(
@@ -81,11 +79,7 @@ def init():
     if os.environ.get('STORAGE') == 'mongo':
         user, password, host = 'root', 'example', 'localhost:27017'
         uri = 'mongodb://%s:%s@%s' % (user, password, host)
-        st = MongoStorage(MongoClient(host=host), 'vakt_db', collection='vakt_policies')
-        # We run migrations.
-        migrations = (Migration0To1x1x0(st), Migration1x1x0To1x1x1(st))
-        for m in sorted(migrations, key=lambda x: x.order):
-            m.up()
+        st = MongoStorage(MongoClient(uri), 'vakt_db', collection='vakt_book_library')
     else:
         st = MemoryStorage()
 
@@ -95,7 +89,7 @@ def init():
 
     # Create global guard instance
     global guard
-    guard = Guard(st, vakt.checker.RegexChecker())
+    guard = Guard(st, RegexChecker())
 
 
 # ============================= #

@@ -9,4 +9,5 @@ from .string import (
     StartsWith as StrStartsWith,
     EndsWith as StrEndsWith,
     Contains as StrContains,
+    RegexMatch,
 )

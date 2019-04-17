@@ -1,11 +1,10 @@
 # This example shows how to extend Vakt functionality and use it in your code.
 
-import vakt.rules.base
-import vakt.policy
-import vakt.storage.memory
+import vakt
+from vakt.rules.base import Rule
 
 
-class ABRule(vakt.rules.base.Rule):
+class ABRule(Rule):
     def __init__(self, a, b):
         self.a = a
         self.b = b
@@ -14,7 +13,7 @@ class ABRule(vakt.rules.base.Rule):
         return self.a < what < self.b
 
 
-class CustomTagsPolicy(vakt.policy.Policy):
+class CustomTagsPolicy(vakt.Policy):
     @property
     def start_tag(self):
         """Policy expression start tag"""
@@ -32,13 +31,13 @@ policy1 = CustomTagsPolicy(uid=1,
                            subjects=('=[FGH]+[\w]+=', 'Max'),
                            context={'secret': ABRule(10, 100)})
 
-policy2 = vakt.policy.Policy(uid=2,
-                             description='some default policy',
-                             context={'secret': ABRule(1, 15)})
+policy2 = vakt.Policy(uid=2,
+                      description='some default policy',
+                      context={'secret': ABRule(1, 15)})
 
 
 # You can add custom policies and default ones.
-storage = vakt.storage.memory.MemoryStorage()
+storage = vakt.MemoryStorage()
 storage.add(policy1)
 storage.add(policy2)
 

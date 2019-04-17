@@ -181,7 +181,7 @@ class MongoMigration(Migration):
                 log.info('Trying to migrate Policy with UID: %s' % doc['uid'])
                 new_doc = processor(doc)
                 self.storage.collection.replace_one({'_id': new_doc['uid']}, new_doc)
-                log.info('Policy with UID was migrated: %s' % doc['uid'])
+                log.info('Policy with UID: %s was migrated' % doc['uid'])
             except Irreversible as e:
                 log.warning('Irreversible Policy. %s. Mongo doc: %s', e, doc)
                 failed_policies.append(doc)
