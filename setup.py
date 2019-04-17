@@ -4,7 +4,7 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 about = {}
-with open(path.join(here, 'vakt', '__version__.py'), mode='r', encoding='utf-8') as f:
+with open(path.join(here, 'vakt', 'version.py'), mode='r', encoding='utf-8') as f:
     exec(f.read(), about)
 
 readme_path = path.join(here, 'README.md')

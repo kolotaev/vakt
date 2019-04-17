@@ -8,6 +8,8 @@ import logging
 #    Public API Imports   #
 ###########################
 
+from .version import version_info, __version__
+
 from .policy import Policy
 
 from .guard import (
@@ -27,7 +29,10 @@ from .checker import (
     RulesChecker,
 )
 
-from .__version__ import version_info
+from . import rules
+
+from .storage.memory import MemoryStorage
+from .storage.mongo import MongoStorage
 
 
 ################
