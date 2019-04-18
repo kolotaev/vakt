@@ -464,12 +464,12 @@ Initial code ideas of Vakt are based on
 
 You can see how much time it takes for a single Inquiry to be processed given we have a number of unique Policies in a
 Storage. 
-For ([MemoryStorage](#memory)) it measures the runtime of a decision-making process for all 
+For [MemoryStorage](#memory) it measures the runtime of a decision-making process for all 
 the existing Policies when [Guard's](#guard) code iterates the whole list of Policies to decide if 
 Inquiry is allowed or not. In case of other storages the mileage
-may vary since other storages may return a smaller subset of Policies that fit the given Inquiry. 
-Don't forget that most external storages of course add some time penalty to perform I/O operations.
-The runtime also depends on a checker used. RulesChecker performs much better than RegexChecker.
+may vary since they may return a smaller subset of Policies that fit the given Inquiry. 
+Don't forget that most external storages add some time penalty to perform I/O operations.
+The runtime also depends on a Policy-type used (and thus checker): RulesChecker performs much better than RegexChecker.
 
 Example:
 

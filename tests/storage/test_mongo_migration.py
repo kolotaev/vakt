@@ -296,7 +296,7 @@ class TestMigration1x1x0To1x1x1:
         assert 'info' in log_handler.messages
         assert 9 == len(log_handler.messages['info'])
         assert 'Trying to migrate Policy with UID: 5' in log_handler.messages['info']
-        assert 'Policy with UID was migrated: 5' in log_handler.messages['info']
+        assert 'Policy with UID: 5 was migrated' in log_handler.messages['info']
         # warn
         assert 'warning' in log_handler.messages
         assert 2 == len(log_handler.messages['warning'])
@@ -530,7 +530,7 @@ class TestMigration1x1x1To1x2x0:
         assert 5 == len(log_handler.messages.get('info', []))
         assert 'Trying to migrate Policy with UID: 10' in log_handler.messages['info']
         assert 'Trying to migrate Policy with UID: 40' in log_handler.messages['info']
-        assert 'Policy with UID was migrated: 10' in log_handler.messages['info']
+        assert 'Policy with UID: 10 was migrated' in log_handler.messages['info']
         # warn
         assert 'warning' in log_handler.messages
         assert 3 == len(log_handler.messages['warning'])
