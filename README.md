@@ -281,6 +281,9 @@ There are a number of different Rule types:
   * Equal
   * PairsEqual
   * RegexMatch
+  * StartsWith
+  * EndsWith
+  * Contains
 4. Inquiry-related
   * SubjectEqual
   * ActionEqual
@@ -450,7 +453,7 @@ Vakt logs can be considered in 2 basic levels:
 
 ### Acknowledgements
 
-Code ideas of Vakt are based on
+Initial code ideas of Vakt are based on
 [Amazon IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md) and
 [Ladon](https://github.com/ory/ladon) Policies SDK as its reference implementation.
 
@@ -459,18 +462,19 @@ Code ideas of Vakt are based on
 
 ### Benchmark
 
-You can see how much time it takes a single Inquiry to be processed given we have a number of unique Policies in Memory
-Store.<br />
-Generally speaking, it measures only the runtime of a decision-making process when the worst-case
-storage ([MemoryStorage](#memory)) returns all the existing Policies and [Guard's](#guard)
-code iterates the whole list of Policies to decide if Inquiry is allowed or not. In case of other storages the mileage
-may vary since other storages generally tend to return a smaller subset of Policies that fit the given Inquiry.<br />
-Don't forget that the real-world storage of course adds some time penalty to perform I/O operations.
+You can see how much time it takes for a single Inquiry to be processed given we have a number of unique Policies in a
+Storage. 
+For ([MemoryStorage](#memory)) it measures the runtime of a decision-making process for all 
+the existing Policies when [Guard's](#guard) code iterates the whole list of Policies to decide if 
+Inquiry is allowed or not. In case of other storages the mileage
+may vary since other storages may return a smaller subset of Policies that fit the given Inquiry. 
+Don't forget that most external storages of course add some time penalty to perform I/O operations.
+The runtime also depends on a checker used. RulesChecker performs much better than RegexChecker.
 
 Example:
 
 ```bash
-python3 benchmark.py 1000 yes
+python3 benchmark.py --checker regex --storage memory -n 1000
 ```
 
 Output is:
@@ -478,16 +482,35 @@ Output is:
 > ......................<br />
 > START BENCHMARK!<br />
 > Number of unique Policies in DB: 1,000<br />
-> Among them there are Policies with the same regexp pattern: 0<br />
-> Are Policies defined in Regexp syntax?: True<br />
+> Among them Policies with the same regexp pattern: 0<br />
+> Checker used: RegexChecker<br />
 > Decision for 1 Inquiry took: 0.4451 seconds<br />
-> Inquiry allowed? False<br />
+> Inquiry passed the guard? False<br />
 
-Script arguments:
-1. Int - Number of unique Policies generated and put into Storage (Default: 100,000)
-2. String (yes/no) - Should Policies be generated using regex syntax rules or not? (Default: yes)
-3. Int - Number of Policies with the same regexp pattern (Default: 0)
-3. Int - Cache size for RegexChecker (Default: 1024)
+Script usage:
+```
+usage: benchmark.py [-h] [-n [POLICIES_NUMBER]] [-d {mongo,memory}]
+                    [-c {regex,rules,exact,fuzzy}] [--regexp] [--same SAME]
+                    [--cache CACHE]
+
+Run vakt benchmark.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -n [POLICIES_NUMBER], --number [POLICIES_NUMBER]
+                        number of policies to create in DB (default: 100000)
+  -d {mongo,memory}, --storage {mongo,memory}
+                        type of storage (default: memory)
+  -c {regex,rules,exact,fuzzy}, --checker {regex,rules,exact,fuzzy}
+                        type of checker (default: regex)
+
+regex policy related:
+  --regexp              should Policies be defined without Regex syntax?
+                        (default: True)
+  --same SAME           number of similar regexps in Policy
+  --cache CACHE         number of LRU-cache for RegexChecker (default:
+                        RegexChecker's default cache-size)
+```
 
 *[Back to top](#documentation)*
 
