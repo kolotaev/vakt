@@ -1,3 +1,5 @@
+dist: xenial   # required for Python >= 3.7
+
 sudo: false
 
 language: python
@@ -11,9 +13,11 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
-  - "3.7-dev"
-  - "nightly"
-  - "pypy3"  # Pypy3 5.8.0-beta0
+  - "3.7"
+  - "3.7-dev"  # 3.7 development branch
+  - "3.8-dev"  # 3.8 development branch
+  - "nightly"  # nightly build
+  - "pypy3.5"    # Pypy3 5.8.0-beta0
 
 before_script:
   - sleep 15

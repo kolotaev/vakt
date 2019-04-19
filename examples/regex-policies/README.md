@@ -1,7 +1,7 @@
 # Regex Policies
 
 This example represents web book library whose resources are protected by "Amazon AWS IAM"-like policies 
-defined with `vakt`'s regex policies.
+defined with `vakt`'s regex policies (String-based Policies in `vakt` nomenclature).
 
 All the policies here are defined with string or regular expression.
 
