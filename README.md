@@ -16,15 +16,15 @@ Attribute-based access control (ABAC) SDK for Python.
 - [Install](#install)
 - [Usage](#usage)
 - [Components](#components)
-    - [Storage](#storage)
-        - [Memory](#memory)
-        - [MongoDB](#mongodb)
-    - [Migration](#migration)
 	- [Policy](#policy)
 	- [Inquiry](#inquiry)
 	- [Rule](#rule)
 	- [Checker](#checker)
 	- [Guard](#guard)
+	- [Storage](#storage)
+        - [Memory](#memory)
+        - [MongoDB](#mongodb)
+    - [Migration](#migration)
 - [JSON](#json)
 - [Logging](#logging)
 - [Examples](./examples)
@@ -60,8 +60,6 @@ answering the following questions:
 1. *What are the rules that should be satisfied in the context of the request itself?*
 1. *What is resulting effect of the answer on the above questions?*
 
-For example of usage see [examples folder](examples).
-
 *[Back to top](#documentation)*
 
 
@@ -94,13 +92,13 @@ import vakt
 from vakt.rules import Eq, Any, StartsWith, And, Greater, Less
 
 policy = vakt.Policy(
-        str(uuid.uuid4()),
-        actions=[Eq('fork')],
-        resources=[StartsWith('repos/Google', ci=True)],
-        subjects=[{'name': Any(), 'stars': And(Greater(50), Less(999))}],
-        effect=vakt.ALLOW_ACCESS,
-        description='Allow forking any Google repository for users that have > 50 and < 999 stars'
-    )
+    str(uuid.uuid4()),
+    actions=[Eq('fork'), Eq('clone')],
+    resources=[StartsWith('repos/Google', ci=True)],
+    subjects=[{'name': Any(), 'stars': And(Greater(50), Less(999))}],
+    effect=vakt.ALLOW_ACCESS,
+    description='Allow forking any Google repository for users that have > 50 and < 999 stars'
+)
 storage = vakt.MemoryStorage()
 storage.add(policy)
 guard = vakt.Guard(storage, vakt.RulesChecker())
@@ -114,101 +112,6 @@ For more examples see [here](./examples).
 *[Back to top](#documentation)*
 
 ### Components
-#### Storage
-Storage is a component that gives an interface for manipulating [Policies](#policy) persistence in various places.
-
-It provides the following methods:
-```python
-add(policy)                 # Store a Policy
-get(uid)                    # Retrieve a Policy by its ID
-get_all(limit, offset)      # Retrieve all stored Policies (with pagination)
-update(policy)              # Store an updated Policy
-delete(uid)                 # Delete Policy from storage by its ID
-find_for_inquiry(inquiry)   # Retrieve Policies that match the given Inquiry
-```
-
-Storage may have various backend implementations (RDBMS, NoSQL databases, etc.). Vakt ships some Storage implementations
-out of the box. See below.
-
-##### Memory
-Implementation that stores Policies in memory. It's not backed by any file or something, so every restart of your
-application will swipe out everything that was stored. Useful for testing.
-
-##### MongoDB
-MongoDB is chosen as the most popular and widespread NO-SQL database.
-
-
-```python
-from pymongo import MongoClient
-from vakt.storage.mongo import MongoStorage
-
-client = MongoClient('localhost', 27017)
-storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
-```
-
-Default collection name is 'vakt_policies'.
-
-Actions are the same as for any Storage that conforms (storage.abc.Storage) interface.
-
-Beware that currently MongoStorage supports indexed `find_for_inquiry()` only for StringExact and StringFuzzy checkers.
-Regex checker simply returns all the Policies from the database.
-See [this issue](https://jira.mongodb.org/browse/SERVER-11947).
-
-*[Back to top](#documentation)*
-
-
-#### Migration
-
-`vakt.migration` is a set of components that are useful from the perspective of the [Storage](#storage).
-It's recommended to favor it over manual actions on DB schema/data
-since it's aware of Vakt requirements to Policies data. But it's not mandatory, anyway.
-However it's up to a particular Storage to decide whether it needs migrations or not.
-It consists of 3 components:
-* `Migration`
-* `MigrationSet`
-* `Migrator`
-
-`Migration` allows you to describe data modifications between versions.
-Each storage can have a number of `Migration` classes to address different releases with the order of the migration
-specified in `order` property.
-Should be located inside particular storage module and implement `vakt.storage.migration.Migration`.
-Migration has 2 main methods (as you might guess) and 1 property:
-- `up` - runs db "schema" upwards
-- `down` - runs db "schema" downwards (rolls back the actions of `up`)
-- `order` - tells the number of the current migration in a row
-
-`MigrationSet` is a component that represents a collection of Migrations for a Storage.
-You should define your own migration-set. It should be located inside particular storage module and implement
-`vakt.storage.migration.MigrationSet`. It has 3 methods that lest unimplemented:
-- `migrations` - should return all initialized Migration objects
-- `save_applied_number` - saves a number of a lst applied up migration in the Storage for later reference
-- `last_applied` - returns a number of a lst applied up migration from the Storage
-
-`Migrator` is an executor of a migrations. It can execute all migrations up or down, or execute a particular migration
-if `number` argument is provided.
-
-Example usage:
-
-```python
-from pymongo import MongoClient
-from vakt.storage.mongo import MongoStorage, MongoMigrationSet
-from vakt.storage.migration import Migrator
-
-client = MongoClient('localhost', 27017)
-storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
-
-migrator = Migrator(MongoMigrationSet(storage))
-migrator.up()
-...
-migrator.down()
-...
-migrator.up(number=2)
-...
-migrator.down(number=2)
-```
-
-*[Back to top](#documentation)*
-
 
 #### Policy
 Policy is a main object for defining rules for accessing resources.
@@ -315,22 +218,26 @@ There are a number of different Rule types:
 1. Comparison-related
 
 | Rule          | Example       |
-| ------------- |:-------------:|
-| Eq      | Eq(90) |
-| NotEq      | NotEq('some-string') |
-| Greater      | Greater(90) |
-| Less      | Less(90.9) |
-| GreaterOrEqual      | GreaterOrEqual(90) |
-| LessOrEqual      | LessOrEqual(880) |
+| ------------- |-------------|
+| Eq      | `Eq(90)` |
+| NotEq      | `NotEq('some-string')` |
+| Greater      | `Greater(90)` |
+| Less      | `Less(90.9)` |
+| GreaterOrEqual      | `GreaterOrEqual(90)` |
+| LessOrEqual      | `LessOrEqual(880)` |
 
 2. Logic-related
-  * IsTrue
-  * IsFalse
-  * Not
-  * And
-  * Or
-  * Any
-  * Neither
+
+| Rule          | Example       |
+| ------------- |-------------|
+| IsTrue      | `IsTrue()` and on fit: pass result like: user.is_admin() |
+| IsFalse      | `IsFalse()` and on fit: pass callable like: lambda x: x.bought() |
+| Not      | `Not(Greater(90))` |
+| And      | `And(Greater(50), Less(89))` |
+| Or      | `Or(Greater(50), Less(120), Eq(8888))` |
+| Any      | `Any()` |
+| Neither      | `Neither()` |
+
 3. String-related
   * Equal
   * PairsEqual
@@ -440,6 +347,102 @@ if guard.is_allowed(inquiry):
     return "You've been logged-in", 200
 else:
     return "Go away, you violator!", 401
+```
+
+*[Back to top](#documentation)*
+
+
+#### Storage
+Storage is a component that gives an interface for manipulating [Policies](#policy) persistence in various places.
+
+It provides the following methods:
+```python
+add(policy)                 # Store a Policy
+get(uid)                    # Retrieve a Policy by its ID
+get_all(limit, offset)      # Retrieve all stored Policies (with pagination)
+update(policy)              # Store an updated Policy
+delete(uid)                 # Delete Policy from storage by its ID
+find_for_inquiry(inquiry)   # Retrieve Policies that match the given Inquiry
+```
+
+Storage may have various backend implementations (RDBMS, NoSQL databases, etc.). Vakt ships some Storage implementations
+out of the box. See below.
+
+##### Memory
+Implementation that stores Policies in memory. It's not backed by any file or something, so every restart of your
+application will swipe out everything that was stored. Useful for testing.
+
+##### MongoDB
+MongoDB is chosen as the most popular and widespread NO-SQL database.
+
+
+```python
+from pymongo import MongoClient
+from vakt.storage.mongo import MongoStorage
+
+client = MongoClient('localhost', 27017)
+storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
+```
+
+Default collection name is 'vakt_policies'.
+
+Actions are the same as for any Storage that conforms (storage.abc.Storage) interface.
+
+Beware that currently MongoStorage supports indexed `find_for_inquiry()` only for StringExact and StringFuzzy checkers.
+Regex checker simply returns all the Policies from the database.
+See [this issue](https://jira.mongodb.org/browse/SERVER-11947).
+
+*[Back to top](#documentation)*
+
+
+#### Migration
+
+`vakt.migration` is a set of components that are useful from the perspective of the [Storage](#storage).
+It's recommended to favor it over manual actions on DB schema/data
+since it's aware of Vakt requirements to Policies data. But it's not mandatory, anyway.
+However it's up to a particular Storage to decide whether it needs migrations or not.
+It consists of 3 components:
+* `Migration`
+* `MigrationSet`
+* `Migrator`
+
+`Migration` allows you to describe data modifications between versions.
+Each storage can have a number of `Migration` classes to address different releases with the order of the migration
+specified in `order` property.
+Should be located inside particular storage module and implement `vakt.storage.migration.Migration`.
+Migration has 2 main methods (as you might guess) and 1 property:
+- `up` - runs db "schema" upwards
+- `down` - runs db "schema" downwards (rolls back the actions of `up`)
+- `order` - tells the number of the current migration in a row
+
+`MigrationSet` is a component that represents a collection of Migrations for a Storage.
+You should define your own migration-set. It should be located inside particular storage module and implement
+`vakt.storage.migration.MigrationSet`. It has 3 methods that lest unimplemented:
+- `migrations` - should return all initialized Migration objects
+- `save_applied_number` - saves a number of a lst applied up migration in the Storage for later reference
+- `last_applied` - returns a number of a lst applied up migration from the Storage
+
+`Migrator` is an executor of a migrations. It can execute all migrations up or down, or execute a particular migration
+if `number` argument is provided.
+
+Example usage:
+
+```python
+from pymongo import MongoClient
+from vakt.storage.mongo import MongoStorage, MongoMigrationSet
+from vakt.storage.migration import Migrator
+
+client = MongoClient('localhost', 27017)
+storage = MongoStorage(client, 'database-name', collection='optional-collection-name')
+
+migrator = Migrator(MongoMigrationSet(storage))
+migrator.up()
+...
+migrator.down()
+...
+migrator.up(number=2)
+...
+migrator.down(number=2)
 ```
 
 *[Back to top](#documentation)*

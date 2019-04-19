@@ -41,10 +41,11 @@ class BooleanRule(Rule, metaclass=ABCMeta):
         pass
 
 
+# todo - rename to Truthy
 class IsTrue(BooleanRule):
     """
     Rule that is satisfied when 'what' is evaluated to a boolean 'true'.
-    For example: subject={'role': IsTrue(user.is_admin()), 'name': Eq('Jimmy')}
+    For example: subject={'role': IsTrue(), 'name': Eq('Jimmy')}
     """
     @property
     def val(self):
@@ -54,7 +55,7 @@ class IsTrue(BooleanRule):
 class IsFalse(BooleanRule):
     """
     Rule that is satisfied when 'what' is evaluated to a boolean 'false'.
-    For example: subject={'role': IsFalse(user.is_admin()), 'name': Eq('Jimmy')}
+    For example: subject={'role': IsFalse(), 'name': Eq('Jimmy')}
     """
     @property
     def val(self):
