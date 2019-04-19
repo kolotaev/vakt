@@ -34,6 +34,7 @@ __all__ = [
 ]
 
 
+# todo - add varagrs instead of a list
 class ListRule(Rule):
     """
     Generic Rule for List-related checks

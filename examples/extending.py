@@ -4,13 +4,14 @@ import vakt
 from vakt.rules.base import Rule
 
 
-class ABRule(Rule):
-    def __init__(self, a, b):
+class Between(Rule):
+    def __init__(self, a, b, inclusive=False):
         self.a = a
         self.b = b
+        self.inclusive = inclusive
 
     def satisfied(self, what, inquiry=None):
-        return self.a < what < self.b
+        return what > self.a and ((what < self.b and not self.inclusive) or (what <= self.b and self.inclusive))
 
 
 class CustomTagsPolicy(vakt.Policy):
@@ -29,11 +30,11 @@ class CustomTagsPolicy(vakt.Policy):
 policy1 = CustomTagsPolicy(uid=1,
                            description='some custom policy',
                            subjects=('=[FGH]+[\w]+=', 'Max'),
-                           context={'secret': ABRule(10, 100)})
+                           context={'secret': Between(10, 100)})
 
 policy2 = vakt.Policy(uid=2,
                       description='some default policy',
-                      context={'secret': ABRule(1, 15)})
+                      context={'secret': Between(1, 15)})
 
 
 # You can add custom policies and default ones.

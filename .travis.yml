@@ -1,7 +1,5 @@
 sudo: false
 
-dist: xenial
-
 language: python
 
 services:
@@ -13,7 +11,7 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
-  - "3.7"
+  - "3.7-dev"
   - "nightly"
   - "pypy3"  # Pypy3 5.8.0-beta0
 
