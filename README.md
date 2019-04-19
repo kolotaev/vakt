@@ -14,6 +14,7 @@ Attribute-based access control (ABAC) SDK for Python.
 - [Description](#description)
 - [Concepts](#concepts)
 - [Install](#install)
+- [Usage](#usage)
 - [Components](#components)
     - [Storage](#storage)
         - [Memory](#memory)
@@ -40,8 +41,8 @@ toolkit that is based on policies, also sometimes referred as PBAC.
 ABAC stands aside of RBAC and ACL models, giving you
 a fine-grained control on definition of the rules that restrict an access to resources and is generally considered a
 "next generation" authorization model.
-It highly resembles [IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md)
-implementation.
+In its form Vakt resembles [IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md), but
+has a way nicer attribute managing.
 
 See [concepts](#concepts) section for more details.
 
@@ -81,6 +82,36 @@ pip install vakt[mongo]
 
 *[Back to top](#documentation)*
 
+
+### Usage
+
+A quick dive-in:
+
+```python
+import uuid
+
+import vakt
+from vakt.rules import Eq, Any, StartsWith, And, Greater, Less
+
+policy = vakt.Policy(
+        str(uuid.uuid4()),
+        actions=[Eq('fork')],
+        resources=[StartsWith('repos/Google', ci=True)],
+        subjects=[{'name': Any(), 'stars': And(Greater(50), Less(999))}],
+        effect=vakt.ALLOW_ACCESS,
+        description='Allow forking any Google repository for users that have > 50 and < 999 stars'
+    )
+storage = vakt.MemoryStorage()
+storage.add(policy)
+guard = vakt.Guard(storage, vakt.RulesChecker())
+
+inq = vakt.Inquiry(action='fork', resource='repos/google/tensorflow', subject={'name': 'Brin', 'stars': 80})
+assert guard.is_allowed(inq)
+```
+
+For more examples see [here](./examples).
+
+*[Back to top](#documentation)*
 
 ### Components
 #### Storage
@@ -190,23 +221,41 @@ The main parts reflect questions described in [Concepts](#concepts) section:
 * effect - If policy matches all the above conditions, what effect does it imply?
 Can be either `vakt.effects.ALLOW_ACCESS` or `vakt.effects.DENY_ACCESS`
 
-All `resources`, `subjects`, `actions` can be described by a simple string or a regex. See [Checker](#checker) for more.
+All `resources`, `subjects`, `actions` can be described by a simple string, regex, [Rule](#rule) or dictionary
+of [Rules](#rule). See [Checker](#checker) for more.
+
+Depending on a way `resources`, `subjects`, `actions` are described Policy can have either String-based or Rule-based type.
 
 ```python
-p = Policy(
-        uid=str(uuid.uuid4()),
-        description="""
-        Allow all readers of the book library whose surnames start with M get and read any book or magazine,
-        but only when they connect from local library's computer
-        """,
-        effect=ALLOW_ACCESS,
-        subjects=['<[\w]+ M[\w]+>'],
-        resources=('library:books:<.+>', 'office:magazines:<.+>'),
-        actions=['<read|get>'],
-        context={
-        'ip': CIDR('192.168.2.0/24'),
-        }
-    )
+# String-based policy
+Policy(
+    uid=str(uuid.uuid4()),
+    description="""
+    Allow all readers of the book library whose surnames start with M get and read any book or magazine,
+    but only when they connect from local library's computer
+    """,
+    effect=ALLOW_ACCESS,
+    subjects=['<[\w]+ M[\w]+>'],
+    resources=('library:books:<.+>', 'office:magazines:<.+>'),
+    actions=['<read|get>'],
+    context={
+    'ip': CIDR('192.168.2.0/24'),
+    }
+)
+    
+# Rule-based policy
+Policy(
+    str(uuid.uuid4()),
+    actions=[Any()],
+    resources=[{'category': Eq('administration'), 'sub': In(['panel', 'switch'])}],
+    subjects=[{'name': Any(), 'role': NotEq('developer')}],
+    effect=ALLOW_ACCESS,
+    context={'ip': CIDR('127.0.0.1/32')},
+    description="""
+    Allow access to administration interface subcategories: 'panel', 'switch' if user is not 
+    a developer and came from local IP address.
+    """
+)
 ```
 
 Basically you want to create some set of Policies that encompass access rules for your domain and store them for
@@ -255,20 +304,25 @@ variants of resource access from the owner side and Inquiry describes an concret
 
 
 #### Rule
-Rules allow you to make additional checks apart from Policy's `action`, `subject`, `resource`.
+Rules allow you to make additional checks for Policy's `action`, `subject`, `resource` and `context`.
 Vakt takes additional context information from Inquiry's context and checks if it satisfies
-the defined Rule-set attached to the Policy that is being matched.
+the defined   to the Policy that is being matched.
 If at least on Rule in the Rule-set is not satisfied Inquiry is rejected by given Policy.
 Generally Rules represent so called `contextual (environment) attributes` in the classic ABAC definition.
+
 There are a number of different Rule types:
 
 1. Comparison-related
-  * Eq
-  * NotEq
-  * Greater
-  * Less
-  * GreaterOrEqual
-  * LessOrEqual
+
+| Rule          | Example       |
+| ------------- |:-------------:|
+| Eq      | Eq(90) |
+| NotEq      | NotEq('some-string') |
+| Greater      | Greater(90) |
+| Less      | Less(90.9) |
+| GreaterOrEqual      | GreaterOrEqual(90) |
+| LessOrEqual      | LessOrEqual(880) |
+
 2. Logic-related
   * IsTrue
   * IsFalse
