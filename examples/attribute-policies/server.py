@@ -1,7 +1,9 @@
 import logging
 import uuid
+import os
 
 import Pyro4
+import pymongo
 import vakt
 from vakt.rules import Eq, Any, NotEq, StartsWith, In, RegexMatch, CIDR, And, Greater, Less
 
@@ -66,7 +68,16 @@ class GitHubGuardian:
 
     @staticmethod
     def _create_storage():
-        return vakt.MemoryStorage()
+        # Here we instantiate the Policy Storage.
+        # In this case it's Memory or MongoDB Storage,
+        # but we can opt to SQL Storage, any other third-party storage, etc.
+        print('st', os.environ.get('STORAGE'))
+        if os.environ.get('STORAGE') == 'mongo':
+            user, password, host = 'root', 'root', 'localhost:27017'
+            uri = 'mongodb://%s:%s@%s' % (user, password, host)
+            return vakt.MongoStorage(pymongo.MongoClient(host=host), 'vakt_db', collection='vakt_book_library')
+        else:
+            return vakt.MemoryStorage()
 
 
 def main():

@@ -79,7 +79,7 @@ def init():
     if os.environ.get('STORAGE') == 'mongo':
         user, password, host = 'root', 'example', 'localhost:27017'
         uri = 'mongodb://%s:%s@%s' % (user, password, host)
-        st = MongoStorage(MongoClient(uri), 'vakt_db', collection='vakt_book_library')
+        st = MongoStorage(MongoClient(host=host), 'vakt_db', collection='vakt_book_library')
     else:
         st = MemoryStorage()
 
