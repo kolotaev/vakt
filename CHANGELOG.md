@@ -18,7 +18,7 @@ particular storage.
 - Drop Python 3.3 support. Minimal Python version is 3.4 now.
 
 ### Changed
-- [Rules] String-based `Rule` Equal now has flag `case_insensitive`.
+- [Rules] String-based `Rule` Equal now has flag `ci` (case_insensitive).
 If set to `True`, string case-insensitive comparison is performed.
 - [Logging] Rename logging message "Conflicting ID" -> "Conflicting UID".
 - [Logging] Changed several exception logs to error level.

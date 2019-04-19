@@ -39,8 +39,7 @@ policies = [
     vakt.Policy(
         str(uuid.uuid4()),
         actions=[Eq('fork')],
-        # todo add case-sensivity
-        resources=[StartsWith('repos/DataDog')],
+        resources=[StartsWith('repos/DataDog', ci=True)],
         subjects=[{'name': Any(), 'stars': And(Greater(50), Less(999))}],
         effect=vakt.ALLOW_ACCESS,
         description='Allow forking any DataDog repository for users that have > 50 and < 999 stars'

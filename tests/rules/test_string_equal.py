@@ -42,7 +42,7 @@ def test_string_equal_satisfied(arg, against, result):
     ('', '', True),
 ])
 def test_string_equal_insensitive_satisfied(arg, against, result):
-    c = Equal(arg, case_insensitive=True)
+    c = Equal(arg, ci=True)
     assert result == c.satisfied(against)
     # test after (de)serialization
     assert result == Equal.from_json(c.to_json()).satisfied(against)

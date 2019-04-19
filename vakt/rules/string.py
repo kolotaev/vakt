@@ -1,6 +1,5 @@
 """
-All Rules relevant to contexts that work with strings.
-It may be subject, object, etc.
+All Rules that work with strings.
 """
 
 import re
@@ -24,19 +23,24 @@ __all__ = [
 ]
 
 
-class Equal(Rule):
+class StringRule(Rule, metaclass=ABCMeta):
     """
-    Rule that is satisfied if the string value equals the specified property of this rule.
-    Performs case-sensitive and case-sensitive comparisons (based on `case_insensitive` flag).
-    For example: context={'country': Equal('Mozambique', True)}
+    Basic Rule for strings
     """
-    def __init__(self, val, case_insensitive=False):
+    def __init__(self, val, ci=False):
         if not isinstance(val, str):
             log.error('%s creation. Initial property should be a string', type(self).__name__)
             raise TypeError('Initial property should be a string')
         self.val = val
-        self.ci = case_insensitive
+        self.ci = ci
 
+
+class Equal(StringRule):
+    """
+    Rule that is satisfied if the string value equals the specified property of this rule.
+    Performs case-sensitive and case-sensitive comparisons (based on `ci` (case_insensitive) flag).
+    For example: context={'country': Equal('Mozambique', True)}
+    """
     def satisfied(self, what, inquiry=None):
         if isinstance(what, str):
             if self.ci:
@@ -82,48 +86,45 @@ class RegexMatch(Rule):
         return bool(self.regex.match(str(what)))
 
 
-# todo - add case sensivity
-class SubstringRule(Rule, metaclass=ABCMeta):
-    """
-    Rule that is a base class for different substring-related rules.
-    """
-    def __init__(self, val):
-        if not isinstance(val, str):
-            log.error('%s creation. Initial property should be a string', type(self).__name__)
-            raise TypeError('Initial property should be a string')
-        self.val = val
-
-
-class StartsWith(SubstringRule):
+class StartsWith(StringRule):
     """
     Rule that is satisfied when given string starts with initially provided substring.
     For example: context={'file': StartsWith('Route-')}
     """
     def satisfied(self, what, inquiry=None):
         if isinstance(what, str):
-            return what.startswith(self.val)
+            if self.ci:
+                return what.lower().startswith(self.val.lower())
+            else:
+                return what.startswith(self.val)
         return False
 
 
-class EndsWith(SubstringRule):
+class EndsWith(StringRule):
     """
     Rule that is satisfied when given string ends with initially provided substring.
     For example: context={'file': EndsWith('.txt')}
     """
     def satisfied(self, what, inquiry=None):
         if isinstance(what, str):
-            return what.endswith(self.val)
+            if self.ci:
+                return what.lower().endswith(self.val.lower())
+            else:
+                return what.endswith(self.val)
         return False
 
 
-class Contains(SubstringRule):
+class Contains(StringRule):
     """
     Rule that is satisfied when given string contains initially provided substring.
     For example: context={'file': Contains('sun')}
     """
     def satisfied(self, what, inquiry=None):
         if isinstance(what, str):
-            return self.val in what
+            if self.ci:
+                return self.val.lower() in what.lower()
+            else:
+                return self.val in what
         return False
 
 

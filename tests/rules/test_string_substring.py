@@ -16,60 +16,86 @@ def test_substring_rule_classes_constructor_fails():
     assert expect_msg in str(excinfo.value)
 
 
-@pytest.mark.parametrize('arg, against, result', [
-    ('foo', 'foo', True),
-    ('foo', 'Foo', False),
-    ('Foo', 'foo', False),
-    ('foo', 'bar', False),
-    ('foo', 'foobar', True),
-    ('foo', 'fo2bar', False),
-    ('тест', 'нет', False),
-    ('тест', 'тест2', True),
-    ('', '', True),
-    ('456', ['456'], False),
+@pytest.mark.parametrize('arg, against, case_insensitive, result', [
+    ('foo', 'foo', False, True),
+    ('foo', 'Foo', False, False),
+    ('foo', 'Foo', True, True),
+    ('Foo', 'foo', False, False),
+    ('foo', 'bar', False, False),
+    ('foo', 'foobar', False, True),
+    ('foo', 'fooBar', True, True),
+    ('foo', 'fo2bar', False, False),
+    ('foo', 'fo2Bar', True, False),
+    ('тест', 'нет', False, False),
+    ('тест', 'Hет', True, False),
+    ('тест', 'тест2', False, True),
+    ('тест', 'тЕст2', True, True),
+    ('', '', False, True),
+    ('456', ['456'], False, False),
+    ('456', ['456'], True, False),
 ])
-def test_string_starts_with_satisfied(arg, against, result):
-    c = StartsWith(arg)
+def test_string_starts_with_satisfied(arg, against, case_insensitive, result):
+    c = StartsWith(arg, ci=case_insensitive)
     assert result == c.satisfied(against)
     # test after (de)serialization
-    assert result == StartsWith.from_json(StartsWith(arg).to_json()).satisfied(against)
+    assert result == StartsWith.from_json(StartsWith(arg, ci=case_insensitive).to_json()).satisfied(against)
 
 
-@pytest.mark.parametrize('arg, against, result', [
-    ('foo', 'foo', True),
-    ('foo', 'Foo', False),
-    ('Foo', 'foo', False),
-    ('foo', 'bar', False),
-    ('foo', 'barfoo', True),
-    ('foo', 'barfo2', False),
-    ('тест', 'нет', False),
-    ('тест', '2тест', True),
-    ('', '', True),
-    ('456', 456, False),
+@pytest.mark.parametrize('arg, against, case_insensitive, result', [
+    ('foo', 'foo', False, True),
+    ('foo', 'foo', True, True),
+    ('foo', 'Foo', False, False),
+    ('foo', 'Foo', True, True),
+    ('Foo', 'foo', False, False),
+    ('foo', 'bar', False, False),
+    ('foo', 'barfoo', False, True),
+    ('foo', 'barFoo', True, True),
+    ('foo', 'barfo2', False, False),
+    ('foo', 'barfo2', True, False),
+    ('тест', 'нет', False, False),
+    ('тест', 'Нет', True, False),
+    ('тест', '2тест', False, True),
+    ('тест', '2тЕст', True, True),
+    ('', '', False, True),
+    ('', '', True, True),
+    ('456', 456, False, False),
+    ('456', 456, True, False),
 ])
-def test_string_ends_with_satisfied(arg, against, result):
-    c = EndsWith(arg)
+def test_string_ends_with_satisfied(arg, against, case_insensitive, result):
+    c = EndsWith(arg, ci=case_insensitive)
     assert result == c.satisfied(against)
     # test after (de)serialization
-    assert result == EndsWith.from_json(EndsWith(arg).to_json()).satisfied(against)
+    assert result == EndsWith.from_json(EndsWith(arg, ci=case_insensitive).to_json()).satisfied(against)
 
 
-@pytest.mark.parametrize('arg, against, result', [
-    ('foo', 'foo', True),
-    ('foo', 'Foo', False),
-    ('Foo', 'foo', False),
-    ('foo', 'bar', False),
-    ('foo', 'barfoo', True),
-    ('foo', 'foobar', True),
-    ('foo', 'qwertyfoobar', True),
-    ('foo', 'barfo2', False),
-    ('тест', 'нет', False),
-    ('тест', '2тест7', True),
-    ('', '', True),
-    ('456', 456, False),
+@pytest.mark.parametrize('arg, against, case_insensitive, result', [
+    ('foo', 'foo', False, True),
+    ('foo', 'foo', True, True),
+    ('foo', 'Foo', False, False),
+    ('foo', 'Foo', True, True),
+    ('Foo', 'foo', False, False),
+    ('Foo', 'foo', True, True),
+    ('foo', 'bar', False, False),
+    ('foo', 'bar', True, False),
+    ('foo', 'barfoo', False, True),
+    ('foo', 'barFoo', True, True),
+    ('foo', 'foobar', False, True),
+    ('foo', 'fooBar', True, True),
+    ('foo', 'qwertyfoobar', False, True),
+    ('foo', 'qwerTYfoobar', True, True),
+    ('foo', 'barfo2', False, False),
+    ('foo', 'bARFo2', True, False),
+    ('тест', 'нет', False, False),
+    ('тест', 'нет', True, False),
+    ('тест', '2тест7', False, True),
+    ('тест', '2теСТ7', True, True),
+    ('', '', False, True),
+    ('', '', True, True),
+    ('456', 456, False, False),
+    ('456', 456, True, False),
 ])
-def test_string_contains_satisfied(arg, against, result):
-    c = Contains(arg)
+def test_string_contains_satisfied(arg, against, case_insensitive, result):
+    c = Contains(arg, ci=case_insensitive)
     assert result == c.satisfied(against)
     # test after (de)serialization
-    assert result == Contains.from_json(Contains(arg).to_json()).satisfied(against)
+    assert result == Contains.from_json(Contains(arg, ci=case_insensitive).to_json()).satisfied(against)
