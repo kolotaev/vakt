@@ -65,7 +65,7 @@ answering the following questions:
 
 ### Install
 
-Vakt runs on Python >= 3.4.
+Vakt runs on Python >= 3.4.  
 PyPy implementation is supported as well.
 
 For in-memory storage:
@@ -97,13 +97,18 @@ policy = vakt.Policy(
     resources=[StartsWith('repos/Google', ci=True)],
     subjects=[{'name': Any(), 'stars': And(Greater(50), Less(999))}],
     effect=vakt.ALLOW_ACCESS,
-    description='Allow forking any Google repository for users that have > 50 and < 999 stars'
+    context={'referer': 'https://github.com'},
+    description='Allow forking any Google repository for users that have > 50 and < 999 stars and came from Github'
 )
 storage = vakt.MemoryStorage()
 storage.add(policy)
 guard = vakt.Guard(storage, vakt.RulesChecker())
 
-inq = vakt.Inquiry(action='fork', resource='repos/google/tensorflow', subject={'name': 'Brin', 'stars': 80})
+inq = vakt.Inquiry(action='fork',
+                   resource='repos/google/tensorflow',
+                   subject={'name': 'larry', 'stars': 80},
+                   context={'referer': 'https://github.com'})
+
 assert guard.is_allowed(inq)
 ```
 
@@ -120,17 +125,21 @@ The main parts reflect questions described in [Concepts](#concepts) section:
 * resources - a list of resources. Answers: what is asked?
 * subjects  - a list of subjects. Answers: who asks access to resources?
 * actions - a list of actions. Answers: what actions are asked to be performed on resources?
-* context - a list of rules that should be satisfied by the given inquiry's context.
+* context - rules that should be satisfied by the given inquiry's context.
 * effect - If policy matches all the above conditions, what effect does it imply?
-Can be either `vakt.effects.ALLOW_ACCESS` or `vakt.effects.DENY_ACCESS`
+Can be either `vakt.ALLOW_ACCESS` or `vakt.DENY_ACCESS`
 
-All `resources`, `subjects`, `actions` can be described by a simple string, regex, [Rule](#rule) or dictionary
-of [Rules](#rule). See [Checker](#checker) for more.
+All `resources`, `subjects` and `actions` are described with 
+a list containing strings, regexes, [Rules](#rule) or dictionaries of strings (attributes) to [Rules](#rule). 
+Each element in list acts as logical OR. Each key in a dictionary of Rules acts as logical AND.   
+`context` can be described only with a dictionary of [Rules](#rule).
 
-Depending on a way `resources`, `subjects`, `actions` are described Policy can have either String-based or Rule-based type.
+Depending on a way `resources`, `subjects`, `actions` are described, Policy can have either 
+String-based or Rule-based type. Can be inspected by `policy.type`. 
+This enforces the use of a concrete Checker implementation. See [Checker](#checker) for more.
 
 ```python
-# String-based policy
+# String-based policy (defined with regular expressions)
 Policy(
     uid=str(uuid.uuid4()),
     description="""
@@ -146,18 +155,18 @@ Policy(
     }
 )
     
-# Rule-based policy
+# Rule-based policy (defined with Rules and dictionaries of Rules)
 Policy(
     str(uuid.uuid4()),
+    description="""
+    Allow access to administration interface subcategories: 'panel', 'switch' if user is not 
+    a developer and came from local IP address.
+    """,
     actions=[Any()],
     resources=[{'category': Eq('administration'), 'sub': In(['panel', 'switch'])}],
     subjects=[{'name': Any(), 'role': NotEq('developer')}],
     effect=ALLOW_ACCESS,
-    context={'ip': CIDR('127.0.0.1/32')},
-    description="""
-    Allow access to administration interface subcategories: 'panel', 'switch' if user is not 
-    a developer and came from local IP address.
-    """
+    context={'ip': CIDR('127.0.0.1/32')}
 )
 ```
 
@@ -187,7 +196,19 @@ from flask import Flask, request, session
 
 user = request.form['username']
 action = request.form['action']
-inquiry = Inquiry(subject=user, action=action, context={'ip': request.remote_addr})
+page = request.form['page']
+inquiry = Inquiry(subject=user, action=action, resource=page, context={'ip': request.remote_addr})
+
+# or if you have policies are defined on some subject's and resource's attributes:
+user = request.form['username']
+user_role = request.form['role']
+action = request.form['action']
+book = request.form['book']
+chapter = request.form['chapter']
+inquiry2 = Inquiry(subject={'login': user, 'role': user_role},
+                   action=action,
+                   resource={'book': book, 'chapter': chapter},
+                   context={'ip': request.remote_addr})
 ```
 
 Here we are taking form params from Flask request and additional request information. Then we transform them
@@ -195,10 +216,10 @@ to Inquiry. That's it.
 
 Inquiry has several constructor arguments:
 
-* resource - string. What resource is being asked to be accessed?
-* action - string. What is being asked to be done on the resource?
-* subject - string. Who asks for it?
-* context - dictionary. The context of the request. Eventually it should be resolved to [Rule](#rule)
+* resource - any | dictionary of str -> any. What resource is being asked to be accessed?
+* action - any | dictionary str -> any. What is being asked to be done on the resource?
+* subject - any | dictionary str -> any. Who asks for it?
+* context - dictionary str -> any. What is the context of the request?
 
 If you were observant enough you might have noticed that Inquiry resembles Policy, where Policy describes multiple
 variants of resource access from the owner side and Inquiry describes an concrete access scenario from consumer side.
@@ -389,7 +410,7 @@ Default collection name is 'vakt_policies'.
 Actions are the same as for any Storage that conforms (storage.abc.Storage) interface.
 
 Beware that currently MongoStorage supports indexed `find_for_inquiry()` only for StringExact and StringFuzzy checkers.
-Regex checker simply returns all the Policies from the database.
+RegexChecker and RulesChecker simply return all the Policies from the database.
 See [this issue](https://jira.mongodb.org/browse/SERVER-11947).
 
 *[Back to top](#documentation)*
