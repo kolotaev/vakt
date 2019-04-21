@@ -60,6 +60,19 @@ answering the following questions:
 1. *What are the rules that should be satisfied in the context of the request itself?*
 1. *What is resulting effect of the answer on the above questions?*
 
+
+The overall diagram of vakt workflow is:
+
+[![Vakt diagram](diagram.png)](diagram.png)
+
+
+Vakt allows you to gain:
+
+* Externalized Authorization Management _(you can build own external AuthZ server with vakt, see examples)_
+* Dynamic Authorization Management _(you can add Policies and change their attributes)_
+* Policy Based Access Control _(vakt is based on Policies that describe access rules, strategies to your resources)_
+* Fine-Grained Authorization _(vakt Policies give you fine-grained control over resource's, subject's, action's and context's attributes)_
+
 *[Back to top](#documentation)*
 
 
@@ -139,9 +152,12 @@ String-based or Rule-based type. Can be inspected by `policy.type`.
 This enforces the use of a concrete Checker implementation. See [Checker](#checker) for more.
 
 ```python
+from vakt import Policy, ALLOW_ACCESS
+from vakt.rules import CIDR, Any, Eq, NotEq, In
+
 # String-based policy (defined with regular expressions)
 Policy(
-    uid=str(uuid.uuid4()),
+    1,
     description="""
     Allow all readers of the book library whose surnames start with M get and read any book or magazine,
     but only when they connect from local library's computer
@@ -150,14 +166,12 @@ Policy(
     subjects=['<[\w]+ M[\w]+>'],
     resources=('library:books:<.+>', 'office:magazines:<.+>'),
     actions=['<read|get>'],
-    context={
-    'ip': CIDR('192.168.2.0/24'),
-    }
+    context={'ip': CIDR('192.168.2.0/24')}
 )
     
 # Rule-based policy (defined with Rules and dictionaries of Rules)
 Policy(
-    str(uuid.uuid4()),
+    2,
     description="""
     Allow access to administration interface subcategories: 'panel', 'switch' if user is not 
     a developer and came from local IP address.
@@ -189,17 +203,18 @@ feed it to Vakt. There are no concrete builders for Inquiry from various request
 process and you have hands on control for doing it by yourself. Let's see an example:
 
 ```python
-from vakt.guard import Inquiry
-from flask import Flask, request, session
+from vakt import Inquiry
+from flask import request
 
 ...
 
+# if policies are defined with strings or regular expressions:
 user = request.form['username']
 action = request.form['action']
 page = request.form['page']
 inquiry = Inquiry(subject=user, action=action, resource=page, context={'ip': request.remote_addr})
 
-# or if you have policies are defined on some subject's and resource's attributes:
+# if policies are defined on some subject's and resource's attributes with dictionaries of Rules:
 user = request.form['username']
 user_role = request.form['role']
 action = request.form['action']
@@ -285,8 +300,8 @@ See class documentation of a particular `Rule` for more.
 Attaching a Rule-set to a Policy is simple:
 
 ```python
-import vakt.rules.net
-import vakt.rules.string
+from vakt import Policy
+import vakt.rules
 
 Policy(
     ...,
@@ -294,7 +309,7 @@ Policy(
         'secret': vakt.rules.string.Equal('.KIMZihH0gsrc'),
         'ip': vakt.rules.net.CIDR('192.168.0.15/24')
     },
-),
+)
 ```
 
 *[Back to top](#documentation)*
