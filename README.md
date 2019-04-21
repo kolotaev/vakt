@@ -19,6 +19,12 @@ Attribute-based access control (ABAC) SDK for Python.
 	- [Policy](#policy)
 	- [Inquiry](#inquiry)
 	- [Rule](#rule)
+	    - [Comparison-related](#comparison-related)
+	    - [Logic-related](#logic-related)
+	    - [List-related](#list-related)
+	    - [Network-related](#network-related)
+	    - [String-related](#string-related)
+	    - [Inquiry-related](#inquiry-related)
 	- [Checker](#checker)
 	- [Guard](#guard)
 	- [Storage](#storage)
@@ -61,17 +67,17 @@ answering the following questions:
 1. *What is resulting effect of the answer on the above questions?*
 
 
-The overall diagram of vakt workflow is:
+The overall diagram of `vakt` workflow is:
 
 [![Vakt diagram](diagram.png)](diagram.png)
 
 
 Vakt allows you to gain:
 
-* Externalized Authorization Management _(you can build own external AuthZ server with vakt, see examples)_
-* Dynamic Authorization Management _(you can add Policies and change their attributes)_
 * Policy Based Access Control _(vakt is based on Policies that describe access rules, strategies to your resources)_
 * Fine-Grained Authorization _(vakt Policies give you fine-grained control over resource's, subject's, action's and context's attributes)_
+* Dynamic Authorization Management _(you can add Policies and change their attributes)_
+* Externalized Authorization Management _(you can build own external AuthZ server with vakt, see examples)_
 
 *[Back to top](#documentation)*
 
@@ -204,25 +210,20 @@ process and you have hands on control for doing it by yourself. Let's see an exa
 
 ```python
 from vakt import Inquiry
-from flask import request
+from flask import request, session
 
 ...
 
 # if policies are defined with strings or regular expressions:
-user = request.form['username']
-action = request.form['action']
-page = request.form['page']
-inquiry = Inquiry(subject=user, action=action, resource=page, context={'ip': request.remote_addr})
+inquiry = Inquiry(subject=request.form['username'],
+                  action=request.form['action'],
+                  resource=request.form['page'],
+                  context={'ip': request.remote_addr})
 
 # if policies are defined on some subject's and resource's attributes with dictionaries of Rules:
-user = request.form['username']
-user_role = request.form['role']
-action = request.form['action']
-book = request.form['book']
-chapter = request.form['chapter']
-inquiry2 = Inquiry(subject={'login': user, 'role': user_role},
-                   action=action,
-                   resource={'book': book, 'chapter': chapter},
+inquiry2 = Inquiry(subject={'login': request.form['username'], 'role': request.form['user_role']},
+                   action=request.form['action'],
+                   resource={'book': session.get('book'), 'chapter': request.form['chapter']},
                    context={'ip': request.remote_addr})
 ```
 
@@ -251,18 +252,18 @@ Generally Rules represent so called `contextual (environment) attributes` in the
 
 There are a number of different Rule types:
 
-1. Comparison-related
+##### Comparison-related
 
-| Rule          | Example       |
-| ------------- |-------------|
-| Eq      | `Eq(90)` |
-| NotEq      | `NotEq('some-string')` |
-| Greater      | `Greater(90)` |
-| Less      | `Less(90.9)` |
-| GreaterOrEqual      | `GreaterOrEqual(90)` |
-| LessOrEqual      | `LessOrEqual(880)` |
+| Rule          | Example in Policy  |  Example in Inquiry  | Notes |
+| ------------- |-------------|-------------|-------------|
+| Eq      | `'age': Eq(40)` | `'age': 40`| |
+| NotEq      | `NotEq('some-string')` | | |
+| Greater      | `Greater(90)` | | |
+| Less      | `Less(90.9)` | | |
+| GreaterOrEqual      | `GreaterOrEqual(90)` | | |
+| LessOrEqual      | `LessOrEqual(880)` | | |
 
-2. Logic-related
+##### Logic-related
 
 | Rule          | Example       |
 | ------------- |-------------|
@@ -274,26 +275,29 @@ There are a number of different Rule types:
 | Any      | `Any()` |
 | Neither      | `Neither()` |
 
-3. String-related
-  * Equal
-  * PairsEqual
-  * RegexMatch
-  * StartsWith
-  * EndsWith
-  * Contains
-4. Inquiry-related
-  * SubjectEqual
-  * ActionEqual
-  * ResourceIn
-5. Network-related
-  * CIDR
-6. List-related
+##### List-related
   * In
   * NotIn
   * AllIn
   * AllNotIn
   * AnyIn
   * AnyNotIn
+
+##### Network-related
+  * CIDR
+ 
+##### String-related
+  * Equal
+  * PairsEqual
+  * RegexMatch
+  * StartsWith
+  * EndsWith
+  * Contains
+
+##### Inquiry-related
+  * SubjectEqual
+  * ActionEqual
+  * ResourceIn
 
 See class documentation of a particular `Rule` for more.
 
