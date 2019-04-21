@@ -18,7 +18,7 @@ Attribute-based access control (ABAC) SDK for Python.
 - [Components](#components)
 	- [Policy](#policy)
 	- [Inquiry](#inquiry)
-	- [Rule](#rule)
+	- [Rules](#rule)
 	    - [Comparison-related](#comparison-related)
 	    - [Logic-related](#logic-related)
 	    - [List-related](#list-related)
@@ -69,7 +69,7 @@ answering the following questions:
 
 The overall diagram of `vakt` workflow is:
 
-[![Vakt diagram](diagram.png)](diagram.png)
+[![Vakt diagram](diagram.svg)](diagram.svg)
 
 
 Vakt allows you to gain:
