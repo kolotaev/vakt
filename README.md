@@ -267,8 +267,8 @@ There are a number of different Rule types:
 
 | Rule          | Example       |
 | ------------- |-------------|
-| IsTrue      | `IsTrue()` and on fit: pass result like: user.is_admin() |
-| IsFalse      | `IsFalse()` and on fit: pass callable like: lambda x: x.bought() |
+| Truthy      | `Truthy()` and on fit: pass result like: user.is_admin() |
+| Falsy      | `Falsy()` and on fit: pass callable like: lambda x: x.bought() |
 | Not      | `Not(Greater(90))` |
 | And      | `And(Greater(50), Less(89))` |
 | Or      | `Or(Greater(50), Less(120), Eq(8888))` |

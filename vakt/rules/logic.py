@@ -13,8 +13,8 @@ log = logging.getLogger(__name__)
 
 
 __all__ = [
-    'IsTrue',
-    'IsFalse',
+    'Truthy',
+    'Falsy',
     'And',
     'Or',
     'Not',
@@ -42,20 +42,20 @@ class BooleanRule(Rule, metaclass=ABCMeta):
 
 
 # todo - rename to Truthy
-class IsTrue(BooleanRule):
+class Truthy(BooleanRule):
     """
     Rule that is satisfied when 'what' is evaluated to a boolean 'true'.
-    For example: subject={'role': IsTrue(), 'name': Eq('Jimmy')}
+    For example: subject={'role': Truthy(), 'name': Eq('Jimmy')}
     """
     @property
     def val(self):
         return True
 
 
-class IsFalse(BooleanRule):
+class Falsy(BooleanRule):
     """
     Rule that is satisfied when 'what' is evaluated to a boolean 'false'.
-    For example: subject={'role': IsFalse(), 'name': Eq('Jimmy')}
+    For example: subject={'role': Falsy(), 'name': Eq('Jimmy')}
     """
     @property
     def val(self):

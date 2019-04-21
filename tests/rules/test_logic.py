@@ -22,9 +22,9 @@ from vakt.guard import Inquiry
     (lambda: False, False),
 ])
 def test_is_true_satisfied(against, result):
-    assert result == IsTrue().satisfied(against)
+    assert result == Truthy().satisfied(against)
     # test after (de)serialization
-    jsn = IsTrue().to_json()
+    jsn = Truthy().to_json()
     assert result == Rule.from_json(jsn).satisfied(against)
 
 
@@ -42,9 +42,9 @@ def test_is_true_satisfied(against, result):
     (lambda: False, True),
 ])
 def test_is_false_satisfied(against, result):
-    assert result == IsFalse().satisfied(against)
+    assert result == Falsy().satisfied(against)
     # test after (de)serialization
-    jsn = IsFalse().to_json()
+    jsn = Falsy().to_json()
     assert result == Rule.from_json(jsn).satisfied(against)
 
 
@@ -101,7 +101,7 @@ def test_or_rule_uses_short_circuit_but_and_rule_does_not():
     f = get_inc(x)
     rules = [
         Eq(f),
-        IsTrue()
+        Truthy()
     ]
     # test Or
     r = Or(*rules)
