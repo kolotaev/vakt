@@ -377,7 +377,7 @@ st = MemoryStorage()
 for p in policies:
     st.add(p)
 
-guard = Guard(st, RegexChecker(2048))
+guard = Guard(st, RulesChecker())
 
 if guard.is_allowed(inquiry):
     return "You've been logged-in", 200
