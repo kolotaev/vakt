@@ -117,7 +117,10 @@ policy = vakt.Policy(
     subjects=[{'name': Any(), 'stars': And(Greater(50), Less(999))}],
     effect=vakt.ALLOW_ACCESS,
     context={'referer': 'https://github.com'},
-    description='Allow forking any Google repository for users that have > 50 and < 999 stars and came from Github'
+    description="""
+    Allow to fork or clone any Google repository for
+    users that have > 50 and < 999 stars and came from Github
+    """
 )
 storage = vakt.MemoryStorage()
 storage.add(policy)
@@ -244,36 +247,60 @@ variants of resource access from the owner side and Inquiry describes an concret
 
 
 #### Rule
-Rules allow you to make additional checks for Policy's `action`, `subject`, `resource` and `context`.
-Vakt takes additional context information from Inquiry's context and checks if it satisfies
-the defined   to the Policy that is being matched.
-If at least on Rule in the Rule-set is not satisfied Inquiry is rejected by given Policy.
-Generally Rules represent so called `contextual (environment) attributes` in the classic ABAC definition.
+Rules allow you to describe conditions directly on `action`, `subject`, `resource` and `context` 
+or on their attributes.
+If at least one Rule in the Rule-set is not satisfied Inquiry is rejected by given Policy.
 
-There are a number of different Rule types:
+Attaching a Rule-set to a Policy is simple. Here are some examples:
+
+```python
+from vakt import Policy, rules
+
+Policy(
+    ...,
+    subjects=[{'name': rules.Eq('.KIMZihH0gsrc')}],
+),
+
+Policy(
+    ...,
+    actions=[rules.Eq('get'), rules.Eq('list'), rules.Eq('read')],
+),
+
+Policy(
+    ...,
+    context={
+        'secret': rules.string.Equal('.KIMZihH0gsrc'),
+        'ip': rules.net.CIDR('192.168.0.15/24')
+    },
+)
+```
+
+There are a number of different Rule types, see below.
+
+If the existing Rules are not enough for you, feel free to define your [own](./examples/extending.py).
 
 ##### Comparison-related
 
 | Rule          | Example in Policy  |  Example in Inquiry  | Notes |
 | ------------- |-------------|-------------|-------------|
 | Eq      | `'age': Eq(40)` | `'age': 40`| |
-| NotEq      | `NotEq('some-string')` | | |
-| Greater      | `Greater(90)` | | |
-| Less      | `Less(90.9)` | | |
-| GreaterOrEqual      | `GreaterOrEqual(90)` | | |
-| LessOrEqual      | `LessOrEqual(880)` | | |
+| NotEq      | `'age': NotEq(40)` | `'age': 40`| |
+| Greater      | `'height': Greater(6,2)` | `'height': 5.8`| |
+| Less      | `'height': Less(6,2)` | `'height': 5.8`| |
+| GreaterOrEqual      | `'stars': GreaterOrEqual(300)` | `'stars': 77`| |
+| LessOrEqual      | `'stars': LessOrEqual(300)` | `'stars': 300`| |
 
 ##### Logic-related
 
-| Rule          | Example       |
-| ------------- |-------------|
-| Truthy      | `Truthy()` and on fit: pass result like: user.is_admin() |
-| Falsy      | `Falsy()` and on fit: pass callable like: lambda x: x.bought() |
-| Not      | `Not(Greater(90))` |
-| And      | `And(Greater(50), Less(89))` |
-| Or      | `Or(Greater(50), Less(120), Eq(8888))` |
-| Any      | `Any()` |
-| Neither      | `Neither()` |
+| Rule          | Example in Policy  |  Example in Inquiry  | Notes |
+| ------------- |-------------|-------------|-------------|
+| Truthy    | `'admin': Truthy()` | `'admin': user.is_admin()`| This is a runtime function call check |
+| Falsy     | `'admin': Falsy()` | `'admin': user.is_admin()`| This is a runtime function call check |
+| Not   | `'age': Not(Greater(90))` | `'age': 40` | |
+| And   | `'stars': And(Greater(50), Less(89))` | `'stars': 78` | Attributes in dictionary of Rules act as AND logic |
+| Or    | `'stars': Or(Greater(50), Less(120), Eq(8888))` | `'stars': 78` | Rules in a list of, say, `actions` act as OR logic |
+| Any      | `actions=[Any()]` | `action='get'`, `action='foo'` | Placeholder that fits any value |
+| Neither      | `subjects=[Neither()]` | `subject='Max'`,  `subject='Joe'` | Not very useful, left only as a couterpart of Any |
 
 ##### List-related
   * In
@@ -298,23 +325,9 @@ There are a number of different Rule types:
   * SubjectEqual
   * ActionEqual
   * ResourceIn
+  
+Inquiry-related rules are considered not usable anymore, so you likely won't need them.
 
-See class documentation of a particular `Rule` for more.
-
-Attaching a Rule-set to a Policy is simple:
-
-```python
-from vakt import Policy
-import vakt.rules
-
-Policy(
-    ...,
-    context={
-        'secret': vakt.rules.string.Equal('.KIMZihH0gsrc'),
-        'ip': vakt.rules.net.CIDR('192.168.0.15/24')
-    },
-)
-```
 
 *[Back to top](#documentation)*
 
