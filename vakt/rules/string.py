@@ -45,8 +45,7 @@ class Equal(StringRule):
         if isinstance(what, str):
             if self.ci:
                 return what.lower() == self.val.lower()
-            else:
-                return what == self.val
+            return what == self.val
         return False
 
 
@@ -70,10 +69,10 @@ class PairsEqual(Rule):
 
 
 class RegexMatch(Rule):
-    """
+    r"""
     Rule that is satisfied when given data matches the provided regular expression.
     Note, that you should provide syntactically valid regular-expression string.
-    For example: context={'file': RegexMatch(r'\.(rb|sh|py|ex)$')}
+    For example: context={'file': RegexMatch(r'\.(rb|sh|py|exe)$')}
     """
     def __init__(self, pattern):
         try:
@@ -95,8 +94,7 @@ class StartsWith(StringRule):
         if isinstance(what, str):
             if self.ci:
                 return what.lower().startswith(self.val.lower())
-            else:
-                return what.startswith(self.val)
+            return what.startswith(self.val)
         return False
 
 
@@ -109,8 +107,7 @@ class EndsWith(StringRule):
         if isinstance(what, str):
             if self.ci:
                 return what.lower().endswith(self.val.lower())
-            else:
-                return what.endswith(self.val)
+            return what.endswith(self.val)
         return False
 
 
@@ -123,25 +120,27 @@ class Contains(StringRule):
         if isinstance(what, str):
             if self.ci:
                 return self.val.lower() in what.lower()
-            else:
-                return self.val in what
+            return self.val in what
         return False
 
 
 # Classes marked for removal in next releases
 class StringEqualRule(Equal):
+    """Deprecated in favor of Equal"""
     def __init__(self, *args, **kwargs):
         warnings.warn('StringEqualRule will be removed in version 2.0. Use Equal', DeprecationWarning, stacklevel=2)
         super().__init__(*args, **kwargs)
 
 
 class RegexMatchRule(RegexMatch):
+    """Deprecated in favor of RegexMatch"""
     def __init__(self, *args, **kwargs):
         warnings.warn('RegexMatchRule will be removed in version 2.0. Use RegexMatch', DeprecationWarning, stacklevel=2)
         super().__init__(*args, **kwargs)
 
 
 class StringPairsEqualRule(PairsEqual):
+    """Deprecated in favor of PairsEqual"""
     def __init__(self, *args, **kwargs):
         warnings.warn('StringPairsEqualRule will be removed in version 2.0. Use PairsEqual',
                       DeprecationWarning, stacklevel=2)

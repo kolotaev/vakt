@@ -38,6 +38,7 @@ class BooleanRule(Rule, metaclass=ABCMeta):
     @property
     @abstractmethod
     def val(self):
+        """This should be overridden as a True/False getter property"""
         pass
 
 

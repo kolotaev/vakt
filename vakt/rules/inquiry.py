@@ -44,6 +44,7 @@ class ResourceIn(Rule):
 
 # Classes marked for removal in next releases
 class SubjectEqualRule(SubjectEqual):
+    """Deprecated in favor of SubjectEqual"""
     def __init__(self, *args, **kwargs):
         warnings.warn('SubjectEqualRule will be removed in version 2.0. Use SubjectEqual',
                       DeprecationWarning, stacklevel=2)
@@ -51,6 +52,7 @@ class SubjectEqualRule(SubjectEqual):
 
 
 class ActionEqualRule(ActionEqual):
+    """Deprecated in favor of ActionEqual"""
     def __init__(self, *args, **kwargs):
         warnings.warn('ActionEqualRule will be removed in version 2.0. Use ActionEqual',
                       DeprecationWarning, stacklevel=2)
@@ -58,6 +60,7 @@ class ActionEqualRule(ActionEqual):
 
 
 class ResourceInRule(ResourceIn):
+    """Deprecated in favor of ResourceIn"""
     def __init__(self, *args, **kwargs):
         warnings.warn('ResourceInRule will be removed in version 2.0. Use ResourceIn',
                       DeprecationWarning, stacklevel=2)

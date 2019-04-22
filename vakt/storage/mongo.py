@@ -4,7 +4,7 @@ MongoDB Storage and Migrations for Policies.
 
 import logging
 import copy
-from abc import abstractmethod
+from abc import ABCMeta
 
 import bson.json_util as b_json
 from pymongo.errors import DuplicateKeyError
@@ -172,16 +172,23 @@ class MongoMigrationSet(MigrationSet):
         return 0
 
 
-class MongoMigration(Migration):
+class MongoMigration(Migration, metaclass=ABCMeta):
+    """
+    Mongo DB migration abstract base class
+    """
     def _each_doc(self, processor):
+        """
+        Iterate each doc in the DB and run processor function with it
+        """
         failed_policies = []
-        cur = self.storage.collection.find()
+        storage = getattr(self, 'storage')
+        cur = storage.collection.find()
         for doc in cur:
             try:
-                log.info('Trying to migrate Policy with UID: %s' % doc['uid'])
+                log.info('Trying to migrate Policy with UID: %s', doc['uid'])
                 new_doc = processor(doc)
-                self.storage.collection.replace_one({'_id': new_doc['uid']}, new_doc)
-                log.info('Policy with UID: %s was migrated' % doc['uid'])
+                storage.collection.replace_one({'_id': new_doc['uid']}, new_doc)
+                log.info('Policy with UID: %s was migrated', doc['uid'])
             except Irreversible as e:
                 log.warning('Irreversible Policy. %s. Mongo doc: %s', e, doc)
                 failed_policies.append(doc)
@@ -196,14 +203,6 @@ class MongoMigration(Migration):
                 'Mongo IDs of failed Policies are: %s' % [p['_id'] for p in failed_policies]
             ])
             log.error(msg)
-
-    @abstractmethod
-    def up(self):
-        pass
-
-    @abstractmethod
-    def down(self):
-        pass
 
 
 class Migration0To1x1x0(MongoMigration):
@@ -250,6 +249,7 @@ class Migration1x1x0To1x1x1(MongoMigration):
 
     def up(self):
         def process(doc):
+            """Processor for up"""
             doc_to_save = copy.deepcopy(doc)
             rules_to_save = {}
             for name, rule_str in doc['rules'].items():
@@ -263,6 +263,7 @@ class Migration1x1x0To1x1x1(MongoMigration):
 
     def down(self):
         def process(doc):
+            """Processor for down"""
             doc_to_save = copy.deepcopy(doc)
             rules_to_save = {}
             for name, rule in doc['rules'].items():
@@ -309,6 +310,7 @@ class Migration1x1x1To1x2x0(MongoMigration):
 
     def up(self):
         def process(doc):
+            """Processor for up"""
             doc['type'] = TYPE_STRING_BASED
             doc['context'] = doc['rules']
             del doc['rules']
@@ -318,6 +320,7 @@ class Migration1x1x1To1x2x0(MongoMigration):
 
     def down(self):
         def process(doc):
+            """Processor for down"""
             if doc['type'] != TYPE_STRING_BASED:
                 raise Irreversible('Policy is not of a string-based type, so not supported in < v1.2.0')
             for rule in doc['context'].values():

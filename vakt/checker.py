@@ -20,6 +20,9 @@ class Checker(metaclass=ABCMeta):
     """
     @abstractmethod
     def fits(self, policy, field, what):
+        """
+        Check if fields from Inquiry fit some Policies
+        """
         pass
 
 
@@ -120,11 +123,11 @@ class RulesChecker(Checker):
             if type(i) == dict:
                 for key, rule in i.items():
                     if not is_what_dict:
-                        log.debug('Error matching Policy, because data in Inquiry is not `dict`')
+                        log.debug('Error matching Policy: data %r in Inquiry is not `dict`', what)
                         item_result = False
                     # at least one missing key in inquiry's data means no match for this item
                     elif key not in what:
-                        log.debug('Error matching Policy, because data has no key "%s" required by Policy' % key)
+                        log.debug('Error matching Policy: data %r has no key "%r" required by Policy', what, key)
                         item_result = False
                     else:
                         what_value = what[key]

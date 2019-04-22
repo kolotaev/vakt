@@ -1,3 +1,7 @@
+"""
+Migration utilities for Storage Migrations
+"""
+
 from abc import ABCMeta, abstractmethod
 import logging
 
@@ -37,7 +41,7 @@ class MigrationSet(metaclass=ABCMeta):
         """
         Get migrations. Subclasses should defile a list of storage migrations here
         """
-        pass
+        return []
 
     @abstractmethod
     def save_applied_number(self, number):
@@ -59,8 +63,7 @@ class MigrationSet(metaclass=ABCMeta):
         """
         if number is None:
             return sorted(self.migrations(), key=lambda x: x.order, reverse=reverse)
-        else:
-            return [m for m in self.migrations() if m.order == number]
+        return [m for m in self.migrations() if m.order == number]
 
     def up(self, number=None):
         """
@@ -95,7 +98,13 @@ class Migrator:
         self.migration_set = migration_set
 
     def up(self, number=None):
+        """
+        Runs up of a MigrationSet
+        """
         self.migration_set.up(number)
 
     def down(self, number=None):
+        """
+        Runs down of a MigrationSet
+        """
         self.migration_set.down(number)

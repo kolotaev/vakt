@@ -5,4 +5,7 @@ max-line-length=120
 [REPORTS]
 output-format=colorized
 
-good-names=log, ip, e, k, v, i
+good-names=log, ip, e, k, v, i, ci, r, m, up
+
+# See here: https://github.com/PyCQA/pylint/issues/179
+disable=W0223

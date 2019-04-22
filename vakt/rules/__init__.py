@@ -1,3 +1,9 @@
+# pylint: disable=wildcard-import
+
+"""
+Collection of Rules for vakt
+"""
+
 from .inquiry import *
 from .list import *
 from .logic import *
