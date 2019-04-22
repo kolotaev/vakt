@@ -54,7 +54,7 @@ class In(ListRule):
 class NotIn(ListRule):
     """
     Is not item in the list?
-    For example: actions={'method': NotIn('read', 'write', 'delete')}. In inquiry: action={'method': 'purge'}
+    For example: actions=[{'method': NotIn('read', 'write', 'delete')}]. In inquiry: action={'method': 'purge'}
     """
     def satisfied(self, what, inquiry=None):
         return not _one_in_list(what, self.data)
@@ -63,7 +63,7 @@ class NotIn(ListRule):
 class AllIn(ListRule):
     """
     Are all the items in the list?
-    For example: actions={'methods': AllIn('read', 'write', 'delete')}. In inquiry: action={'method': ['purge', 'get]}
+    For example: actions=[{'methods': AllIn('read', 'write', 'delete')}]. In inquiry: action={'method': ['purge', 'get]}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -74,7 +74,7 @@ class AllIn(ListRule):
 class AllNotIn(ListRule):
     """
     Are all the items not in the list?
-    For example: actions={'methods': AllNotIn('read', 'write', 'delete')}. In inquiry: action={'method': ['list', 'get]}
+    For example: actions=[{'methods': AllNotIn('read', 'write')}]. In inquiry: action={'method': ['list', 'get]}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -85,7 +85,7 @@ class AllNotIn(ListRule):
 class AnyIn(ListRule):
     """
     Are any of the items in the list?
-    For example: actions={'methods': AnyIn('read', 'write', 'delete')}. In inquiry: action={'method': ['list', 'get]}
+    For example: actions=[{'methods': AnyIn('read', 'write', 'delete')}]. In inquiry: action={'method': ['list', 'get]}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -96,7 +96,7 @@ class AnyIn(ListRule):
 class AnyNotIn(ListRule):
     """
     Are any of the items not in the list?
-    For example: actions={'methods': AnyNotIn('read', 'write', 'delete')}. In inquiry: action={'method': ['list', 'get]}
+    For example: actions=[{'methods': AnyNotIn('read', 'write')}]. In inquiry: action={'method': ['list', 'get]}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):

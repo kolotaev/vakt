@@ -303,12 +303,14 @@ If the existing Rules are not enough for you, feel free to define your [own](./e
 | Neither      | `subjects=[Neither()]` | `subject='Max'`,  `subject='Joe'` | Not very useful, left only as a counterpart of Any |
 
 ##### List-related
-  * In
-  * NotIn
-  * AllIn
-  * AllNotIn
-  * AnyIn
-  * AnyNotIn
+| Rule          | Example in Policy  |  Example in Inquiry  | Notes |
+| ------------- |-------------|-------------|-------------|
+| In    | `'method': In('get', 'post')` | `'method': 'get'`| |
+| NotIn    | `'method': NotIn('get', 'post')` | `'method': 'get'`| |
+| AllIn    | `'name': AllIn('Max', 'Joe')` | `'name': ['Max', 'Joe']`| |
+| AllNotIn    | `'name': AllNotIn('Max', 'Joe')` | `'name': ['Max', 'Joe']`| |
+| AnyIn    | `'height': AnyIn(5.9, 7.5, 4.9)` | `'height': [7.55]`| |
+| AnyNotIn    | `'height': AnyNotIn(5.9, 7.5, 4.9)` | `'height': [7.55]`| |
 
 ##### Network-related
 

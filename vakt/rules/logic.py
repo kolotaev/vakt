@@ -44,7 +44,7 @@ class BooleanRule(Rule, metaclass=ABCMeta):
 class Truthy(BooleanRule):
     """
     Rule that is satisfied when 'what' is evaluated to a boolean 'true'.
-    For example: subject={'role': Truthy(), 'name': Eq('Jimmy')}
+    For example: subjects=[{'role': Truthy(), 'name': Eq('Jimmy')}]
     """
     @property
     def val(self):
@@ -54,7 +54,7 @@ class Truthy(BooleanRule):
 class Falsy(BooleanRule):
     """
     Rule that is satisfied when 'what' is evaluated to a boolean 'false'.
-    For example: subject={'role': Falsy(), 'name': Eq('Jimmy')}
+    For example: subjects=[{'role': Falsy(), 'name': Eq('Jimmy')}]
     """
     @property
     def val(self):
@@ -76,7 +76,7 @@ class CompositionRule(Rule, metaclass=ABCMeta):
 class And(CompositionRule):
     """
     Rule that is satisfied when all the rules it's composed of are satisfied.
-    For example: subject={'stars': And(Greater(50), Less(120)), 'name': Eq('Jimmy')}
+    For example: subjects=[{'stars': And(Greater(50), Less(120)), 'name': Eq('Jimmy')}]
     """
     def satisfied(self, what, inquiry=None):
         answers = [x.satisfied(what, inquiry) for x in self.rules]
@@ -87,7 +87,7 @@ class Or(CompositionRule):
     """
     Rule that is satisfied when at least one of the rules it's composed of is satisfied.
     Uses short-circuit evaluation.
-    For example: subject={'stars': Or(Greater(50), Less(120)), 'name': Eq('Jimmy')}
+    For example: subjects=[{'stars': Or(Greater(50), Less(120)), 'name': Eq('Jimmy')}]
     """
     def satisfied(self, what, inquiry=None):
         for rule in self.rules:
@@ -99,7 +99,7 @@ class Or(CompositionRule):
 class Not(Rule):
     """
     Rule that negates another Rule.
-    For example: subject={'stars': Eq(555), 'name': Not(Eq('Jimmy'))}
+    For example: subjects=[{'stars': Eq(555), 'name': Not(Eq('Jimmy'))}]
     """
     def __init__(self, rule):
         if not isinstance(rule, Rule):
@@ -114,7 +114,7 @@ class Not(Rule):
 class Any(Rule):
     """
     Rule that is always satisfied.
-    For example: resource={'endpoint': Any(), 'method': Eq('POST')}
+    For example: resources=[{'endpoint': Any(), 'method': Eq('POST')}]
     """
 
     def satisfied(self, what=None, inquiry=None):
@@ -124,7 +124,7 @@ class Any(Rule):
 class Neither(Rule):
     """
     Rule that always isn't satisfied.
-    For example: resource={'endpoint': Neither(), 'method': Eq('GET')}
+    For example: resources=[{'endpoint': Neither(), 'method': Eq('GET')}]
     """
 
     def satisfied(self, what=None, inquiry=None):
