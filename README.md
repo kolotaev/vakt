@@ -163,24 +163,10 @@ This enforces the use of a concrete Checker implementation. See [Checker](#check
 ```python
 from vakt import Policy, ALLOW_ACCESS
 from vakt.rules import CIDR, Any, Eq, NotEq, In
-
-# String-based policy (defined with regular expressions)
-Policy(
-    1,
-    description="""
-    Allow all readers of the book library whose surnames start with M get and read any book or magazine,
-    but only when they connect from local library's computer
-    """,
-    effect=ALLOW_ACCESS,
-    subjects=['<[\w]+ M[\w]+>'],
-    resources=('library:books:<.+>', 'office:magazines:<.+>'),
-    actions=['<read|get>'],
-    context={'ip': CIDR('192.168.2.0/24')}
-)
     
 # Rule-based policy (defined with Rules and dictionaries of Rules)
 Policy(
-    2,
+    1,
     description="""
     Allow access to administration interface subcategories: 'panel', 'switch' if user is not 
     a developer and came from local IP address.
@@ -190,6 +176,20 @@ Policy(
     subjects=[{'name': Any(), 'role': NotEq('developer')}],
     effect=ALLOW_ACCESS,
     context={'ip': CIDR('127.0.0.1/32')}
+)
+
+# String-based policy (defined with regular expressions)
+Policy(
+    2,
+    description="""
+    Allow all readers of the book library whose surnames start with M get and read any book or magazine,
+    but only when they connect from local library's computer
+    """,
+    effect=ALLOW_ACCESS,
+    subjects=['<[\w]+ M[\w]+>'],
+    resources=('library:books:<.+>', 'office:magazines:<.+>'),
+    actions=['<read|get>'],
+    context={'ip': CIDR('192.168.2.0/24')}
 )
 ```
 
@@ -217,17 +217,17 @@ from flask import request, session
 
 ...
 
-# if policies are defined with strings or regular expressions:
-inquiry = Inquiry(subject=request.form['username'],
-                  action=request.form['action'],
-                  resource=request.form['page'],
-                  context={'ip': request.remote_addr})
-
 # if policies are defined on some subject's and resource's attributes with dictionaries of Rules:
 inquiry2 = Inquiry(subject={'login': request.form['username'], 'role': request.form['user_role']},
                    action=request.form['action'],
                    resource={'book': session.get('book'), 'chapter': request.form['chapter']},
                    context={'ip': request.remote_addr})
+                   
+# if policies are defined with strings or regular expressions:
+inquiry = Inquiry(subject=request.form['username'],
+                  action=request.form['action'],
+                  resource=request.form['page'],
+                  context={'ip': request.remote_addr})
 ```
 
 Here we are taking form params from Flask request and additional request information. Then we transform them
@@ -345,12 +345,27 @@ Partially they served as attributes workaround for inquiry elements when placed 
 Checker allows you to check whether Policy matches Inquiry by concrete field (`subject`, `action`, etc.). It's used
 internally by [Guard](#guard), but you should be aware of Checker types:
 
-* RegexChecker - universal type that checks match by regex test. This means that all you Policies
-can be defined in regex syntax (but if no regex defined in Policy falls back to simple string equality test) - it
-gives you a great flexibility, but carries a burden of relatively slow performance. You can configure a LRU cache
-size to adjust performance to your needs:
+* RulesChecker - universal type that is used to check match of Policies defined with Rules or dictionaries of Rules
+(Rule-based Policy type). It gives you the highest flexibility.
+Most of the time you will use this type of Polices and thus this type of a Checker.
+Besides, it's much more performant than RegexChecker. See [benchmark](#benchmark) for more details.
 
 ```python
+from vakt import RulesChecker
+
+ch = RulesChecker()
+# etc.
+```
+
+* RegexChecker - checks match by regex test for policies defined with strings and regexps (String-based Policy type).
+This means that all you Policies
+can be defined in regex syntax (but if no regex defined in Policy falls back to simple string equality test) - it
+gives you better flexibility compared to simple strings, but carries a burden of relatively slow performance.
+You can configure a LRU cache size to adjust performance to your needs:
+
+```python
+from vakt import RegexChecker
+
 ch = RegexChecker(2048)
 ch2 = RegexChecker(512)
 # etc.
@@ -395,7 +410,9 @@ before Vakt makes a decision.
 Guard component is a main entry point for Vakt to make a decision. It has one method `is_allowed` that passed an
 [Inquiry](#inquiry) gives you a boolean answer: is that Inquiry allowed or not?
 
-Guard is constructed with [Storage](#storage) and [Checker](#checker)
+Guard is constructed with [Storage](#storage) and [Checker](#checker).
+
+__Policies that have String-based type won't match if RulesChecker is used and vise-versa.__
 
 ```python
 st = MemoryStorage()
@@ -448,11 +465,11 @@ storage = MongoStorage(client, 'database-name', collection='optional-collection-
 
 Default collection name is 'vakt_policies'.
 
-Actions are the same as for any Storage that conforms (storage.abc.Storage) interface.
+Actions are the same as for any Storage that conforms interface of `vakt.storage.abc.Storage` base class.
 
 Beware that currently MongoStorage supports indexed `find_for_inquiry()` only for StringExact and StringFuzzy checkers.
-RegexChecker and RulesChecker simply return all the Policies from the database.
-See [this issue](https://jira.mongodb.org/browse/SERVER-11947).
+RegexChecker (see [this issue](https://jira.mongodb.org/browse/SERVER-11947)) and RulesChecker simply
+return all the Policies from the database.
 
 *[Back to top](#documentation)*
 
@@ -563,7 +580,7 @@ root.addHandler(logging.StreamHandler())
 ... # here go all the Vakt calls.
 ```
 
-Vakt logs can be considered in 2 basic levels:
+Vakt logs can be comprehended in 2 basic levels:
 1. *Error/Exception* - informs about exceptions and errors during Vakt work.
 2. *Info* - informs about incoming inquires and their resolution.
 
@@ -585,9 +602,9 @@ You can see how much time it takes for a single Inquiry to be processed given we
 Storage. 
 For [MemoryStorage](#memory) it measures the runtime of a decision-making process for all 
 the existing Policies when [Guard's](#guard) code iterates the whole list of Policies to decide if 
-Inquiry is allowed or not. In case of other storages the mileage
+Inquiry is allowed or not. In case of other Storages the mileage
 may vary since they may return a smaller subset of Policies that fit the given Inquiry. 
-Don't forget that most external storages add some time penalty to perform I/O operations.
+Don't forget that most external Storages add some time penalty to perform I/O operations.
 The runtime also depends on a Policy-type used (and thus checker): RulesChecker performs much better than RegexChecker.
 
 Example:
