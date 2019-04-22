@@ -64,8 +64,8 @@ def test_and_or_rules_bad_args():
     ([Greater(55)], 1, None, False),
     ([Greater(-1), Less(10)], 1, None, True),
     ([Greater(-1), Less(10), Eq(700)], 1, None, False),
-    ([Eq('read'), In(['read', 'write']), ActionEqual()], 'read', Inquiry(action='read'), True),
-    ([Eq('read'), In(['write']), ActionEqual()], 'read', Inquiry(action='read'), False),
+    ([Eq('read'), In('read', 'write'), ActionEqual()], 'read', Inquiry(action='read'), True),
+    ([Eq('read'), In('write'), ActionEqual()], 'read', Inquiry(action='read'), False),
 ])
 def test_and_rule(rules, what, inquiry, result):
     r = And(*rules)
@@ -81,8 +81,8 @@ def test_and_rule(rules, what, inquiry, result):
     ([Greater(-1), Less(10)], 1, None, True),
     ([Less(10), Eq(700)], 1, None, True),
     ([Eq(700), Less(10)], 1, None, True),
-    ([Eq('read'), In(['read', 'write']), ActionEqual()], 'read', Inquiry(action='read'), True),
-    ([Eq('read'), In(['write']), ActionEqual()], 'read', Inquiry(action='read'), True),
+    ([Eq('read'), In('read', 'write'), ActionEqual()], 'read', Inquiry(action='read'), True),
+    ([Eq('read'), In('write'), ActionEqual()], 'read', Inquiry(action='read'), True),
 ])
 def test_or_rule(rules, what, inquiry, result):
     r = Or(*rules)

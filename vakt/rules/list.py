@@ -17,7 +17,7 @@ Various search options are available:
 """
 
 import logging
-from abc import abstractmethod
+from abc import ABCMeta
 
 from ..rules.base import Rule
 
@@ -34,26 +34,18 @@ __all__ = [
 ]
 
 
-# todo - add varagrs instead of a list
-class ListRule(Rule):
+class ListRule(Rule, metaclass=ABCMeta):
     """
     Generic Rule for List-related checks
     """
-    def __init__(self, data):
-        if not isinstance(data, list):
-            log.error('%s creation. Initial data should be of list type', type(self).__name__)
-            raise TypeError('Initial data should be of list type')
-        self.data = set(data)
-
-    @abstractmethod
-    def satisfied(self, what, inquiry=None):
-        pass
+    def __init__(self, *args):
+        self.data = set(args)
 
 
 class In(ListRule):
     """
     Is item in list?
-    For example: action={'method': In('read', 'write', 'delete')}
+    For example: actions={'method': In('read', 'write', 'delete')}. In inquiry: action={'method': 'read'}
     """
     def satisfied(self, what, inquiry=None):
         return _one_in_list(what, self.data)
@@ -62,7 +54,7 @@ class In(ListRule):
 class NotIn(ListRule):
     """
     Is not item in the list?
-    For example: action={'method': NotIn('read', 'write', 'delete')}
+    For example: actions={'method': NotIn('read', 'write', 'delete')}. In inquiry: action={'method': 'purge'}
     """
     def satisfied(self, what, inquiry=None):
         return not _one_in_list(what, self.data)
@@ -71,7 +63,7 @@ class NotIn(ListRule):
 class AllIn(ListRule):
     """
     Are all the items in the list?
-    For example: action={'methods': AllIn('read', 'write', 'delete')}
+    For example: actions={'methods': AllIn('read', 'write', 'delete')}. In inquiry: action={'method': ['purge', 'get]}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -82,7 +74,7 @@ class AllIn(ListRule):
 class AllNotIn(ListRule):
     """
     Are all the items not in the list?
-    For example: action={'methods': AllNotIn('read', 'write', 'delete')}
+    For example: actions={'methods': AllNotIn('read', 'write', 'delete')}. In inquiry: action={'method': ['list', 'get]}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -93,7 +85,7 @@ class AllNotIn(ListRule):
 class AnyIn(ListRule):
     """
     Are any of the items in the list?
-    For example: action={'methods': AnyIn('read', 'write', 'delete')}
+    For example: actions={'methods': AnyIn('read', 'write', 'delete')}. In inquiry: action={'method': ['list', 'get]}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -104,7 +96,7 @@ class AnyIn(ListRule):
 class AnyNotIn(ListRule):
     """
     Are any of the items not in the list?
-    For example: action={'methods': AnyNotIn('read', 'write', 'delete')}
+    For example: actions={'methods': AnyNotIn('read', 'write', 'delete')}. In inquiry: action={'method': ['list', 'get]}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):

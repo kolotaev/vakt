@@ -20,7 +20,7 @@ policies = [
     ),
     vakt.Policy(
         str(uuid.uuid4()),
-        actions=[In(['delete', 'prune', 'exterminate'])],
+        actions=[In('delete', 'prune', 'exterminate')],
         resources=[RegexMatch(r'repos\/.*?\/.*?')],
         subjects=[{'name': Any(), 'role': Eq('admin')}, {'name': Eq('defunkt')}, Eq('defunkt')],
         effect=vakt.ALLOW_ACCESS,
@@ -29,7 +29,7 @@ policies = [
     vakt.Policy(
         str(uuid.uuid4()),
         actions=[Any()],
-        resources=[{'category': Eq('administration'), 'sub': In(['panel', 'switch'])}],
+        resources=[{'category': Eq('administration'), 'sub': In('panel', 'switch')}],
         subjects=[{'name': Any(), 'role': NotEq('developer')}],
         effect=vakt.ALLOW_ACCESS,
         context={'ip': CIDR('127.0.0.1/32')},

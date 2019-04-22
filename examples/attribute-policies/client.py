@@ -44,7 +44,7 @@ assert not gh.check(Inquiry(action='off',
                             context={'ip': '127.0.0.1'}))
 
 
-# administration panel requests
+# repo fork requests
 assert not gh.check(Inquiry(action='fork', resource='repos/datadog/kafka-kit', subject={'name': 'Jim', 'stars': 1}))
 assert gh.check(Inquiry(action='fork', resource='repos/DataDog/kafka-kit', subject={'name': 'Ho', 'stars': 80}))
 assert gh.check(Inquiry(action='fork', resource='repos/DataDog/consul', subject={'name': 'Ho', 'stars': 998}))

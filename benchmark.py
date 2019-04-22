@@ -7,14 +7,11 @@ from functools import partial
 
 from pymongo import MongoClient
 
-from vakt.storage.memory import MemoryStorage
-from vakt.storage.mongo import MongoStorage
-from vakt.rules.net import CIDR
-from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
-from vakt.policy import Policy
-from vakt.checker import RegexChecker, RulesChecker
-from vakt.guard import Guard, Inquiry
-from vakt.rules import operator, logic, list
+from vakt import (
+    MemoryStorage, MongoStorage, DENY_ACCESS, ALLOW_ACCESS,
+    Policy, RegexChecker, RulesChecker, Guard, Inquiry,
+)
+from vakt.rules import operator, logic, list, net
 
 
 # Globals
@@ -78,8 +75,8 @@ def gen_policy():
             ],
             resources=(
                 {
-                    'method': list.AnyIn(['get', 'post', 'delete']),
-                    'path': list.NotIn(['org/custom', 'vacations/pending', 'должность/повысить']),
+                    'method': list.AnyIn('get', 'post', 'delete'),
+                    'path': list.NotIn('org/custom', 'vacations/pending', 'должность/повысить'),
                     'id': operator.Eq(rand_string())
                 },
                 {
@@ -88,10 +85,10 @@ def gen_policy():
             ),
             actions=(
                 {'before': operator.Eq('foo')},
-                {'after': list.In([rand_string(), rand_string(), rand_string()])},
+                {'after': list.In(rand_string(), rand_string(), rand_string())},
             ),
             context={
-                'ip': CIDR('127.0.0.1'),
+                'ip': net.CIDR('127.0.0.1'),
             },
         )
     else:
@@ -112,7 +109,7 @@ def gen_policy():
             resources=('library:books:<.+>', 'office:magazines:<.+>'),
             actions=['<' + rand_string() + '|' + rand_string() + '>'],
             context={
-                'ip': CIDR('127.0.0.1'),
+                'ip': net.CIDR('127.0.0.1'),
             },
         )
 

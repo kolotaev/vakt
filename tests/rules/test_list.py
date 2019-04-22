@@ -5,15 +5,11 @@ import vakt.rules.list
 
 def test_initialization():
     with pytest.raises(TypeError) as excinfo:
-        vakt.rules.list.In(1)
-    assert 'Initial data should be of list type' == str(excinfo.value)
-
-    with pytest.raises(TypeError) as excinfo:
-        vakt.rules.list.In([[1, 5], [1, 9]])
+        vakt.rules.list.In([1, 5], [1, 9])
     assert 'unhashable' in str(excinfo.value)
 
     with pytest.raises(TypeError) as excinfo:
-        vakt.rules.list.In([{'a': 90}, {'v': "value"}])
+        vakt.rules.list.In({'a': 90}, {'v': "value"})
     assert 'unhashable' in str(excinfo.value)
 
 
@@ -28,10 +24,10 @@ def test_initialization():
     (['a', 'b'], 'c', False),
 ])
 def test_in_list(data, what, result):
-    c = vakt.rules.list.In(data)
+    c = vakt.rules.list.In(*data)
     assert result == c.satisfied(what)
     # test after (de)serialization
-    jsn = vakt.rules.list.In(data).to_json()
+    jsn = vakt.rules.list.In(*data).to_json()
     c1 = vakt.rules.list.In.from_json(jsn)
     assert result == c1.satisfied(what)
 
@@ -47,10 +43,10 @@ def test_in_list(data, what, result):
     (['a', 'b'], 'c', True),
 ])
 def test_not_in_list(data, what, result):
-    c = vakt.rules.list.NotIn(data)
+    c = vakt.rules.list.NotIn(*data)
     assert result == c.satisfied(what)
     # test after (de)serialization
-    jsn = vakt.rules.list.NotIn(data).to_json()
+    jsn = vakt.rules.list.NotIn(*data).to_json()
     c1 = vakt.rules.list.NotIn.from_json(jsn)
     assert result == c1.satisfied(what)
 
@@ -67,10 +63,10 @@ def test_not_in_list(data, what, result):
     (['f', 'a', 'y'], ['f', 'a', 'y', 'u'], False),
 ])
 def test_all_in_list(data, what, result):
-    c = vakt.rules.list.AllIn(data)
+    c = vakt.rules.list.AllIn(*data)
     assert result == c.satisfied(what)
     # test after (de)serialization
-    jsn = vakt.rules.list.AllIn(data).to_json()
+    jsn = vakt.rules.list.AllIn(*data).to_json()
     c1 = vakt.rules.list.AllIn.from_json(jsn)
     assert result == c1.satisfied(what)
 
@@ -83,7 +79,7 @@ def test_all_in_list(data, what, result):
     {'a': 90},
 ])
 def test_all_in_list_satisfied_wrong_arg(val):
-    rule = vakt.rules.list.AllIn(['io', 'util'])
+    rule = vakt.rules.list.AllIn('io', 'util')
     with pytest.raises(TypeError) as excinfo:
         rule.satisfied(val)
     assert 'Value should be of list type' == str(excinfo.value)
@@ -107,10 +103,10 @@ def test_all_in_list_satisfied_wrong_arg(val):
     (['f', 'a', 'y'], ['f', 'a', 'y', 'u'], True),
 ])
 def test_all_not_in_list(data, what, result):
-    c = vakt.rules.list.AllNotIn(data)
+    c = vakt.rules.list.AllNotIn(*data)
     assert result == c.satisfied(what)
     # test after (de)serialization
-    jsn = vakt.rules.list.AllNotIn(data).to_json()
+    jsn = vakt.rules.list.AllNotIn(*data).to_json()
     c1 = vakt.rules.list.AllNotIn.from_json(jsn)
     assert result == c1.satisfied(what)
 
@@ -123,7 +119,7 @@ def test_all_not_in_list(data, what, result):
     {'a': 90},
 ])
 def test_all_not_in_list_satisfied_wrong_arg(val):
-    rule = vakt.rules.list.AllNotIn([])
+    rule = vakt.rules.list.AllNotIn(*[])
     with pytest.raises(TypeError) as excinfo:
         rule.satisfied(val)
     assert 'Value should be of list type' == str(excinfo.value)
@@ -149,10 +145,10 @@ def test_all_not_in_list_satisfied_wrong_arg(val):
     (['f', 'a', 'y'], ['f', 'a', 'y', 'u'], True),
 ])
 def test_any_in_list(data, what, result):
-    c = vakt.rules.list.AnyIn(data)
+    c = vakt.rules.list.AnyIn(*data)
     assert result == c.satisfied(what)
     # test after (de)serialization
-    jsn = vakt.rules.list.AnyIn(data).to_json()
+    jsn = vakt.rules.list.AnyIn(*data).to_json()
     c1 = vakt.rules.list.AnyIn.from_json(jsn)
     assert result == c1.satisfied(what)
 
@@ -165,7 +161,7 @@ def test_any_in_list(data, what, result):
     {'a': 90},
 ])
 def test_any_in_list_satisfied_wrong_arg(val):
-    rule = vakt.rules.list.AnyIn(['oop'])
+    rule = vakt.rules.list.AnyIn('oop')
     with pytest.raises(TypeError) as excinfo:
         rule.satisfied(val)
     assert 'Value should be of list type' == str(excinfo.value)
@@ -196,10 +192,10 @@ def test_any_in_list_satisfied_wrong_arg(val):
     (['f', 'a', 'y'], ['f', 'a', 'y', 'u'], True),
 ])
 def test_any_not_in_list(data, what, result):
-    c = vakt.rules.list.AnyNotIn(data)
+    c = vakt.rules.list.AnyNotIn(*data)
     assert result == c.satisfied(what)
     # test after (de)serialization
-    jsn = vakt.rules.list.AnyNotIn(data).to_json()
+    jsn = vakt.rules.list.AnyNotIn(*data).to_json()
     c1 = vakt.rules.list.AnyNotIn.from_json(jsn)
     assert result == c1.satisfied(what)
 
@@ -212,7 +208,7 @@ def test_any_not_in_list(data, what, result):
     {'a': 90},
 ])
 def test_any_not_in_list_satisfied_wrong_arg(val):
-    rule = vakt.rules.list.AnyNotIn(['xyz'])
+    rule = vakt.rules.list.AnyNotIn('xyz')
     with pytest.raises(TypeError) as excinfo:
         rule.satisfied(val)
     assert 'Value should be of list type' == str(excinfo.value)
