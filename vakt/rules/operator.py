@@ -47,7 +47,7 @@ class Eq(OperatorRule):
 class NotEq(OperatorRule):
     """
     Rule that is satisfied when two values are not equal '!='.
-    For example: subject={'stars': NotEq(100), Eq('Jason')}
+    For example: subject={'stars': NotEq(100)}
     """
     def satisfied(self, what, inquiry=None):
         if isinstance(self.val, tuple):
@@ -60,7 +60,7 @@ class NotEq(OperatorRule):
 class Greater(OperatorRule):
     """
     Rule that is satisfied when 'what' is greater '>' than initial value.
-    For example: subject={'stars': Greater(100), Eq('Jason')}
+    For example: subject={'stars': Greater(100)}
     """
     def satisfied(self, what, inquiry=None):
         return what > self.val
@@ -69,7 +69,7 @@ class Greater(OperatorRule):
 class Less(OperatorRule):
     """
     Rule that is satisfied when 'what' is less '<' than initial value.
-    For example: subject={'stars': Less(100), Eq('Jason')}
+    For example: subject={'stars': Less(100)}
     """
     def satisfied(self, what, inquiry=None):
         return what < self.val

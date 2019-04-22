@@ -18,7 +18,7 @@ Attribute-based access control (ABAC) SDK for Python.
 - [Components](#components)
 	- [Policy](#policy)
 	- [Inquiry](#inquiry)
-	- [Rules](#rule)
+	- [Rules](#rules)
 	    - [Comparison-related](#comparison-related)
 	    - [Logic-related](#logic-related)
 	    - [List-related](#list-related)
@@ -152,9 +152,9 @@ The main parts reflect questions described in [Concepts](#concepts) section:
 Can be either `vakt.ALLOW_ACCESS` or `vakt.DENY_ACCESS`
 
 All `resources`, `subjects` and `actions` are described with 
-a list containing strings, regexes, [Rules](#rule) or dictionaries of strings (attributes) to [Rules](#rule). 
+a list containing strings, regexes, [Rules](#rules) or dictionaries of strings (attributes) to [Rules](#rules). 
 Each element in list acts as logical OR. Each key in a dictionary of Rules acts as logical AND.   
-`context` can be described only with a dictionary of [Rules](#rule).
+`context` can be described only with a dictionary of [Rules](#rules).
 
 Depending on a way `resources`, `subjects`, `actions` are described, Policy can have either 
 String-based or Rule-based type. Can be inspected by `policy.type`. 
@@ -246,7 +246,7 @@ variants of resource access from the owner side and Inquiry describes an concret
 *[Back to top](#documentation)*
 
 
-#### Rule
+#### Rules
 Rules allow you to describe conditions directly on `action`, `subject`, `resource` and `context` 
 or on their attributes.
 If at least one Rule in the Rule-set is not satisfied Inquiry is rejected by given Policy.
@@ -294,13 +294,13 @@ If the existing Rules are not enough for you, feel free to define your [own](./e
 
 | Rule          | Example in Policy  |  Example in Inquiry  | Notes |
 | ------------- |-------------|-------------|-------------|
-| Truthy    | `'admin': Truthy()` | `'admin': user.is_admin()`| This is a runtime function call check |
-| Falsy     | `'admin': Falsy()` | `'admin': user.is_admin()`| This is a runtime function call check |
+| Truthy    | `'admin': Truthy()` | `'admin': user.is_admin()`| Evaluates on Inquiry creation |
+| Falsy     | `'admin': Falsy()` | `'admin': lambda x: x.is_admin()`| Evaluates on Inquiry creation |
 | Not   | `'age': Not(Greater(90))` | `'age': 40` | |
-| And   | `'stars': And(Greater(50), Less(89))` | `'stars': 78` | Attributes in dictionary of Rules act as AND logic |
-| Or    | `'stars': Or(Greater(50), Less(120), Eq(8888))` | `'stars': 78` | Rules in a list of, say, `actions` act as OR logic |
+| And   | `'stars': And(Greater(50), Less(89))` | `'stars': 78` | Also, attributes in dictionary of Rules act as AND logic |
+| Or    | `'stars': Or(Greater(50), Less(120), Eq(8888))` | `'stars': 78` | Also, rules in a list of, say, `actions` act as OR logic |
 | Any      | `actions=[Any()]` | `action='get'`, `action='foo'` | Placeholder that fits any value |
-| Neither      | `subjects=[Neither()]` | `subject='Max'`,  `subject='Joe'` | Not very useful, left only as a couterpart of Any |
+| Neither      | `subjects=[Neither()]` | `subject='Max'`,  `subject='Joe'` | Not very useful, left only as a counterpart of Any |
 
 ##### List-related
   * In
@@ -311,22 +311,31 @@ If the existing Rules are not enough for you, feel free to define your [own](./e
   * AnyNotIn
 
 ##### Network-related
-  * CIDR
- 
+
+| Rule          | Example in Policy  |  Example in Inquiry  | Notes |
+| ------------- |-------------|-------------|-------------|
+| CIDR    | `'ip': CIDR('192.168.2.0/24')` | `'ip': 192.168.2.4`| |
+
 ##### String-related
-  * Equal
-  * PairsEqual
-  * RegexMatch
-  * StartsWith
-  * EndsWith
-  * Contains
+| Rule          | Example in Policy  |  Example in Inquiry  | Notes |
+| ------------- |-------------|-------------|-------------|
+| Equal    | `'name': Equal('max', ci=True)` | `'name': 'Max'`| Aliased as `StrEqual`. Use instead of `Eq` it you want string-type check and case-insensitivity |
+| PairsEqual    | `'names': PairsEqual()` | `'names': ['Bob', 'Bob']`| Aliased as `StrPairsEqual` |
+| RegexMatch    | `"file": RegexMatch(r"\.(rb|sh|py|ex)$")` | `'file': 'test.rb'`| Supports case-insensitivity |
+| StartsWith    | `'file': StartsWith('logs-')` | `'file': 'logs-data-101967.log'`| Supports case-insensitivity |
+| EndsWith    | `'file': EndsWith('.log')` | `'file': 'logs-data-101967.log'`| Supports case-insensitivity |
+| Contains    | `'file': Contains('sun')` | `'file': 'observations-sunny-days.csv'`| Supports case-insensitivity |
 
 ##### Inquiry-related
-  * SubjectEqual
-  * ActionEqual
-  * ResourceIn
-  
-Inquiry-related rules are considered not usable anymore, so you likely won't need them.
+
+Inquiry-related rules are not usable since v1.2, so you very likely won't need them.
+Partially they served as attributes workaround for inquiry elements when placed in `context`.
+
+| Rule          | Example in Policy  |  Example in Inquiry  | Notes |
+| ------------- |-------------|-------------|-------------|
+| SubjectEqual  | `'data': SubjectEqual()` | `Inquiry(subject='Max')`| Works only for strings |
+| ActionEqual  | `'data': ActionEqual()` | `Inquiry(action='get')`| Works only for strings |
+| ResourceIn  | `'data': ResourceIn()` | `Inquiry(resource='/books/')`| Works only for strings |
 
 
 *[Back to top](#documentation)*

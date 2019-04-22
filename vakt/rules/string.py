@@ -54,7 +54,7 @@ class PairsEqual(Rule):
     """
     Rule that is satisfied when given data is an array of pairs and
     those pairs are represented by equal to each other strings.
-    For example: context={'users': PairsEqual()}
+    For example: context={'scores': PairsEqual()}
     """
     def satisfied(self, what, inquiry=None):
         if not isinstance(what, list):
@@ -89,7 +89,7 @@ class RegexMatch(Rule):
 class StartsWith(StringRule):
     """
     Rule that is satisfied when given string starts with initially provided substring.
-    For example: context={'file': StartsWith('Route-')}
+    For example: context={'file': StartsWith('Route-', ci=True)}
     """
     def satisfied(self, what, inquiry=None):
         if isinstance(what, str):

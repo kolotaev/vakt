@@ -57,7 +57,7 @@ def gen_id():
 
 def gen_regexp():
     a, b = [rand_string() for _ in range(2)]
-    return '<[\d]{3}[%s]*>' % a, '<[%s]{2}>' % b
+    return r'<[\d]{3}[%s]*>' % a, '<[%s]{2}>' % b
 
 
 def gen_policy():

@@ -15,7 +15,7 @@ __all__ = [
 class SubjectEqual(Rule):
     """
     Rule that is satisfied if the string value equals the Inquiry's Subject.
-    For example: context={'user': SubjectEqual('Max')}
+    For example: context={'user': SubjectEqual()}
     This is an old Rule. Most often operator Rules will be enough.
     """
     def satisfied(self, what, inquiry):
@@ -25,7 +25,7 @@ class SubjectEqual(Rule):
 class ActionEqual(Rule):
     """
     Rule that is satisfied if the string value equals the Inquiry's Action.
-    For example: context={'user': ActionEqual('Get')}
+    For example: context={'user': ActionEqual()}
     This is an old Rule. Most often operator Rules will be enough.
     """
     def satisfied(self, what, inquiry):
@@ -35,7 +35,7 @@ class ActionEqual(Rule):
 class ResourceIn(Rule):
     """
     Rule that is satisfied if list contains the Inquiry's Resource.
-    For example: context={'user': ResourceIn('books', 'magazines')}
+    For example: context={'user': ResourceIn()}
     This is an old Rule. Most often list Rules will be enough.
     """
     def satisfied(self, what, inquiry):

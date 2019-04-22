@@ -41,7 +41,6 @@ class BooleanRule(Rule, metaclass=ABCMeta):
         pass
 
 
-# todo - rename to Truthy
 class Truthy(BooleanRule):
     """
     Rule that is satisfied when 'what' is evaluated to a boolean 'true'.
