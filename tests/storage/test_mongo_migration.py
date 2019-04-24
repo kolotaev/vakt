@@ -355,8 +355,8 @@ class TestMigration1x1x1To1x2x0:
                 """,
                 """
                 { "_id" : 10, "actions" : [ ], 
-                "context" : { "name" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "Max" },
-                "secret" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "i-am-a-foo"} }, 
+                "context" : { "name" : {"py/object": "vakt.rules.string.Equal", "val": "Max" },
+                "secret" : {"py/object": "vakt.rules.string.Equal", "val": "i-am-a-foo"} }, 
                 "description" : null, "effect" : "allow", "resources" : [ ],
                 "subjects" : [ ], "type": 1, "uid" : 10 }
                 """
@@ -370,7 +370,7 @@ class TestMigration1x1x1To1x2x0:
                 """,
                 """
                 { "_id" : 20, "actions" : [ "<.*>" ], "context" : { "secret" :
-                { "py/object": "vakt.rules.string.StringEqualRule", "val": "John"} },
+                { "py/object": "vakt.rules.string.Equal", "val": "John"} },
                 "description" : "foo bar", "effect" : "allow",
                 "resources" : [ "<.*>" ], "subjects" : [ "<.*>" ], "type": 1,
                 "uid" : 20 }
@@ -395,7 +395,7 @@ class TestMigration1x1x1To1x2x0:
                 """,
                 """
                 { "_id" : 40, "actions" : [ "<.*>" ], "context" : { "a" : 
-                {"py/object": "vakt.rules.string.StringEqualRule", "val": "foo"},
+                {"py/object": "vakt.rules.string.Equal", "val": "foo"},
                 "num" : { "py/object": "storage.test_mongo_migration.Simple", "val": "123"} }, "description" : null, 
                 "effect" : "allow",  "resources" : ["<.*>"],
                  "subjects" : ["<.*>"], "type": 1,
@@ -458,7 +458,7 @@ class TestMigration1x1x1To1x2x0:
             (
                 """
                 { "_id" : 10, "actions" : [ ], 
-                "context" : { "name" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "Max" },
+                "context" : { "name" : {"py/object": "vakt.rules.string.Equal", "val": "Max" },
                 "secret" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "i-am-a-foo"} }, 
                 "description" : null, "effect" : "allow", "resources" : [ ],
                 "subjects" : [ ], "type": 1, "uid" : 10 }

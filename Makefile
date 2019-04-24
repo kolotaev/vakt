@@ -48,6 +48,6 @@ mutation-report:
 
 .PHONY: bench
 bench:
-	${PYTHON} benchmark.py --checker regex
+	${PYTHON} benchmark.py --checker regex --number 10000
 	@echo "\n"
-	${PYTHON} benchmark.py --checker rules
+	${PYTHON} benchmark.py --checker rules --number 10000

@@ -303,6 +303,15 @@ class Migration1x1x1To1x2x0(MongoMigration):
         self.storage = storage
         self.type_field = 'type'
         self.type_index = 'type_idx'
+        self.rules_rename = {
+            'vakt.rules.string.StringEqualRule': 'vakt.rules.string.Equal',
+            'vakt.rules.string.RegexMatchRule': 'vakt.rules.string.RegexMatch',
+            'vakt.rules.string.StringPairsEqualRule': 'vakt.rules.string.PairsEqual',
+            'vakt.rules.net.CIDRRule': 'vakt.rules.net.CIDR',
+            'vakt.rules.inquiry.SubjectEqualRule': 'vakt.rules.inquiry.SubjectEqual',
+            'vakt.rules.inquiry.ActionEqualRule': 'vakt.rules.inquiry.ActionEqual',
+            'vakt.rules.inquiry.ResourceInRule': 'vakt.rules.inquiry.ResourceIn',
+        }
 
     @property
     def order(self):
@@ -312,6 +321,12 @@ class Migration1x1x1To1x2x0(MongoMigration):
         def process(doc):
             """Processor for up"""
             doc['type'] = TYPE_STRING_BASED
+            for key, rule in doc['rules'].items():
+                rule_type = rule[jsonpickle.tags.OBJECT]
+                for old, new in self.rules_rename.items():
+                    if rule_type == old:
+                        rule[jsonpickle.tags.OBJECT] = new
+                        break
             doc['context'] = doc['rules']
             del doc['rules']
             return doc
@@ -325,19 +340,16 @@ class Migration1x1x1To1x2x0(MongoMigration):
                 raise Irreversible('Policy is not of a string-based type, so not supported in < v1.2.0')
             for rule in doc['context'].values():
                 rule_type = rule[jsonpickle.tags.OBJECT]
+                for old, new in self.rules_rename.items():
+                    if rule_type == new:
+                        rule[jsonpickle.tags.OBJECT] = old
+                        break
                 if rule_type.startswith('vakt.rules.list') or \
                         rule_type.startswith('vakt.rules.logic') or \
                         rule_type.startswith('vakt.rules.operator') or \
-                        rule_type in ['vakt.rules.string.Equal',
-                                      'vakt.rules.string.RegexMatch',
-                                      'vakt.rules.string.PairsEqual',
-                                      'vakt.rules.net.CIDRRule',
-                                      'vakt.rules.string.StartsWith',
+                        rule_type in ['vakt.rules.string.StartsWith',
                                       'vakt.rules.string.EndsWith',
-                                      'vakt.rules.string.Contains',
-                                      'vakt.rules.inquiry.SubjectEqual',
-                                      'vakt.rules.inquiry.ActionEqual',
-                                      'vakt.rules.inquiry.ResourceIn']:
+                                      'vakt.rules.string.Contains']:
                     raise Irreversible('Context contains rule that exist only in >= v1.2.0: %s' % rule)
             doc['rules'] = doc['context']
             del doc['context']
