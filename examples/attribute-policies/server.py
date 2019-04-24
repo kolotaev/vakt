@@ -6,6 +6,7 @@ import Pyro4
 import pymongo
 import vakt
 from vakt.rules import Eq, Any, NotEq, StartsWith, In, RegexMatch, CIDR, And, Greater, Less
+from vakt.storage.mongo import MongoStorage
 
 
 # Policies that guard our tiny Github clone.
@@ -75,7 +76,7 @@ class GitHubGuardian:
         if os.environ.get('STORAGE') == 'mongo':
             user, password, host = 'root', 'root', 'localhost:27017'
             uri = 'mongodb://%s:%s@%s' % (user, password, host)
-            return vakt.MongoStorage(pymongo.MongoClient(host=host), 'vakt_db', collection='vakt_book_library')
+            return MongoStorage(pymongo.MongoClient(host=host), 'vakt_db', collection='vakt_book_library')
         else:
             return vakt.MemoryStorage()
 

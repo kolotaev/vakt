@@ -8,9 +8,10 @@ from functools import partial
 from pymongo import MongoClient
 
 from vakt import (
-    MemoryStorage, MongoStorage, DENY_ACCESS, ALLOW_ACCESS,
+    MemoryStorage, DENY_ACCESS, ALLOW_ACCESS,
     Policy, RegexChecker, RulesChecker, Guard, Inquiry,
 )
+from vakt.storage.mongo import MongoStorage
 from vakt.rules import operator, logic, list, net
 
 

@@ -32,7 +32,6 @@ from .checker import (
 from . import rules
 
 from .storage.memory import MemoryStorage
-from .storage.mongo import MongoStorage
 
 
 ################

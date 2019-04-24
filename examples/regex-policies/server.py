@@ -3,11 +3,11 @@ import logging
 import uuid
 
 from vakt import (
-    DENY_ACCESS, ALLOW_ACCESS,
-    MongoStorage, MemoryStorage,
+    DENY_ACCESS, ALLOW_ACCESS, MemoryStorage,
     Policy, Guard, Inquiry, RegexChecker,
     rules,
 )
+from vakt.storage.mongo import MongoStorage
 
 from flask import Flask, request, session
 from pymongo import MongoClient

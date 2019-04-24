@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.2.1] - 2019-04-24
+### Changed
+- [vakt] `MongoStorage` is not imported into vakt package by default.
+
+
 ## [1.2.0] - 2019-04-24
 ### Added
 - [Rules] List-based `Rules`: (In, NotIn, AllIn, AllNotIn, AnyIn, AnyNotIn) in `vakt.rules.list`.
