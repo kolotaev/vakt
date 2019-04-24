@@ -32,7 +32,6 @@ lint:
 
 .PHONY: release
 release: test
-	${PIP} install pypandoc
 	${PYTHON} setup.py sdist upload -r pypi
 
 # runs mutation testing

@@ -7,15 +7,8 @@ about = {}
 with open(path.join(here, 'vakt', 'version.py'), mode='r', encoding='utf-8') as f:
     exec(f.read(), about)
 
-readme_path = path.join(here, 'README.md')
-try:
-    import pypandoc
-    long_description = pypandoc.convert(readme_path, 'rst')
-    long_description = long_description.replace("\r", '')  # the first line of the original readme appears on pypi
-except (IOError, ImportError):
-    print('Long_description conversion failure')
-    with open(readme_path, encoding='utf-8') as f:
-        long_description = f.read()
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 
 if __name__ == '__main__':
