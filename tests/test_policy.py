@@ -127,8 +127,8 @@ def test_json_roundtrip_of_a_policy_with_context():
 @pytest.mark.parametrize('policy', [
     Policy(1, subjects=[{'name': Eq('Max'), 'rate': Greater(90)}], actions=[Eq('get'), Eq('post')], resources=[Any()]),
     Policy(2, subjects=[{'login': Eq('sally')}], actions=[Eq('get'), Eq('post')], context={'ip': Eq('127.0.0.1')}),
-    Policy(3, subjects=[{'login': AnyIn('sally', 'patric')}], actions=[And(Eq('get'), Eq('post'))]),
-    Policy(4, subjects=[{'login': AnyIn('sally', 'patric')}], actions=[And(Eq('get'), Eq('post'))]),
+    Policy(3, subjects=[{'rating': AnyIn(1, 2)}], actions=[And(Eq('get'), Eq('post'))]),
+    Policy(4, subjects=[{'rating': AnyIn(1, 2)}], actions=[And(Eq('get'), Eq('post'))]),
     Policy(5, actions=[Eq('get')]),
 ])
 def test_json_roundtrip_of_a_rules_based_policy(policy):

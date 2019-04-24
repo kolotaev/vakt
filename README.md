@@ -323,7 +323,7 @@ If the existing Rules are not enough for you, feel free to define your [own](./e
 | ------------- |-------------|-------------|-------------|
 | Equal    | `'name': Equal('max', ci=True)` | `'name': 'Max'`| Aliased as `StrEqual`. Use instead of `Eq` it you want string-type check and case-insensitivity |
 | PairsEqual    | `'names': PairsEqual()` | `'names': ['Bob', 'Bob']`| Aliased as `StrPairsEqual` |
-| RegexMatch    | `'file': RegexMatch(r'\.rb$')` | `'file': 'test.rb'`| Supports case-insensitivity |
+| RegexMatch    | `'file': RegexMatch(r'\.rb$')` | `'file': 'test.rb'`| |
 | StartsWith    | `'file': StartsWith('logs-')` | `'file': 'logs-data-101967.log'`| Supports case-insensitivity |
 | EndsWith    | `'file': EndsWith('.log')` | `'file': 'logs-data-101967.log'`| Supports case-insensitivity |
 | Contains    | `'file': Contains('sun')` | `'file': 'observations-sunny-days.csv'`| Supports case-insensitivity |
