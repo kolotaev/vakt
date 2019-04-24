@@ -18,8 +18,8 @@ class SubjectEqual(Rule):
     For example: context={'user': SubjectEqual()}
     This is an old Rule. Most often operator Rules will be enough.
     """
-    def satisfied(self, what, inquiry):
-        return isinstance(what, str) and what == inquiry.subject
+    def satisfied(self, what, inquiry=None):
+        return inquiry and isinstance(what, str) and what == inquiry.subject
 
 
 class ActionEqual(Rule):
@@ -28,8 +28,8 @@ class ActionEqual(Rule):
     For example: context={'user': ActionEqual()}
     This is an old Rule. Most often operator Rules will be enough.
     """
-    def satisfied(self, what, inquiry):
-        return isinstance(what, str) and what == inquiry.action
+    def satisfied(self, what, inquiry=None):
+        return inquiry and isinstance(what, str) and what == inquiry.action
 
 
 class ResourceIn(Rule):
@@ -38,8 +38,8 @@ class ResourceIn(Rule):
     For example: context={'user': ResourceIn()}
     This is an old Rule. Most often list Rules will be enough.
     """
-    def satisfied(self, what, inquiry):
-        return isinstance(what, list) and inquiry.resource in what
+    def satisfied(self, what, inquiry=None):
+        return inquiry and isinstance(what, list) and inquiry.resource in what
 
 
 # Classes marked for removal in next releases

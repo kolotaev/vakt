@@ -321,7 +321,7 @@ class Migration1x1x1To1x2x0(MongoMigration):
         def process(doc):
             """Processor for up"""
             doc['type'] = TYPE_STRING_BASED
-            for key, rule in doc['rules'].items():
+            for rule in doc['rules'].values():
                 rule_type = rule[jsonpickle.tags.OBJECT]
                 for old, new in self.rules_rename.items():
                     if rule_type == old:
