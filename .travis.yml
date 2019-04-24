@@ -24,7 +24,7 @@ before_script:
   - mongo vakt_db --eval 'db.createUser({user:"test_user",pwd:"test_password",roles:["readWrite"]});'
 
 install:
-  - pip install -e .[dev,mongo]
+  - make deps
 
 script:
   - make coverage

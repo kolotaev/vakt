@@ -2,16 +2,16 @@
 All notable changes to this project will be documented in this file.
 
 
-## [Unreleased]
+## [1.2.0] - 2019-04-24
 ### Added
 - [Rules] List-based `Rules`: (In, NotIn, AllIn, AllNotIn, AnyIn, AnyNotIn) in `vakt.rules.list`.
 - [Rules] Comparison operator `Rules`:(Eq, NotEq, Greater, Less, GreaterOrEqual, LessOrEqual) in `vakt.rules.operator`.
 - [Rules] Logic-related operator `Rules`:(Truthy, Falsy, Not, And, Or, Any, Neither) in `vakt.rules.logic`.
 - [Rules] Substring-related `Rules`:(StartsWith, EndsWith, Contains) in `vakt.rules.string`.
 - [Policy] Policy now checks field type on it's creation or setting.
-- [Checker] New `RulesChecker` based on definition of attributes via dictionaries w/ various Rules.
-- [Storage] New `vakt.storage.migration.Migrator` class. Is used for migrations execution.
-- [Storage] New `vakt.storage.migration.MigrationSet` class. Represents a collection of migrations for a
+- [Checker] `RulesChecker` based on definition of attributes via dictionaries w/ various Rules.
+- [Storage] `vakt.storage.migration.Migrator` class. Is used for migrations execution.
+- [Storage] `vakt.storage.migration.MigrationSet` class. Represents a collection of migrations for a
 particular storage.
 
 ### Removed
@@ -29,7 +29,7 @@ If set to `True`, string case-insensitive comparison is performed.
 for RegexChecker, all StringCheckers) and rules-based policy (used for RulesChecker).
 - [Storage] `vakt.storage.abc.Migration` abstract class was moved to `vakt.storage.migration.Migration`
 for scope consistency.
-- Enhanced imports. Now all the basic components like `Policy`, `Guard`, `Rule`s can be imported directly from `vakt`
+- [vakt] Enhanced imports. Now all the basic components like `Policy`, `Guard`, `Rule`s can be imported directly from `vakt`
 package.
 
 ### Deprecated
