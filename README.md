@@ -453,6 +453,12 @@ out of the box. See below.
 Implementation that stores Policies in memory. It's not backed by any file or something, so every restart of your
 application will swipe out everything that was stored. Useful for testing.
 
+```python
+from vakt import MemoryStorage
+
+storage = MemoryStorage()
+```
+
 ##### MongoDB
 MongoDB is chosen as the most popular and widespread NO-SQL database.
 
