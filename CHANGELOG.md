@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 
 
+## [Unreleased]
+### Added
+- [Exceptions] PolicyUpdateError, PolicyDeletionError that should be used for corresponding storage actions in case of
+exceptional situation.
+- [Cache] Added warious cache mechanisms inside `cache` module: `Wrap`.
+
+
 ## [1.2.1] - 2019-04-24
 ### Changed
 - [vakt] `MongoStorage` is not imported into vakt package by default.
