@@ -1,17 +1,19 @@
 """
-Cahing mechanisms for vakt
+Caching mechanisms for vakt
 """
+
+from functools import lru_cache
 
 from .exceptions import (
     PolicyExistsError, PolicyUpdateError,
     PolicyCreationError, PolicyDeletionError
 )
 
-class Wrap:
+class EnfoldCache:
     """
     Wraps all underlying storage interface calls with a cache that is represented by another storage.
     Typical usage might be:
-    storage = Wrap(MongoStorage(...), cache=MemoryStorage(), init=True)
+    storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage(), init=True)
     """
 
     def __init__(self, storage, cache, init=False):
@@ -83,3 +85,25 @@ class Wrap:
         except PolicyDeletionError:
             pass
         self.cache.delete(uid)
+
+
+class GuardCache:
+    """
+    Caches hits of `find_for_inquiry` for given Inquiry and Checker.
+    In case of a cache hit returns the cached boolean result, in case of a cache miss goes to a Storage and
+    and memoizes its result for future calls with the same Inquiry and Checker.
+    If underlying Storage notifies it that policies set has anyhow changed, invalidates all the cached results.
+    """
+
+    def __init__(self, storage, maxsize=1024):
+        self.storage = storage
+        self.stale = True
+        self.cache = lru_cache(maxsize)(self.storage.find_for_inquiry)
+
+    def get(self, inquiry, checker):
+        if not self.stale:
+            return self.cache(inquiry, checker)
+        return False
+
+#    def _hash(inquiry, checker):
+#        return inquiry.to_json() + type(checker)

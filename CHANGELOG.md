@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - [Exceptions] PolicyUpdateError, PolicyDeletionError that should be used for corresponding storage actions in case of
 exceptional situation.
-- [Cache] Added warious cache mechanisms inside `cache` module: `Wrap`.
+- [Cache] Added various cache mechanisms inside `cache` module: `EnfoldCache`.
 
 
 ## [1.2.1] - 2019-04-24
