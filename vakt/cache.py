@@ -9,14 +9,23 @@ from .exceptions import (
 
 class Wrap:
     """
-    Wraps all underlying storage interface calls with a cache that is representde by another storage.
-    Typical useage might be:
-    storage = Wrap(MongoStorage(...), cache=MemoryStorage())
+    Wraps all underlying storage interface calls with a cache that is represented by another storage.
+    Typical usage might be:
+    storage = Wrap(MongoStorage(...), cache=MemoryStorage(), init=True)
     """
 
-    def __init__(self, storage, cache):
+    def __init__(self, storage, cache, init=False):
         self.storage = storage
         self.cache = cache
+        if init:
+            offset = 0
+            while True:
+                policies = self.storage.get_all(10000, offset)
+                if not policies:
+                    break
+                for p in policies:
+                    self.cache.add(p)
+                offset += 1
 
     def add(self, policy):
         """
