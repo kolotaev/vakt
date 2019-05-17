@@ -9,6 +9,7 @@ from .exceptions import (
     PolicyCreationError, PolicyDeletionError
 )
 
+
 class EnfoldCache:
     """
     Wraps all underlying storage interface calls with a cache that is represented by another storage.
@@ -20,14 +21,15 @@ class EnfoldCache:
         self.storage = storage
         self.cache = cache
         if init:
+            limit = 10000
             offset = 0
             while True:
-                policies = self.storage.get_all(10000, offset)
+                policies = self.storage.get_all(limit, offset)
                 if not policies:
                     break
                 for p in policies:
                     self.cache.add(p)
-                offset += 1
+                offset = limit + 1
 
     def add(self, policy):
         """
