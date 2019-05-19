@@ -13,7 +13,7 @@ class TestEnfoldCache:
         policies = [Policy(1), Policy(2), Policy(3)]
         back = Mock(spec=MongoStorage, **{'get_all.return_value': [policies]})
         c = EnfoldCache(back, cache=cache, init=False)
-        back.get_all.assert_not_called()
+        assert not back.get_all.called
         assert [] == c.cache.get_all(10000, 0)
 
     def test_init_true(self):
