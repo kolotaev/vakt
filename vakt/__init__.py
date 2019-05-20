@@ -10,7 +10,7 @@ import logging
 
 from .version import version_info, __version__
 
-from .policy import Policy
+from .policy import Policy, PolicyDeny, PolicyAllow
 
 from .guard import (
     Inquiry,

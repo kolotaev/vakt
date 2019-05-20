@@ -202,6 +202,18 @@ for p in policies:
     st.add(p)
 ```
 
+Additionally you can create Policies with predefined effect classes:
+```python
+from vakt import PolicyAllow, PolicyDeny, ALLOW_ACCESS, DENY_ACCESS
+    
+p = PolicyAllow(1, actions=['<read|get>'], resources=['library:books:<.+>'], subjects=['<[\w]+ M[\w]+>'])
+assert ALLOW_ACCESS == p.effect
+
+
+p = PolicyDeny(2, actions=['<read|get>'], resources=['library:books:<.+>'], subjects=['<[\w]+ M[\w]+>'])
+assert DENY_ACCESS == p.effect
+```
+
 *[Back to top](#documentation)*
 
 

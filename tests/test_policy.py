@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.policy import Policy
+from vakt.policy import Policy, PolicyAllow, PolicyDeny
 from vakt.effects import ALLOW_ACCESS, DENY_ACCESS
 from vakt.exceptions import PolicyCreationError
 from vakt.rules.net import CIDR
@@ -276,3 +276,28 @@ def test_policy_field_type_check(args, msg):
     with pytest.raises(PolicyCreationError) as excinfo:
         Policy(1, **args)
     assert msg in str(excinfo.value)
+
+
+@pytest.mark.parametrize('klass, is_allowed, effect', [
+    (PolicyAllow, True, 'allow'),
+    (PolicyDeny, False, 'deny'),
+])
+def test_PolicyAllow_and_PolicyDeny(klass, is_allowed, effect):
+    p = klass(1, actions=['<foo.bar>'], resources=['asdf'],
+              subjects=['<qwerty>'], description='test')
+    assert is_allowed == p.allow_access()
+    assert 1 == p.uid
+    assert 'test' == p.description
+    assert TYPE_STRING_BASED == p.type
+    assert ['<foo.bar>'] == p.actions
+    assert ['asdf'] == p.resources
+    assert ['<qwerty>'] == p.subjects
+    assert {} == p.context
+    assert '{"actions": ["<foo.bar>"], "context": {}, "description": "test", "effect": "%s", ' % effect + \
+           '"resources": ["asdf"], "subjects": ["<qwerty>"], "type": 1, "uid": 1}' == p.to_json()
+    assert ['<foo.bar>'] == Policy.from_json(p.to_json()).actions
+    p.effect = DENY_ACCESS
+    assert DENY_ACCESS == p.effect
+    p2 = klass(2, context={'a': Eq(100)})
+    assert isinstance(p2.context.get('a'), Eq)
+    assert 100 == p2.context.get('a').val

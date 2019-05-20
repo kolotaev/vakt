@@ -131,3 +131,21 @@ class Policy(JsonSerializer, PrettyPrint):
             if isinstance(prop, tuple):
                 data[k] = list(prop)
         return data
+
+
+class PolicyAllow(Policy):
+    """
+    Policy that has effect ALLOW_ACCESS by default.
+    """
+    def __init__(self, uid, **kwargs):
+        super().__init__(uid, **kwargs)
+        self.effect = ALLOW_ACCESS
+
+
+class PolicyDeny(Policy):
+    """
+    Policy that has effect DENY_ACCESS by default.
+    """
+    def __init__(self, uid, **kwargs):
+        super().__init__(uid, **kwargs)
+        self.effect = DENY_ACCESS
