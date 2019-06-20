@@ -21,7 +21,7 @@ from vakt.guard import Inquiry
     (lambda: True, True),
     (lambda: False, False),
 ])
-def test_is_true_satisfied(against, result):
+def test_truthy_satisfied(against, result):
     assert result == Truthy().satisfied(against)
     # test after (de)serialization
     jsn = Truthy().to_json()
@@ -41,7 +41,7 @@ def test_is_true_satisfied(against, result):
     (lambda: True, False),
     (lambda: False, True),
 ])
-def test_is_false_satisfied(against, result):
+def test_falsy_satisfied(against, result):
     assert result == Falsy().satisfied(against)
     # test after (de)serialization
     jsn = Falsy().to_json()
