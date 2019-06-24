@@ -2,7 +2,11 @@
 Caching mechanisms for vakt
 """
 
+import logging
 from functools import lru_cache
+
+
+log = logging.getLogger(__name__)
 
 
 class EnfoldCache:
@@ -10,22 +14,26 @@ class EnfoldCache:
     Wraps all underlying storage interface calls with a cache that is represented by another storage.
     When `init` arg is True populates cache with all the existing policies at the startup.
     Typical usage might be:
-    storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage(), init=True).
+    storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage(), populate=True).
     """
 
-    def __init__(self, storage, cache, init=False):
+    def __init__(self, storage, cache, populate=False):
         self.storage = storage
         self.cache = cache
-        if init:
-            limit = 1000
-            offset = 0
-            while True:
-                policies = self.storage.get_all(limit, offset)
-                if not policies:
-                    break
-                for p in policies:
-                    self.cache.add(p)
-                offset = limit + 1
+        self.populate_step = 1000
+        if populate:
+            self.populate()
+
+    def populate(self):
+        limit = self.populate_step
+        offset = 0
+        while True:
+            policies = self.storage.get_all(limit, offset)
+            if not policies:
+                break
+            for p in policies:
+                self.cache.add(p)
+            offset = limit + 1
 
     def add(self, policy):
         """
@@ -42,6 +50,10 @@ class EnfoldCache:
         policy = self.cache.get(uid)
         if policy:
             return policy
+        log.warning(
+            '%s cache miss for get Policy with UID=%s. Trying to get it from backend storage',
+            type(self).__name__, uid
+        )
         return self.storage.get(uid)
 
     def get_all(self, limit, offset):

@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -11,19 +11,19 @@ from vakt.exceptions import PolicyExistsError
 
 class TestEnfoldCache:
 
-    def test_init_false(self):
+    def test_init_with_populate_false(self):
         cache = MemoryStorage()
         policies = [Policy(1), Policy(2), Policy(3)]
         back = Mock(spec=MongoStorage, **{'get_all.return_value': [policies]})
-        c = EnfoldCache(back, cache=cache, init=False)
+        c = EnfoldCache(back, cache=cache, populate=False)
         assert not back.get_all.called
         assert [] == c.cache.get_all(1000, 0)
 
-    def test_init_true(self):
+    def test_init_with_populate_true(self):
         cache = MemoryStorage()
         policies = [Policy(1), Policy(2), Policy(3)]
         back = Mock(spec=MongoStorage, **{'get_all.side_effect': [policies, []]})
-        ec = EnfoldCache(back, cache=cache, init=True)
+        ec = EnfoldCache(back, cache=cache, populate=True)
         assert policies == ec.cache.get_all(1000, 0)
 
     def test_add_ok(self):
@@ -122,3 +122,48 @@ class TestEnfoldCache:
         assert 'error!' == str(excinfo.value)
         assert [p1, p2] == back_storage.get_all(1000, 0)
         assert [p1, p2] == cache_storage.get_all(1000, 0)
+
+    @patch('vakt.cache.log')
+    def test_get_for_non_populated_cache(self, log_mock):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        p1 = Policy(1, description='foo')
+        p2 = Policy(2, description='bar')
+        back_storage.add(p1)
+        back_storage.add(p2)
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        assert p1 == ec.get(1)
+        log_mock.warning.assert_called_with(
+            '%s cache miss for get Policy with UID=%s. Trying to get it from backend storage',
+            'EnfoldCache',
+            1
+        )
+        log_mock.reset_mock()
+        assert p2 == ec.get(2)
+        log_mock.warning.assert_called()
+        log_mock.reset_mock()
+        # test we won't return any inexistent policies
+        assert ec.get(3) is None
+
+    @patch('vakt.cache.log')
+    def test_get_for_populated_cache(self, log_mock):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        p1 = Policy(1, description='foo')
+        p2 = Policy(2, description='bar')
+        back_storage.add(p1)
+        back_storage.add(p2)
+        ec = EnfoldCache(back_storage, cache=cache_storage, populate=True)
+        assert p1 == ec.get(1)
+        assert 0 == log_mock.warning.call_count
+        log_mock.reset_mock()
+        assert p2 == ec.get(2)
+        assert 0 == log_mock.warning.call_count
+        log_mock.reset_mock()
+        # test we won't return any inexistent policies
+        assert ec.get(3) is None
+        log_mock.warning.assert_called_with(
+            '%s cache miss for get Policy with UID=%s. Trying to get it from backend storage',
+            'EnfoldCache',
+            3
+        )
