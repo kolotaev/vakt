@@ -4,24 +4,20 @@ Caching mechanisms for vakt
 
 from functools import lru_cache
 
-from .exceptions import (
-    PolicyExistsError, PolicyUpdateError,
-    PolicyCreationError, PolicyDeletionError
-)
-
 
 class EnfoldCache:
     """
     Wraps all underlying storage interface calls with a cache that is represented by another storage.
+    When `init` arg is True populates cache with all the existing policies at the startup.
     Typical usage might be:
-    storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage(), init=True)
+    storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage(), init=True).
     """
 
     def __init__(self, storage, cache, init=False):
         self.storage = storage
         self.cache = cache
         if init:
-            limit = 10000
+            limit = 1000
             offset = 0
             while True:
                 policies = self.storage.get_all(limit, offset)
@@ -35,10 +31,8 @@ class EnfoldCache:
         """
         Cache storage `add`
         """
-        try:
-            self.storage.add(policy)
-        except PolicyExistsError:
-            pass
+        # we aren't catching any exceptions - just letting them pass
+        self.storage.add(policy)
         self.cache.add(policy)
 
     def get(self, uid):
@@ -72,20 +66,14 @@ class EnfoldCache:
         """
         Cache storage `update`
         """
-        try:
-            self.storage.update(policy)
-        except (PolicyUpdateError, PolicyCreationError):
-            pass
+        self.storage.update(policy)
         self.cache.update(policy)
 
     def delete(self, uid):
         """
         Cache storage `delete`
         """
-        try:
-            self.storage.delete(uid)
-        except PolicyDeletionError:
-            pass
+        self.storage.delete(uid)
         self.cache.delete(uid)
 
 
@@ -93,7 +81,7 @@ class GuardCache:
     """
     Caches hits of `find_for_inquiry` for given Inquiry and Checker.
     In case of a cache hit returns the cached boolean result, in case of a cache miss goes to a Storage and
-    and memoizes its result for future calls with the same Inquiry and Checker.
+    and memorizes its result for future calls with the same Inquiry and Checker.
     If underlying Storage notifies it that policies set has anyhow changed, invalidates all the cached results.
     """
 
