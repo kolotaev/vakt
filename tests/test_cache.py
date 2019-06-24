@@ -61,3 +61,64 @@ class TestEnfoldCache:
         assert 'foo' == str(excinfo.value)
         assert [p1] == back_storage.get_all(1000, 0)
         assert [p1] == cache_storage.get_all(1000, 0)
+
+    def test_update_ok(self):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        p1 = Policy(1, description='foo')
+        p2 = Policy(2, description='bar')
+        p3 = Policy(3, description='baz')
+        ec.add(p1)
+        ec.add(p2)
+        ec.add(p3)
+        p1.description = 'foo2'
+        ec.update(p1)
+        p2.description = 'bar2'
+        ec.update(p2)
+        assert [p1, p2, p3] == cache_storage.get_all(100, 0)
+        assert [p1, p2, p3] == back_storage.get_all(100, 0)
+
+    def test_update_fail(self):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        p1 = Policy(1, description='foo')
+        p2 = Policy(2, description='bar')
+        ec.add(p1)
+        ec.add(p2)
+        back_storage.update = Mock(side_effect=Exception('error!'))
+        with pytest.raises(Exception) as excinfo:
+            p1.description = 'changed foo'
+            ec.update(p1)
+        assert 'error!' == str(excinfo.value)
+        assert [p1, p2] == back_storage.get_all(1000, 0)
+        assert [p1, p2] == cache_storage.get_all(1000, 0)
+
+    def test_delete_ok(self):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        p1 = Policy(1, description='foo')
+        p2 = Policy(2, description='bar')
+        ec.add(p1)
+        ec.add(p2)
+        ec.delete(1)
+        ec.delete(2)
+        assert [] == cache_storage.get_all(100, 0)
+        assert [] == back_storage.get_all(100, 0)
+
+    def test_delete_fail(self):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        p1 = Policy(1, description='foo')
+        p2 = Policy(2, description='bar')
+        ec.add(p1)
+        ec.add(p2)
+        back_storage.delete = Mock(side_effect=Exception('error!'))
+        with pytest.raises(Exception) as excinfo:
+            ec.delete(2)
+        assert 'error!' == str(excinfo.value)
+        assert [p1, p2] == back_storage.get_all(1000, 0)
+        assert [p1, p2] == cache_storage.get_all(1000, 0)
