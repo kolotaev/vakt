@@ -17,9 +17,8 @@ class EnfoldCache:
     storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage(), populate=True).
     """
 
-    def __init__(self, backend, cache, populate=False):
-        # todo - add locking?
-        self.backend = backend
+    def __init__(self, storage, cache, populate=False):
+        self.storage = storage
         self.cache = cache
         self.populate_step = 1000
         if populate:
@@ -29,7 +28,7 @@ class EnfoldCache:
         limit = self.populate_step
         offset = 0
         while True:
-            policies = self.backend.get_all(limit, offset)
+            policies = self.storage.get_all(limit, offset)
             if not policies:
                 break
             for p in policies:
@@ -41,7 +40,7 @@ class EnfoldCache:
         Cache storage `add`
         """
         # we aren't catching any exceptions - just letting them pass
-        self.backend.add(policy)
+        self.storage.add(policy)
         self.cache.add(policy)
 
     def get(self, uid):
@@ -55,7 +54,7 @@ class EnfoldCache:
             '%s cache miss for get Policy with UID=%s. Trying to get it from backend storage',
             type(self).__name__, uid
         )
-        return self.backend.get(uid)
+        return self.storage.get(uid)
 
     def get_all(self, limit, offset):
         """
@@ -64,7 +63,7 @@ class EnfoldCache:
         result = self.cache.get_all(limit, offset)
         if result:
             return result
-        return self.backend.get_all(limit, offset)
+        return self.storage.get_all(limit, offset)
 
     def find_for_inquiry(self, inquiry, checker=None):
         """
@@ -73,20 +72,20 @@ class EnfoldCache:
         result = self.cache.find_for_inquiry(inquiry, checker)
         if result:
             return result
-        return self.backend.find_for_inquiry(inquiry, checker)
+        return self.storage.find_for_inquiry(inquiry, checker)
 
     def update(self, policy):
         """
         Cache storage `update`
         """
-        self.backend.update(policy)
+        self.storage.update(policy)
         self.cache.update(policy)
 
     def delete(self, uid):
         """
         Cache storage `delete`
         """
-        self.backend.delete(uid)
+        self.storage.delete(uid)
         self.cache.delete(uid)
 
 
