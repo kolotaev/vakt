@@ -5,6 +5,14 @@ Caching mechanisms for vakt
 import logging
 from functools import lru_cache
 
+from .util import Subject, Observer
+
+
+__all__ = [
+    'EnfoldCache',
+    'GuardCache',
+]
+
 
 log = logging.getLogger(__name__)
 
@@ -89,23 +97,62 @@ class EnfoldCache:
         self.cache.delete(uid)
 
 
-class GuardCache:
+class GuardCache(Observer):
     """
     Caches hits of `find_for_inquiry` for given Inquiry and Checker.
     In case of a cache hit returns the cached boolean result, in case of a cache miss goes to a Storage and
     and memorizes its result for future calls with the same Inquiry and Checker.
     If underlying Storage notifies it that policies set has anyhow changed, invalidates all the cached results.
     """
+    def __init__(self, storage, maxsize=1024, cache_type='memory'):
+        self.storage = ObservableStorage(storage)
+        self.cache_type = cache_type
+        self.maxsize = maxsize
+        self.cache = self._create_cache()
 
-    def __init__(self, storage, maxsize=1024):
+    def start(self):
+        self.storage.add_listener(self)
+        return self.storage
+
+    def _create_cache(self):
+        if self.cache_type == 'memory':
+            self.cache = lru_cache(self.maxsize)(self.storage.find_for_inquiry)
+        else:
+            raise Exception('Unknown cache type for GuardCache')
+
+    def update(self):
+        self._create_cache()
+
+
+class ObservableStorage(Subject):
+    """
+    Wraps and implements mutation part of Storage interface.
+    Notifies observers when mutation method is called on Storage.
+    """
+    def __init__(self, storage):
         self.storage = storage
-        self.stale = True
-        self.cache = lru_cache(maxsize)(self.storage.find_for_inquiry)
+        super().__init__()
 
-    def get(self, inquiry, checker):
-        if not self.stale:
-            return self.cache(inquiry, checker)
-        return False
+    def add(self, policy):
+        res = self.storage.add(policy)
+        self.notify()
+        return res
 
-#    def _hash(inquiry, checker):
-#        return inquiry.to_json() + type(checker)
+    def update(self, policy):
+        res = self.storage.update(policy)
+        self.notify()
+        return res
+
+    def delete(self, uid):
+        res = self.storage.delete(uid)
+        self.notify()
+        return res
+
+    def get(self, uid):
+        return self.storage.get(uid)
+
+    def get_all(self, limit, offset):
+        return self.storage.get_all(limit, offset)
+
+    def find_for_inquiry(self, inquiry, checker=None):
+        return self.storage.find_for_inquiry(inquiry, checker)
