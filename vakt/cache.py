@@ -108,7 +108,7 @@ class GuardCache(Observer):
     and memorizes its result for future calls with the same Inquiry and Checker.
     If underlying Storage notifies it that policies set has anyhow changed, invalidates all the cached results.
     """
-    def __init__(self, storage, maxsize=1024, cache_type='memory'):
+    def __init__(self, storage, maxsize=None, cache_type='memory'):
         self.storage = ObservableStorage(storage)
         self.cache_type = cache_type
         self.maxsize = maxsize
@@ -116,16 +116,33 @@ class GuardCache(Observer):
 
     def start(self):
         self.storage.add_listener(self)
+        self.storage.find_for_inquiry = self.cache.wrap(self.storage.find_for_inquiry)
         return self.storage
 
     def _create_cache(self):
         if self.cache_type == 'memory':
-            self.storage.find_for_inquiry = lru_cache(self.maxsize)(self.storage.find_for_inquiry)
+            # todo - we need hashable args
+            return LRUCache(maxsize=self.maxsize)
         else:
             raise Exception('Unknown cache type for GuardCache')
 
     def update(self):
-        self._create_cache()
+        self.cache.invalidate()
+
+
+# Helper classes
+
+class LRUCache:
+    def __init__(self, **kwargs):
+        self.maxsize = kwargs['maxsize']
+        self._wrapped_func = None
+
+    def wrap(self, func):
+        self._wrapped_func = lru_cache(self.maxsize)(func)
+        return self._wrapped_func
+
+    def invalidate(self):
+        self._wrapped_func.cache_clear()
 
 
 class ObservableStorage(Subject):
