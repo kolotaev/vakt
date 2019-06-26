@@ -116,7 +116,7 @@ class GuardCache(Observer):
 
     def _create_cache(self):
         if self.cache_type == 'memory':
-            self.cache = lru_cache(self.maxsize)(self.storage.find_for_inquiry)
+            self.storage.find_for_inquiry = lru_cache(self.maxsize)(self.storage.find_for_inquiry)
         else:
             raise Exception('Unknown cache type for GuardCache')
 
