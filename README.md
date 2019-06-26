@@ -105,13 +105,11 @@ pip install vakt[mongo]
 A quick dive-in:
 
 ```python
-import uuid
-
 import vakt
 from vakt.rules import Eq, Any, StartsWith, And, Greater, Less
 
 policy = vakt.Policy(
-    str(uuid.uuid4()),
+    123456,
     actions=[Eq('fork'), Eq('clone')],
     resources=[StartsWith('repos/Google', ci=True)],
     subjects=[{'name': Any(), 'stars': And(Greater(50), Less(999))}],
