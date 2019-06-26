@@ -26,6 +26,14 @@ class TestEnfoldCache:
         ec = EnfoldCache(back, cache=cache, populate=True)
         assert policies == ec.cache.get_all(1000, 0)
 
+    def test_add_return_value(self):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        backend_return = back_storage.add(Policy(1))
+        ec_return = ec.add(Policy(2))
+        assert backend_return == ec_return
+
     def test_add_ok(self):
         cache_storage = MemoryStorage()
         back_storage = MemoryStorage()
@@ -62,6 +70,17 @@ class TestEnfoldCache:
         assert [p1] == back_storage.get_all(1000, 0)
         assert [p1] == cache_storage.get_all(1000, 0)
 
+    def test_update_return_value(self):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        p1 = Policy(1, description='foo')
+        ec.add(p1)
+        p1.description = 'foo upd'
+        backend_return = back_storage.update(p1)
+        ec_return = ec.update(p1)
+        assert backend_return == ec_return
+
     def test_update_ok(self):
         cache_storage = MemoryStorage()
         back_storage = MemoryStorage()
@@ -95,6 +114,16 @@ class TestEnfoldCache:
         assert [p1, p2] == back_storage.get_all(1000, 0)
         assert [p1, p2] == cache_storage.get_all(1000, 0)
 
+    def test_delete_return_value(self):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        p1 = Policy(1)
+        ec.add(p1)
+        backend_return = back_storage.delete(p1)
+        ec_return = ec.delete(p1)
+        assert backend_return == ec_return
+
     def test_delete_ok(self):
         cache_storage = MemoryStorage()
         back_storage = MemoryStorage()
@@ -122,6 +151,16 @@ class TestEnfoldCache:
         assert 'error!' == str(excinfo.value)
         assert [p1, p2] == back_storage.get_all(1000, 0)
         assert [p1, p2] == cache_storage.get_all(1000, 0)
+
+    def test_get_return_value(self):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        p1 = Policy(1)
+        ec.add(p1)
+        backend_return = back_storage.get(1)
+        ec_return = ec.get(1)
+        assert backend_return == ec_return
 
     @patch('vakt.cache.log')
     def test_get_for_non_populated_cache(self, log_mock):

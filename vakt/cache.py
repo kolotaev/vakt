@@ -48,8 +48,9 @@ class EnfoldCache:
         Cache storage `add`
         """
         # we aren't catching any exceptions - just letting them pass
-        self.storage.add(policy)
+        res = self.storage.add(policy)
         self.cache.add(policy)
+        return res
 
     def get(self, uid):
         """
@@ -80,21 +81,24 @@ class EnfoldCache:
         result = self.cache.find_for_inquiry(inquiry, checker)
         if result:
             return result
+        log.warning('%s cache miss for find_for_inquiry. Trying it from backend storage', type(self).__name__)
         return self.storage.find_for_inquiry(inquiry, checker)
 
     def update(self, policy):
         """
         Cache storage `update`
         """
-        self.storage.update(policy)
+        res = self.storage.update(policy)
         self.cache.update(policy)
+        return res
 
     def delete(self, uid):
         """
         Cache storage `delete`
         """
-        self.storage.delete(uid)
+        res = self.storage.delete(uid)
         self.cache.delete(uid)
+        return res
 
 
 class GuardCache(Observer):
