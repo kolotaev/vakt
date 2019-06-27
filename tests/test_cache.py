@@ -4,10 +4,9 @@ import pytest
 
 from vakt.storage.memory import MemoryStorage
 from vakt.storage.mongo import MongoStorage
-from vakt import Policy
+from vakt import Policy, Inquiry, RulesChecker
 from vakt.cache import EnfoldCache
 from vakt.exceptions import PolicyExistsError
-from vakt import Inquiry
 
 
 class TestEnfoldCache:
@@ -212,7 +211,7 @@ class TestEnfoldCache:
         cache_storage = MemoryStorage()
         back_storage = MemoryStorage()
         ec = EnfoldCache(back_storage, cache=cache_storage)
-        inq = Inquiry(action='foo')
+        inq = Inquiry(action='get')
         p1 = Policy(1)
         p2 = Policy(2)
         ec.add(p1)
@@ -221,47 +220,96 @@ class TestEnfoldCache:
         ec_return = ec.find_for_inquiry(inq)
         assert list(backend_return) == list(ec_return)
 
-    # @patch('vakt.cache.log')
-    # def test_find_for_inquiry_for_non_populated_cache(self, log_mock):
-    #     cache_storage = MemoryStorage()
-    #     back_storage = MemoryStorage()
-    #     p1 = Policy(1, description='foo')
-    #     p2 = Policy(2, description='bar')
-    #     back_storage.add(p1)
-    #     back_storage.add(p2)
-    #     ec = EnfoldCache(back_storage, cache=cache_storage)
-    #     assert p1 == ec.get(1)
-    #     log_mock.warning.assert_called_with(
-    #         '%s cache miss for get Policy with UID=%s. Trying to get it from backend storage',
-    #         'EnfoldCache',
-    #         1
-    #     )
-    #     log_mock.reset_mock()
-    #     assert p2 == ec.get(2)
-    #     log_mock.warning.assert_called()
-    #     log_mock.reset_mock()
-    #     # test we won't return any inexistent policies
-    #     assert ec.get(3) is None
-    #
-    # @patch('vakt.cache.log')
-    # def test_get_for_populated_cache(self, log_mock):
-    #     cache_storage = MemoryStorage()
-    #     back_storage = MemoryStorage()
-    #     p1 = Policy(1, description='foo')
-    #     p2 = Policy(2, description='bar')
-    #     back_storage.add(p1)
-    #     back_storage.add(p2)
-    #     ec = EnfoldCache(back_storage, cache=cache_storage, populate=True)
-    #     assert p1 == ec.get(1)
-    #     assert 0 == log_mock.warning.call_count
-    #     log_mock.reset_mock()
-    #     assert p2 == ec.get(2)
-    #     assert 0 == log_mock.warning.call_count
-    #     log_mock.reset_mock()
-    #     # test we won't return any inexistent policies
-    #     assert ec.get(3) is None
-    #     log_mock.warning.assert_called_with(
-    #         '%s cache miss for get Policy with UID=%s. Trying to get it from backend storage',
-    #         'EnfoldCache',
-    #         3
-    #     )
+    @patch('vakt.cache.log')
+    def test_find_for_inquiry_for_non_populated_cache(self, log_mock):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        inq = Inquiry(action='get')
+        chk1 = RulesChecker()
+        p1 = Policy(1, description='foo')
+        p2 = Policy(2, description='bar')
+        back_storage.add(p1)
+        back_storage.add(p2)
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        # Make first request
+        assert [p1, p2] == list(ec.find_for_inquiry(inquiry=inq, checker=chk1))
+        log_mock.warning.assert_called_with(
+            '%s cache miss for find_for_inquiry. Trying it from backend storage', 'EnfoldCache'
+        )
+        log_mock.reset_mock()
+        # Make second request
+        assert [p1, p2] == list(ec.find_for_inquiry(inquiry=inq, checker=chk1))
+        log_mock.warning.assert_called()
+        log_mock.reset_mock()
+
+    @patch('vakt.cache.log')
+    def test_find_for_inquiry_for_populated_cache(self, log_mock):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        inq = Inquiry(action='get')
+        chk1 = RulesChecker()
+        p1 = Policy(1, description='foo')
+        p2 = Policy(2, description='bar')
+        cache_storage.add(p1)
+        cache_storage.add(p2)
+        ec = EnfoldCache(back_storage, cache=cache_storage, populate=True)
+        # Make first request
+        assert [p1, p2] == list(ec.find_for_inquiry(inquiry=inq, checker=chk1))
+        assert 0 == log_mock.warning.call_count
+        log_mock.reset_mock()
+        # Make second request
+        assert [p1, p2] == list(ec.find_for_inquiry(inquiry=inq, checker=chk1))
+        assert 0 == log_mock.warning.call_count
+
+    @patch('vakt.cache.log')
+    def test_general_flow(self, log_mock):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        inq = Inquiry(action='get')
+        chk1 = RulesChecker()
+        p1 = Policy(1, description='initial')
+        p2 = Policy(2, description='initial')
+        p3 = Policy(3, description='added later')
+        # initialize backend storage
+        back_storage.add(p1)
+        back_storage.add(p2)
+        # create enfold-cache but do not populate it
+        ec = EnfoldCache(back_storage, cache=cache_storage, populate=False)
+        # make sure policies are returned from the backend
+        assert [p1, p2] == list(ec.find_for_inquiry(inquiry=inq, checker=chk1))
+        # make sure we logged warning about cache miss
+        log_mock.warning.assert_called_with(
+            '%s cache miss for find_for_inquiry. Trying it from backend storage', 'EnfoldCache'
+        )
+        log_mock.reset_mock()
+        # populate cache with backend policies so that we do not make cache hit misses
+        ec.populate()
+        # make sure policies are returned
+        assert [p1, p2] == list(ec.find_for_inquiry(inquiry=inq, checker=chk1))
+        # make sure we do not have cache misses
+        assert 0 == log_mock.warning.call_count
+        log_mock.reset_mock()
+        # let's add a new policy via enfold-cache
+        ec.add(p3)
+        # make sure policies are returned
+        assert [p1, p2, p3] == list(ec.find_for_inquiry(inquiry=inq, checker=chk1))
+        # make sure we do not have cache misses
+        assert 0 == log_mock.warning.call_count
+        log_mock.reset_mock()
+        # make sure we have those policies in the backend-storage
+        assert [p1, p2, p3] == list(back_storage.find_for_inquiry(inquiry=inq, checker=chk1))
+        # make sure we have those policies in the cache-storage
+        assert [p1, p2, p3] == list(cache_storage.find_for_inquiry(inquiry=inq, checker=chk1))
+        # -----------------------
+        # -----------------------
+        # -----------------------
+        # let's re-create enfold cache. This time with initial population
+        cache_storage2 = MemoryStorage()
+        ec2 = EnfoldCache(back_storage, cache=cache_storage2, populate=True)
+        # make sure we have all policies in the cache-storage
+        assert [p1, p2, p3] == list(cache_storage2.find_for_inquiry(inquiry=inq, checker=chk1))
+        # make sure policies are returned by find_for_inquiry
+        assert [p1, p2, p3] == list(ec2.find_for_inquiry(inquiry=inq, checker=chk1))
+        # make sure we do not have cache misses
+        assert 0 == log_mock.warning.call_count
+        log_mock.reset_mock()

@@ -132,7 +132,7 @@ class GuardCache(Observer):
             # todo - we need hashable args
             return LRUCache(maxsize=self.maxsize)
         else:
-            raise Exception('Unknown cache type for GuardCache')
+            raise AttributeError('Unknown cache type for GuardCache')
 
 
 # Helper classes
