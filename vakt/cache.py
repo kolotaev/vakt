@@ -119,15 +119,20 @@ class GuardCache(Observer):
         self.storage.find_for_inquiry = self.cache.wrap(self.storage.find_for_inquiry)
         return self.storage
 
+    def update(self):
+        """
+        Is a callback for fire events on Storage modify actions.
+        We need to invalidate cache since policy set was changed with add/delete/update storage actions.
+        This means old Guard answers on inquiries are no longer valid.
+        """
+        self.cache.invalidate()
+
     def _create_cache(self):
         if self.cache_type == 'memory':
             # todo - we need hashable args
             return LRUCache(maxsize=self.maxsize)
         else:
             raise Exception('Unknown cache type for GuardCache')
-
-    def update(self):
-        self.cache.invalidate()
 
 
 # Helper classes
