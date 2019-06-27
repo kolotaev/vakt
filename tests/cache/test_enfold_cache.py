@@ -26,6 +26,15 @@ class TestEnfoldCache:
         ec = EnfoldCache(back, cache=cache, populate=True)
         assert policies == ec.cache.get_all(1000, 0)
 
+    def test_init_with_populate_for_dirty_cache_storage(self):
+        cache = MemoryStorage()
+        cache.add(Policy(1))
+        policies = [Policy(1), Policy(2), Policy(3)]
+        back = Mock(spec=MongoStorage, **{'get_all.side_effect': [policies, [policies]]})
+        with pytest.raises(Exception) as excinfo:
+            EnfoldCache(back, cache=cache, populate=True)
+        assert 'Conflicting UID = 1' == str(excinfo.value)
+
     def test_add_return_value(self):
         cache_storage = MemoryStorage()
         back_storage = MemoryStorage()
