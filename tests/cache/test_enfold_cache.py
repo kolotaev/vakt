@@ -223,6 +223,44 @@ class TestEnfoldCache:
             3
         )
 
+    def test_get_all_return_value(self):
+        cache_storage = MemoryStorage()
+        back_storage = MemoryStorage()
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        p1 = Policy(1)
+        p2 = Policy(2)
+        p3 = Policy(3)
+        ec.add(p1)
+        ec.add(p2)
+        ec.add(p3)
+        backend_return = back_storage.get_all(100, 0)
+        ec_return = back_storage.get_all(100, 0)
+        assert backend_return == ec_return
+
+    def test_get_all(self):
+        p1 = Policy(1)
+        p2 = Policy(2)
+        p3 = Policy(3)
+        p4 = Policy(4)
+        p5 = Policy(5)
+        cache_storage = MemoryStorage()
+        back_storage = Mock(spec=MongoStorage, **{'get_all.return_value': []})
+        ec = EnfoldCache(back_storage, cache=cache_storage, populate=False)
+        assert [] == ec.get_all(1, 0)
+        assert [] == ec.get_all(100, 0)
+        back_storage.get_all = Mock(return_value=[p1, p2, p3])
+        # test we return from the backend
+        assert [p1, p2, p3] == list(ec.get_all(100, 0))
+        back_storage.get_all = Mock(return_value=[])
+        assert [] == list(ec.get_all(100, 0))
+        # test we return from the cache
+        cache_storage.add(p4)
+        cache_storage.add(p5)
+        back_storage.get_all = Mock(return_value=[p1, p2, p3])
+        assert [p4] == list(ec.get_all(1, 0))
+        assert [p5] == list(ec.get_all(1, 1))
+        assert [p4, p5] == list(ec.get_all(2, 0))
+
     def test_find_for_inquiry_return_value(self):
         cache_storage = MemoryStorage()
         back_storage = MemoryStorage()

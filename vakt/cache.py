@@ -26,10 +26,10 @@ class EnfoldCache:
     Otherwise you need to set `populate` arg is False and manually call ec.populate()
     before you start working with the cache.
 
-    Typical usage might be:
+    Typical (and recommended) usage is:
     storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage())
 
-    Or:
+    Or it might be:
     storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage(), populate=False)
     ...
     storage.populate()
@@ -39,6 +39,7 @@ class EnfoldCache:
         self.storage = storage
         self.cache = cache
         self.populate_step = 1000
+        self._get_all_fetched = False
         if populate:
             self.populate()
 
