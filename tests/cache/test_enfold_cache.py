@@ -24,7 +24,14 @@ class TestEnfoldCache:
         policies = [Policy(1), Policy(2), Policy(3)]
         back = Mock(spec=MongoStorage, **{'get_all.side_effect': [policies, []]})
         ec = EnfoldCache(back, cache=cache, populate=True)
-        assert policies == ec.cache.get_all(1000, 0)
+        assert policies == ec.cache.get_all(10000, 0)
+
+    def test_populate_is_true_by_default(self):
+        cache = MemoryStorage()
+        policies = [Policy(1), Policy(2), Policy(3)]
+        back = Mock(spec=MongoStorage, **{'get_all.side_effect': [policies, []]})
+        ec = EnfoldCache(back, cache=cache)
+        assert policies == ec.cache.get_all(10000, 0)
 
     def test_init_with_populate_for_dirty_cache_storage(self):
         cache = MemoryStorage()
@@ -179,7 +186,7 @@ class TestEnfoldCache:
         p2 = Policy(2, description='bar')
         back_storage.add(p1)
         back_storage.add(p2)
-        ec = EnfoldCache(back_storage, cache=cache_storage)
+        ec = EnfoldCache(back_storage, cache=cache_storage, populate=False)
         assert p1 == ec.get(1)
         log_mock.warning.assert_called_with(
             '%s cache miss for get Policy with UID=%s. Trying to get it from backend storage',
@@ -239,7 +246,7 @@ class TestEnfoldCache:
         p2 = Policy(2, description='bar')
         back_storage.add(p1)
         back_storage.add(p2)
-        ec = EnfoldCache(back_storage, cache=cache_storage)
+        ec = EnfoldCache(back_storage, cache=cache_storage, populate=False)
         # Make first request
         assert [p1, p2] == list(ec.find_for_inquiry(inquiry=inq, checker=chk1))
         log_mock.warning.assert_called_with(

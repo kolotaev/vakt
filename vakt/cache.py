@@ -21,14 +21,21 @@ log = logging.getLogger(__name__)
 class EnfoldCache:
     """
     Wraps all underlying storage interface calls with a cache that is represented by another storage.
-    When `populate` arg is True populates cache with all the existing policies at the startup.
-    Otherwise you need to manually call ec.populate() before you start working with the cache.
+    By default `populate` arg is True and thus it populates cache with all the existing policies at the startup.
+    This may take a long time depending on the size of policies set n your backend storage.
+    Otherwise you need to set `populate` arg is False and manually call ec.populate()
+    before you start working with the cache.
 
     Typical usage might be:
-    storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage(), populate=True).
+    storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage())
+
+    Or:
+    storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage(), populate=False)
+    ...
+    storage.populate()
     """
 
-    def __init__(self, storage, cache, populate=False):
+    def __init__(self, storage, cache, populate=True):
         self.storage = storage
         self.cache = cache
         self.populate_step = 1000
