@@ -56,6 +56,9 @@ class PrettyPrint:
 
 
 class Subject:
+    """
+    Publisher of events in the pub-sub objects relation
+    """
     def __init__(self):
         self._listeners = []
 
@@ -71,6 +74,9 @@ class Subject:
 
 
 class Observer(metaclass=ABCMeta):
+    """
+    Observer of the events in the pub-sub objects relation
+    """
     @abstractmethod
     def update(self):
         pass

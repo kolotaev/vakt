@@ -5,7 +5,8 @@ Caching mechanisms for vakt
 import logging
 from functools import lru_cache
 
-from .util import Subject, Observer
+from .storage.observable import ObservableMutationStorage
+from .util import Observer
 
 
 __all__ = [
@@ -22,6 +23,7 @@ class EnfoldCache:
     Wraps all underlying storage interface calls with a cache that is represented by another storage.
     When `populate` arg is True populates cache with all the existing policies at the startup.
     Otherwise you need to manually call ec.populate() before you start working with the cache.
+
     Typical usage might be:
     storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage(), populate=True).
     """
@@ -106,37 +108,45 @@ class GuardCache(Observer):
     """
     Caches hits of `find_for_inquiry` for given Inquiry and Checker.
     In case of a cache hit returns the cached boolean result, in case of a cache miss goes to a Storage and
-    and memorizes its result for future calls with the same Inquiry and Checker.
-    If underlying Storage notifies it that policies set has anyhow changed, invalidates all the cached results.
+    memorizes its result for future calls with the same Inquiry and Checker.
+    If underlying Storage notifies it that policies set was anyhow changed, invalidates all the cached results.
     """
     def __init__(self, storage, maxsize=None, cache_type='memory'):
-        self.storage = ObservableStorage(storage)
+        self.storage = ObservableMutationStorage(storage)
         self.cache_type = cache_type
         self.maxsize = maxsize
         self.cache = self._create_cache()
+        # self._original_find_for_inquiry = None
 
-    def start(self):
+    def wrap(self):
         self.storage.add_listener(self)
+        # self._original_find_for_inquiry = self.storage.find_for_inquiry
         self.storage.find_for_inquiry = self.cache.wrap(self.storage.find_for_inquiry)
         return self.storage
+
+    # todo - we need hashable args
+    # def find_for_inquiry(self, inquiry, checker=None):
+    #     inq_hash = inquiry.to_json()
+    #     checker_hash = type(checker)
+    #     return self.storage.find_for_inquiry
 
     def update(self):
         """
         Is a callback for fire events on Storage modify actions.
-        We need to invalidate cache since policy set was changed with add/delete/update storage actions.
-        This means old Guard answers on inquiries are no longer valid.
+        We need to invalidate cache since policy set is changed with each add/delete/update storage action,
+        thus old Guard answers on inquiries are will be no longer valid.
         """
         self.cache.invalidate()
 
     def _create_cache(self):
         if self.cache_type == 'memory':
-            # todo - we need hashable args
             return LRUCache(maxsize=self.maxsize)
         else:
             raise AttributeError('Unknown cache type for GuardCache')
 
 
-# Helper classes
+# ###############################################
+# Underlying cache implementations for GuardCache
 
 class LRUCache:
     def __init__(self, **kwargs):
@@ -150,36 +160,5 @@ class LRUCache:
     def invalidate(self):
         self._wrapped_func.cache_clear()
 
-
-class ObservableStorage(Subject):
-    """
-    Wraps and implements mutation part of Storage interface.
-    Notifies observers when mutation method is called on Storage.
-    """
-    def __init__(self, storage):
-        self.storage = storage
-        super().__init__()
-
-    def add(self, policy):
-        res = self.storage.add(policy)
-        self.notify()
-        return res
-
-    def update(self, policy):
-        res = self.storage.update(policy)
-        self.notify()
-        return res
-
-    def delete(self, uid):
-        res = self.storage.delete(uid)
-        self.notify()
-        return res
-
-    def get(self, uid):
-        return self.storage.get(uid)
-
-    def get_all(self, limit, offset):
-        return self.storage.get_all(limit, offset)
-
-    def find_for_inquiry(self, inquiry, checker=None):
-        return self.storage.find_for_inquiry(inquiry, checker)
+    def info(self):
+        self._wrapped_func.cache_info()
