@@ -5,6 +5,7 @@ Also contains Inquiry class.
 
 import logging
 
+from .cache import GuardCache
 from .util import JsonSerializer, PrettyPrint
 
 
@@ -26,6 +27,32 @@ class Inquiry(JsonSerializer, PrettyPrint):
     def from_json(cls, data):
         props = cls._parse(data)
         return cls(**props)
+
+    def __eq__(self, other):
+        """
+        If inquiries have the same contents - they are equal
+        """
+        return self.__contents() == other.__contents()
+
+    def __hash__(self):
+        """
+        We do not use to_json as contents representation, because strings are not guaranteed
+        to be hashed consistently across different python processes.
+        """
+        # if isinstance(self.subject, dict):
+        # todo - don't use strings
+        # return hash((self.subject, self.action, self.resource, self.context))
+        # hash(frozenset(my_dict.items()))
+        res = (ord(c) for c in self.__contents())
+        return hash(res)
+
+    def __contents(self):
+        return self.to_json(sort=True)
+
+
+def create_guard(storage, checker, **kwargs):
+    guard = Guard(storage, checker)
+    return GuardCache(storage, guard, **kwargs).guard
 
 
 class Guard:

@@ -6,8 +6,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 - [Exceptions] PolicyUpdateError, PolicyDeletionError that should be used for corresponding storage actions in case of
 exceptional situation.
-- [Cache] Added various cache mechanisms inside `cache` module: `EnfoldCache`.
+- [Cache] Added various cache mechanisms inside `cache` module: `EnfoldCache`. `GuardCache`.
 - [Policy] Added `PolicyAllow` and `PolicyDeny` for more convenient Policy effects declaration.
+
+### Changed
+- [Inquiry] Inquiry objects equality is now based on their contents equality. Same for its hash value.
 
 
 ## [1.2.1] - 2019-04-24

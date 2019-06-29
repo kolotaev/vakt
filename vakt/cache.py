@@ -114,23 +114,31 @@ class EnfoldCache:
 
 class GuardCache(Observer):
     """
-    Caches hits of `find_for_inquiry` for given Inquiry and Checker.
+    Cache hits of `find_for_inquiry` for given Inquiry and Checker.
     In case of a cache hit returns the cached boolean result, in case of a cache miss goes to a Storage and
     memorizes its result for future calls with the same Inquiry and Checker.
     If underlying Storage notifies it that policies set was anyhow changed, invalidates all the cached results.
+
+    You need to pass proper options in order to create cache of a desired type.
+    Available options are:
+    maxsize - maximum size of a cache
+    backend - which backend will be used for caching
+    type - type of a caching algorithm to be used
     """
-    def __init__(self, storage, maxsize=None, cache_type='memory'):
-        self.storage = ObservableMutationStorage(storage)
-        self.cache_type = cache_type
-        self.maxsize = maxsize
-        self.cache = self._create_cache()
+    def __init__(self, guard, backend=None, **kwargs):
+        self._storage = ObservableMutationStorage(guard.storage)
+        self._guard = guard
+        self.options = kwargs
+        if backend is None:
+            self.cache = LRUCache(maxsize=self.options['maxsize'])
         # self._original_find_for_inquiry = None
 
-    def wrap(self):
-        self.storage.add_listener(self)
+    @property
+    def guard(self):
+        self._storage.add_listener(self)
         # self._original_find_for_inquiry = self.storage.find_for_inquiry
-        self.storage.find_for_inquiry = self.cache.wrap(self.storage.find_for_inquiry)
-        return self.storage
+        self._guard.is_allowed = self.cache.wrap(self._guard.is_allowed)
+        return self._guard
 
     # todo - we need hashable args
     # def find_for_inquiry(self, inquiry, checker=None):
@@ -146,15 +154,18 @@ class GuardCache(Observer):
         """
         self.cache.invalidate()
 
-    def _create_cache(self):
-        if self.cache_type == 'memory':
-            return LRUCache(maxsize=self.maxsize)
-        else:
-            raise AttributeError('Unknown cache type for GuardCache')
+    def info(self):
+        return self.cache.info()
+
+    # def _create_cache(self):
+    #     if self.options['backend'] == 'memory':
+    #     return LRUCache(maxsize=self.options['maxsize'])
+    #     else:
+    #         raise AttributeError('Unknown cache type for GuardCache')
 
 
-# ###############################################
-# Underlying cache implementations for GuardCache
+# ################################################
+# Underlying cache implementations for GuardCache:
 
 class LRUCache:
     def __init__(self, **kwargs):
@@ -169,4 +180,4 @@ class LRUCache:
         self._wrapped_func.cache_clear()
 
     def info(self):
-        self._wrapped_func.cache_info()
+        return self._wrapped_func.cache_info()
