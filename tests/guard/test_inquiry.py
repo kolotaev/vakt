@@ -39,3 +39,24 @@ def test_pretty_print():
     assert "'resource': 'books:abc'" in str(i)
     assert "'action': 'view'" in str(i)
     assert "'context': {'ip': '127.0.0.1'}" in str(i)
+
+
+def test_equals():
+    a = Inquiry(resource='books:abc', action='view', context={'ip': '127.0.0.1'})
+    b = Inquiry(action='view', resource='books:abc', context={'ip': '127.0.0.1'})
+    c = Inquiry(resource='books:абс', action='view', context={'ip': '127.0.0.1'})
+    d = Inquiry(resource='books:абс', action='view', context={'ip': '127.0.0.1'})
+    assert a == b
+    assert b != c
+    assert c == d
+
+
+def test_hash():
+    # todo - test more thoroughly
+    a = Inquiry(resource='books:abc', action='view', context={'ip': '127.0.0.1'})
+    b = Inquiry(action='view', resource='books:abc', context={'ip': '127.0.0.1'})
+    c = Inquiry(resource='books:абс', action='view', context={'ip': '127.0.0.1'})
+    d = Inquiry(resource='books:абс', action='view', context={'ip': '127.0.0.1'})
+    assert hash(a) == hash(b)
+    assert hash(b) != hash(c)
+    assert hash(c) == hash(d)

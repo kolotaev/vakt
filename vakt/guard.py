@@ -28,30 +28,24 @@ class Inquiry(JsonSerializer, PrettyPrint):
         props = cls._parse(data)
         return cls(**props)
 
+    def to_json_sorted(self):
+        """
+        Get JSON representation with all keys sorted.
+        """
+        return super().to_json(sort=True)
+
     def __eq__(self, other):
         """
         If inquiries have the same contents - they are equal
         """
-        return self._contents() == other._contents()
+        return self.to_json_sorted() == other.to_json_sorted()
 
     def __hash__(self):
         """
         We do not use to_json as contents representation, because strings are not guaranteed
         to be hashed consistently across different python processes.
         """
-        # if isinstance(self.subject, dict):
-        # todo - don't use strings
-        # return hash((self.subject, self.action, self.resource, self.context))
-        # hash(frozenset(my_dict.items()))
-        return hash(tuple((ord(c) for c in self._contents())))
-
-    def _contents(self):
-        return self.to_json(sort=True)
-
-
-def create_guard(storage, checker, **kwargs):
-    guard = Guard(storage, checker)
-    return AllowanceCache(storage, guard, **kwargs).guard
+        return hash(tuple((ord(c) for c in self.to_json_sorted())))
 
 
 class Guard:

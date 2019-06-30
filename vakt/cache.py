@@ -145,11 +145,11 @@ class AllowanceCache(Observer):
         self.cache.invalidate()
 
     def info(self):
+        """
+        Get information about current cache.
+        """
         return self.cache.info()
 
-
-# ###################################################
-# Underlying cache implementations for AllowanceCache:
 
 class AllowanceCacheBackend(metaclass=ABCMeta):
     """
@@ -175,9 +175,11 @@ class AllowanceCacheBackend(metaclass=ABCMeta):
         """
         Get cache information.
         Preferably it should be an object with attributes:
-        - hits,
-        - misses,
-        - some other useful attributes
+        - hits - number of cache hits,
+        - misses - number of cache misses,
+        - maxsize - maximum number of elements the cache can contain,
+        - currsize - number of elements the cache contains at the moment
+        - ... some other useful attributes
         """
         pass
 

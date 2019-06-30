@@ -63,12 +63,21 @@ class Subject:
         self._listeners = []
 
     def add_listener(self, listener):
+        """
+        Attach listener to this subject
+        """
         self._listeners.append(listener)
 
     def remove_listener(self, listener):
+        """
+        Detach listener from this subject
+        """
         self._listeners.remove(listener)
 
     def notify(self):
+        """
+        Notify all attached listeners about event
+        """
         for listener in self._listeners:
             listener.update()
 
@@ -79,4 +88,7 @@ class Observer(metaclass=ABCMeta):
     """
     @abstractmethod
     def update(self):
+        """
+        Update observer on notify event
+        """
         pass
