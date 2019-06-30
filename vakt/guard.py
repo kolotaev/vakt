@@ -5,7 +5,7 @@ Also contains Inquiry class.
 
 import logging
 
-from .cache import GuardCache
+from .cache import AllowanceCache
 from .util import JsonSerializer, PrettyPrint
 
 
@@ -43,8 +43,7 @@ class Inquiry(JsonSerializer, PrettyPrint):
         # todo - don't use strings
         # return hash((self.subject, self.action, self.resource, self.context))
         # hash(frozenset(my_dict.items()))
-        res = (ord(c) for c in self.__contents())
-        return hash(res)
+        return hash((ord(c) for c in self.__contents()))
 
     def __contents(self):
         return self.to_json(sort=True)
@@ -52,7 +51,7 @@ class Inquiry(JsonSerializer, PrettyPrint):
 
 def create_guard(storage, checker, **kwargs):
     guard = Guard(storage, checker)
-    return GuardCache(storage, guard, **kwargs).guard
+    return AllowanceCache(storage, guard, **kwargs).guard
 
 
 class Guard:

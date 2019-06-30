@@ -4,6 +4,7 @@ Caching mechanisms for vakt
 
 import logging
 from functools import lru_cache
+from abc import ABCMeta, abstractmethod
 
 from .storage.observable import ObservableMutationStorage
 from .util import Observer
@@ -11,7 +12,8 @@ from .util import Observer
 
 __all__ = [
     'EnfoldCache',
-    'GuardCache',
+    'AllowanceCache',
+    'AllowanceCacheBackend',
 ]
 
 
@@ -112,11 +114,11 @@ class EnfoldCache:
         return res
 
 
-class GuardCache(Observer):
+class AllowanceCache(Observer):
     """
-    Cache hits of `find_for_inquiry` for given Inquiry and Checker.
+    Caches hits of `is_allowed` for a given Inquiry.
     In case of a cache hit returns the cached boolean result, in case of a cache miss goes to a Storage and
-    memorizes its result for future calls with the same Inquiry and Checker.
+    memorizes its result for future calls with the same Inquiry.
     If underlying Storage notifies it that policies set was anyhow changed, invalidates all the cached results.
 
     You need to pass proper options in order to create cache of a desired type.
@@ -125,13 +127,12 @@ class GuardCache(Observer):
     backend - which backend will be used for caching
     type - type of a caching algorithm to be used
     """
-    def __init__(self, guard, backend=None, **kwargs):
+    def __init__(self, guard, cache_backend=None, **kwargs):
         self._storage = ObservableMutationStorage(guard.storage)
         self._guard = guard
         self.options = kwargs
-        if backend is None:
+        if cache_backend is None:
             self.cache = LRUCache(maxsize=self.options['maxsize'])
-        # self._original_find_for_inquiry = None
 
     @property
     def guard(self):
@@ -139,12 +140,6 @@ class GuardCache(Observer):
         # self._original_find_for_inquiry = self.storage.find_for_inquiry
         self._guard.is_allowed = self.cache.wrap(self._guard.is_allowed)
         return self._guard
-
-    # todo - we need hashable args
-    # def find_for_inquiry(self, inquiry, checker=None):
-    #     inq_hash = inquiry.to_json()
-    #     checker_hash = type(checker)
-    #     return self.storage.find_for_inquiry
 
     def update(self):
         """
@@ -157,17 +152,45 @@ class GuardCache(Observer):
     def info(self):
         return self.cache.info()
 
-    # def _create_cache(self):
-    #     if self.options['backend'] == 'memory':
-    #     return LRUCache(maxsize=self.options['maxsize'])
-    #     else:
-    #         raise AttributeError('Unknown cache type for GuardCache')
+
+# ###################################################
+# Underlying cache implementations for AllowanceCache:
+
+class AllowanceCacheBackend(metaclass=ABCMeta):
+    """
+    Interface for backed cache implementations for AllowanceCache.
+    All implementations should implement this.
+    """
+    @abstractmethod
+    def wrap(self, func):
+        """
+        Wrap function into its cached version and return it.
+        """
+        pass
+
+    @abstractmethod
+    def invalidate(self):
+        """
+        Invalidate the cache
+        """
+        pass
+
+    @abstractmethod
+    def info(self):
+        """
+        Get cache information.
+        Preferably it should be an object with attributes:
+        - hits,
+        - misses,
+        - some other useful attributes
+        """
+        pass
 
 
-# ################################################
-# Underlying cache implementations for GuardCache:
-
-class LRUCache:
+class LRUCache(AllowanceCacheBackend):
+    """
+    Std lib LRU in-memory cache.
+    """
     def __init__(self, **kwargs):
         self.maxsize = kwargs['maxsize']
         self._wrapped_func = None

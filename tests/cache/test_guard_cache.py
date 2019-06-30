@@ -5,7 +5,7 @@ import pytest
 from vakt.storage.memory import MemoryStorage
 from vakt.storage.mongo import MongoStorage
 from vakt import Policy, Inquiry, RulesChecker, ALLOW_ACCESS, Guard
-from vakt.cache import GuardCache
+from vakt.cache import AllowanceCache
 from vakt.exceptions import PolicyExistsError
 from vakt.rules import Eq
 from vakt.guard import create_guard
@@ -16,7 +16,7 @@ class TestGuardCache:
     def test_hashable_args(self):
         chk = RulesChecker()
         storage = MemoryStorage()
-        cache = GuardCache(Guard(storage, chk), maxsize=256)
+        cache = AllowanceCache(Guard(storage, chk), maxsize=256)
         guard = cache.guard
         p1 = Policy(1, actions=[Eq('get')], resources=[Eq('book')], subjects=[Eq('Max')], effect=ALLOW_ACCESS)
         storage.add(p1)
