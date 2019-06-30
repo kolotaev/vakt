@@ -133,13 +133,8 @@ class AllowanceCache(Observer):
         self.options = kwargs
         if cache_backend is None:
             self.cache = LRUCache(maxsize=self.options['maxsize'])
-
-    @property
-    def guard(self):
         self._storage.add_listener(self)
-        # self._original_find_for_inquiry = self.storage.find_for_inquiry
         self._guard.is_allowed = self.cache.wrap(self._guard.is_allowed)
-        return self._guard
 
     def update(self):
         """

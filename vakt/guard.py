@@ -32,7 +32,7 @@ class Inquiry(JsonSerializer, PrettyPrint):
         """
         If inquiries have the same contents - they are equal
         """
-        return self.__contents() == other.__contents()
+        return self._contents() == other._contents()
 
     def __hash__(self):
         """
@@ -43,9 +43,9 @@ class Inquiry(JsonSerializer, PrettyPrint):
         # todo - don't use strings
         # return hash((self.subject, self.action, self.resource, self.context))
         # hash(frozenset(my_dict.items()))
-        return hash((ord(c) for c in self.__contents()))
+        return hash(tuple((ord(c) for c in self._contents())))
 
-    def __contents(self):
+    def _contents(self):
         return self.to_json(sort=True)
 
 
@@ -115,3 +115,13 @@ class Guard:
             if not rule.satisfied(ctx_value, inquiry):
                 return False
         return True
+
+
+class CachedGuard(Guard):
+    def __init__(self, storage, checker, cache=None, **kwargs):
+        super().__init__(storage, checker)
+        self._cache = AllowanceCache(self, cache_backend=cache, **kwargs)
+
+    @property
+    def cache(self):
+        return self._cache

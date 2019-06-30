@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - [Exceptions] PolicyUpdateError, PolicyDeletionError that should be used for corresponding storage actions in case of
 exceptional situation.
-- [Cache] Added various cache mechanisms inside `cache` module: `EnfoldCache`. `GuardCache`.
+- [Cache] Added various cache mechanisms inside `cache` module: `EnfoldCache`. `AllowanceCache`.
 - [Policy] Added `PolicyAllow` and `PolicyDeny` for more convenient Policy effects declaration.
 
 ### Changed
