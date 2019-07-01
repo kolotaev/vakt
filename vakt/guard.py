@@ -59,7 +59,21 @@ class Guard:
         self.checker = checker
 
     def is_allowed(self, inquiry):
-        """Is given inquiry intent allowed or not?"""
+        """
+        Is given inquiry intent allowed or not?
+        Same as `is_allowed_silent`, but also logs answers.
+        """
+        answer = self.is_allowed_silent(inquiry)
+        if answer:
+            log.info('Incoming Inquiry was allowed. Inquiry: %s', inquiry)
+        else:
+            log.info('Incoming Inquiry was rejected. Inquiry: %s', inquiry)
+        return answer
+
+    def is_allowed_silent(self, inquiry):
+        """
+        Is given inquiry intent allowed or not?
+        """
         try:
             policies = self.storage.find_for_inquiry(inquiry, self.checker)
             # Storage is not obliged to do the exact policies match. It's up to the storage
@@ -68,16 +82,12 @@ class Guard:
         except Exception:
             log.exception('Unexpected exception occurred while checking Inquiry %s', inquiry)
             answer = False
-
-        if answer:
-            log.info('Incoming Inquiry was allowed. Inquiry: %s', inquiry)
-        else:
-            log.info('Incoming Inquiry was rejected. Inquiry: %s', inquiry)
-
         return answer
 
     def check_policies_allow(self, inquiry, policies):
-        """Check if any of a given policy allows a specified inquiry"""
+        """
+        Check if any of a given policy allows a specified inquiry
+        """
         # If no policies found or None is given -> deny access!
         if not policies:
             return False
