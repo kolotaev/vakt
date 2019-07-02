@@ -41,22 +41,64 @@ def test_pretty_print():
     assert "'context': {'ip': '127.0.0.1'}" in str(i)
 
 
-def test_equals():
-    a = Inquiry(resource='books:abc', action='view', context={'ip': '127.0.0.1'})
-    b = Inquiry(action='view', resource='books:abc', context={'ip': '127.0.0.1'})
-    c = Inquiry(resource='books:абс', action='view', context={'ip': '127.0.0.1'})
-    d = Inquiry(resource='books:абс', action='view', context={'ip': '127.0.0.1'})
-    assert a == b
-    assert b != c
-    assert c == d
-
-
-def test_hash():
-    # todo - test more thoroughly
-    a = Inquiry(resource='books:abc', action='view', context={'ip': '127.0.0.1'})
-    b = Inquiry(action='view', resource='books:abc', context={'ip': '127.0.0.1'})
-    c = Inquiry(resource='books:абс', action='view', context={'ip': '127.0.0.1'})
-    d = Inquiry(resource='books:абс', action='view', context={'ip': '127.0.0.1'})
-    assert hash(a) == hash(b)
-    assert hash(b) != hash(c)
-    assert hash(c) == hash(d)
+@pytest.mark.parametrize('first, second, must_equal', [
+    (
+        Inquiry(resource='books:abc', action='view', context={'ip': '127.0.0.1'}),
+        Inquiry(action='view', resource='books:abc', context={'ip': '127.0.0.1'}),
+        True,
+    ),
+    (
+        Inquiry(action='view', resource='books:abc', context={'ip': '127.0.0.1'}),
+        Inquiry(resource='books:абс', action='view', context={'ip': '127.0.0.1'}),
+        False,
+    ),
+    (
+        Inquiry(resource='books:абс', action='view', context={'ip': '127.0.0.1'}),
+        Inquiry(resource='books:абс', action='view', context={'ip': '127.0.0.1'}),
+        True,
+    ),
+    (
+        Inquiry(),
+        Inquiry(),
+        True,
+    ),
+    (
+        Inquiry(resource={'name': 'books:абс', 'loc': 'bar'},
+                subject={'id': 123, 'teams': (123, 789, '145')},
+                action={'name': 'view'},
+                context={'ip': '127.0.0.1'}),
+        Inquiry(resource={'name': 'books:абс', 'loc': 'bar'},
+                subject={'id': 123, 'teams': (123, 789, '145')},
+                action={'name': 'view'},
+                context={'ip': '127.0.0.1'}),
+        True,
+    ),
+    (
+        Inquiry(resource={'name': 'books:абс', 'loc': 'bar'},
+                subject={'id': 123, 'teams': (123, 789, '145')},
+                action={'name': 'view'},
+                context={'ip': '127.0.0.1'}),
+        Inquiry(resource={'name': 'books:абс', 'loc': 'bar'},
+                subject={'id': 123, 'teams': 'str'},
+                action={'name': 'view'},
+                context={'ip': '127.0.0.1'}),
+        False,
+    ),
+    (
+        Inquiry(resource={}, subject={}, action={}, context={}),
+        Inquiry(context={}, subject={}, action={}, resource={}),
+        True,
+    ),
+    (
+        Inquiry(resource={'a': 'b', 'c': 'd'}, subject={'a': [1, 2, 3]}, action={}, context={}),
+        Inquiry(context={}, subject={'a': [1, 2, 3]}, action={}, resource={'c': 'd', 'a': 'b'}),
+        True,
+    ),
+])
+def test_equals_and_equals_by_hash(first, second, must_equal):
+    if must_equal:
+        assert first == second
+        assert hash(first) == hash(second)
+    else:
+        assert first != second
+        assert hash(first) != hash(second)

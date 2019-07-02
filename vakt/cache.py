@@ -154,7 +154,7 @@ class AllowanceCache(Observer):
 class AllowanceCacheBackend(metaclass=ABCMeta):
     """
     Interface for backed cache implementations for AllowanceCache.
-    All implementations should implement this.
+    All implementations should subclass it.
     """
     @abstractmethod
     def wrap(self, func):
