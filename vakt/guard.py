@@ -62,6 +62,7 @@ class Guard:
         """
         Is given inquiry intent allowed or not?
         Same as `is_allowed_silent`, but also logs answers.
+        Is meant to be used by an end-user.
         """
         answer = self.is_allowed_silent(inquiry)
         if answer:
@@ -73,6 +74,8 @@ class Guard:
     def is_allowed_silent(self, inquiry):
         """
         Is given inquiry intent allowed or not?
+        Does not log answers.
+        Is not meant to be called by an end-user. Use it only if you want the core functionality of allowance check.
         """
         try:
             policies = self.storage.find_for_inquiry(inquiry, self.checker)
@@ -122,10 +125,22 @@ class Guard:
 
 
 class CachedGuard(Guard):
+    """
+    Guard whose `is_allowed` calls are cached.
+    If helps to increase performance for similar Inquiries in case you have static Policies set.
+
+    cache - argument allows you to provide your own cache implementation that must
+    implement vakt.cache.AllowanceCacheBackend. If it is None the default in-memory LRU cache will be used.
+    It also accepts optional keyword arguments that will be passed to a cache. Currently only `maxsize` is available.
+    maxsize - argument allows you to specify a maximum size of a default in-memory LRU cache, (preferably a power of 2)
+    """
     def __init__(self, storage, checker, cache=None, **kwargs):
         super().__init__(storage, checker)
         self._cache = AllowanceCache(self, cache_backend=cache, **kwargs)
 
     @property
     def cache(self):
+        """
+        Get AllowanceCache of this guard.
+        """
         return self._cache
