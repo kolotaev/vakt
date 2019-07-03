@@ -8,16 +8,44 @@ from abc import ABCMeta, abstractmethod
 
 from .storage.observable import ObservableMutationStorage
 from .util import Observer
+from .guard import Guard
 
 
 __all__ = [
+    'create_cached_guard',
     'EnfoldCache',
-    'AllowanceCache',
     'AllowanceCacheBackend',
 ]
 
 
 log = logging.getLogger(__name__)
+
+
+def create_cached_guard(storage, checker, cache=None, **kwargs):
+    """
+    Creates Guard whose `is_allowed` method calls are cached.
+    It helps to increase performance for similar Inquiries in case you have static Policies set.
+
+    :argument
+    storage - Storage, that will be used by Guard and modified for further usage
+    checker - Checker implementation, that will be used by Guard
+    cache - argument allows you to provide your own cache implementation that must
+            implement vakt.cache.AllowanceCacheBackend. If it is None the default in-memory LRU cache will be used.
+            It also accepts optional keyword arguments that will be passed to a cache.
+            Currently only `maxsize` is available.
+    maxsize - argument allows you to specify a maximum size of a default in-memory LRU cache, (preferably a power of 2)
+
+    :return (storage, guard, cache)
+    storage - must be used in the code after the function call - it's an observable wrapper of the initial Storage.
+              If you are not interacting with policies through this Storage cache won't behave correctly.
+    guard - Guard whose `is_allowed` method will be cached
+    cache - AllowanceCache that can be used to obtain information about a cache state
+    """
+    st = ObservableMutationStorage(storage)
+    guard = Guard(st, checker)
+    cache = AllowanceCache(guard, cache_backend=cache, **kwargs)
+    st.add_listener(cache)
+    return st, guard, cache
 
 
 class EnfoldCache:
@@ -128,13 +156,10 @@ class AllowanceCache(Observer):
     type - type of a caching algorithm to be used
     """
     def __init__(self, guard, cache_backend=None, **kwargs):
-        self._storage = ObservableMutationStorage(guard.storage)
-        self._guard = guard
         self.options = kwargs
         if cache_backend is None:
             self.cache = LRUCache(maxsize=self.options['maxsize'])
-        self._storage.add_listener(self)
-        self._guard.is_allowed_silent = self.cache.wrap(self._guard.is_allowed_silent)
+        guard.is_allowed_silent = self.cache.wrap(guard.is_allowed_silent)
 
     def update(self):
         """
