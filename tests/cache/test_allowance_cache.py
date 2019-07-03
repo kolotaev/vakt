@@ -34,6 +34,7 @@ class TestAllowanceCache:
             assert guard.is_allowed(inq2)
             assert 3 == cache.info().hits
             assert 2 == cache.info().misses
+            assert 2 == cache.info().currsize
 
         inq1 = Inquiry(action='get', resource='book', subject='Max')
         inq2 = Inquiry(action='get', resource='book', subject='Jim')

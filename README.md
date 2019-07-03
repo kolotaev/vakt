@@ -31,6 +31,7 @@ Attribute-based access control (ABAC) SDK for Python.
         - [Memory](#memory)
         - [MongoDB](#mongodb)
     - [Migration](#migration)
+- [Caching](#caching)
 - [JSON](#json)
 - [Logging](#logging)
 - [Examples](./examples)
@@ -541,6 +542,18 @@ migrator.up(number=2)
 ...
 migrator.down(number=2)
 ```
+
+*[Back to top](#documentation)*
+
+
+### Caching
+
+Vakt has several layers of caching.
+Caching has a single purpose: speed up policy enforcement decisions.
+In most of situations and use-cases you might want to use them all, thus they are designed to interact with each other,
+but rather work in tandem. That said let's look at all those layers.
+
+- Caching of `RegexChecker`(#checker).
 
 *[Back to top](#documentation)*
 
