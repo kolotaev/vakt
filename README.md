@@ -549,11 +549,36 @@ migrator.down(number=2)
 ### Caching
 
 Vakt has several layers of caching.
-Caching has a single purpose: speed up policy enforcement decisions.
-In most of situations and use-cases you might want to use them all, thus they are designed to interact with each other,
-but rather work in tandem. That said let's look at all those layers.
+It serves a single purpose: speed up policy enforcement decisions.
+In most of situations and use-cases you might want to use them all, thus they are designed not to
+interact with each other, but rather work in tandem
+(nonetheless you are free to use any single layer alone or any combination of them).
+That said let's look at all those layers.
 
-- Caching of `RegexChecker`(#checker).
+1. Caching of `RegexChecker`(#checker).
+
+It's relevant only for `RegexChecker` and allows to cache parsing and execution of regex-defined Policies,
+which can be very expensive
+due to inherently slow computational performance of regular expressions and vakt's parsing. When creating a `RegexChecker`
+you can specify a cache size for an in-memory 
+[LRU (least recently used)](https://docs.python.org/3/library/functools.html#functools.lru_cache) cache. Currently
+only python's native LRU cache is supported.
+
+```python
+# preferably size is a power of 2
+chk = RegexChecker(cache_size=2048)
+
+# or simply
+chk = RegexChecker(2048)
+```
+
+2. Caching of the entire Storage backend.
+
+Some vakt's Storages may be not very clever at filtering Policies at `find_for_inquiry` especially when dealing with
+Rule-based policies. In this case they return the whole set of the existing policies stored in the external storage.
+Needless to say that it makes your application very heavy IO-bound and decreases performance for large policies sets
+drastically. See [Benchmark](#benchmark) for more details and tests.
+
 
 *[Back to top](#documentation)*
 

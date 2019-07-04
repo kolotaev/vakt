@@ -195,7 +195,7 @@ class TestEnfoldCache:
         )
         log_mock.reset_mock()
         assert p2 == ec.get(2)
-        log_mock.warning.assert_called()
+        assert 1 == log_mock.warning.call_count
         log_mock.reset_mock()
         # test we won't return any inexistent policies
         assert ec.get(3) is None
@@ -293,7 +293,7 @@ class TestEnfoldCache:
         log_mock.reset_mock()
         # Make second request
         assert [p1, p2] == list(ec.find_for_inquiry(inquiry=inq, checker=chk1))
-        log_mock.warning.assert_called()
+        assert 1 == log_mock.warning.call_count
         log_mock.reset_mock()
 
     @patch('vakt.cache.log')

@@ -294,7 +294,7 @@ def test_PolicyAllow_and_PolicyDeny(klass, is_allowed, effect):
     assert ['<qwerty>'] == p.subjects
     assert {} == p.context
     assert '{"actions": ["<foo.bar>"], "context": {}, "description": "test", "effect": "%s", ' % effect + \
-           '"resources": ["asdf"], "subjects": ["<qwerty>"], "type": 1, "uid": 1}' == p.to_json()
+           '"resources": ["asdf"], "subjects": ["<qwerty>"], "type": 1, "uid": 1}' == p.to_json(sort=True)
     assert ['<foo.bar>'] == Policy.from_json(p.to_json()).actions
     p.effect = DENY_ACCESS
     assert DENY_ACCESS == p.effect
