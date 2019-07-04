@@ -591,8 +591,8 @@ it's considered a cache miss and a request is routed to a main Storage.
 
 Also, in order to keep Storages in sync, 
 when you initialize `EnfoldCache` the in-memory Storage will fetch all the existing Policies from a main one - 
-be forewarned that it might take some amount of time depending on size of policy-set. Optionally you can call 
-`populate` method after initialization, but in this case __do not ever call any modify-related methods of 
+therefore be forewarned that it might take some amount of time depending on the size of a policy-set.  
+Optionally you can call `populate` method after initialization, but in this case __do not ever call any modify-related methods of 
 EnfoldCache'd storage before `populate()`, otherwise Storages will be in an unsynchronized state and it'll 
 result in broken `Guard` work.__
 
@@ -628,7 +628,7 @@ your needs, you can pass your own implementation of a cache backend that is a su
 `vakt.cache.AllowanceCacheBackend` to `create_cached_guard` as a `cache` keyword argument.
 
 ```python
-storage, guard, cache = create_cached_guard(MemoryStorage(), RulesChecker(), maxsize=256)
+storage, guard, cache = create_cached_guard(MongoStorage(...), RulesChecker(), maxsize=256)
 
 p1 = Policy(1, actions=[Eq('get')], resources=[Eq('book')], subjects=[Eq('Max')], effect=ALLOW_ACCESS)
 storage.add(p1)
