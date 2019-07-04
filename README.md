@@ -557,6 +557,7 @@ That said let's look at all those layers.
 
  
 - Caching of [`RegexChecker`](#checker).  
+
 It's relevant only for `RegexChecker` and allows to cache parsing and execution of regex-defined Policies,
 which can be very expensive
 due to inherently slow computational performance of regular expressions and vakt's parsing. When creating a `RegexChecker`
@@ -565,8 +566,6 @@ you can specify a cache size for an in-memory
 only python's native LRU cache is supported.  
 
 ```python
-from vakt RegexChecker
-
 # preferably size is a power of 2
 chk = RegexChecker(cache_size=2048)
 
@@ -577,17 +576,20 @@ chk = RegexChecker(2048)
 chk = RegexChecker()
 ```
 
-
 - Caching of the entire Storage backend.  
+
 Some vakt's Storages may be not very clever at filtering Policies at `find_for_inquiry` especially when dealing with
 Rule-based policies. In this case they return the whole set of the existing policies stored in the external storage.
 Needless to say that it makes your application very heavy IO-bound and decreases performance for large policy sets
 drastically. See [benchmark](#benchmark) for more details and exact numbers.
+
 In such a case you can use `EnfoldCache` that wraps your main storage (e.g. MongoStorage) into another one 
 (it's meant to be some in-memory Storage). It returns you a Storage that behind the scene routes all the read-calls 
 (get, get_all, find_for_inquiry, ...) to a in-memory one and all modify-calls (add, update, delete) to your main Storage.
 In-memory Storage is kept up-to date with the main Storage. In case a requested policy is not found in in-memory Storage
-it's considered a cache miss and a request is routed to a main Storage. Also, in order to keep Storages in sync, 
+it's considered a cache miss and a request is routed to a main Storage.
+
+Also, in order to keep Storages in sync, 
 when you initialize `EnfoldCache` the in-memory Storage will fetch all the existing Policies from a main one - 
 be forewarned that it might take some amount of time depending on size of policy-set. Optionally you can call 
 `populate` method after initialization, but in this case __do not ever call any modify-related methods of 
@@ -607,14 +609,20 @@ guard = Guard(storage, RegexChecker())
 ```
 
 - Caching of the Guard.  
+
 `Guard.is_allowed` it the the centerpiece of vakt. Therefore it makes ultimate sense to cache it. 
 And `create_cached_guard()` function allows you to do exactly that. You need to pass it a Storage, a Checker and a 
-maxsize of a cache. It will return you a tuple of: Storage, Guard and AllowanceCache. You must do all policies operations
+maxsize of a cache. It will return you a tuple of: Storage, Guard and AllowanceCache.
+
+You must do all policies operations
 with this storage (which is slightly enhanced version of a Storage you provided to the function). The returned Guard is
-a normal vakt's `Guard`, but whose `is_allowed` is cached with `AllowaceCache`.   
+a normal vakt's `Guard`, but whose `is_allowed` is cached with `AllowaceCache`. The returned cache is an instance of 
+`AllowaceCache` and has a handy method `info` that provides current state of the cache.
+
 Only the first Inquiry will be passed to `is_allowed`, all the subsequent answers for similar Inquiries will be taken 
 from cache. `AllowanceCache` is rather coarse-grained and if you call Storage's `add`, `update` or `delete` the whole
 cache will be invalided because the policy-set has changed. However for stable policy-sets it is a good performance boost.
+
 By default `AllowanceCache` uses in-memory LRU cache and `maxsize` param is it's size. If for some reason it does not satisfy
 your needs, you can pass your own implementation of a cache backend that is a subclass of 
 `vakt.cache.AllowanceCacheBackend` to `create_cached_guard` as a `cache` keyword argument.
@@ -632,9 +640,9 @@ inq2 = Inquiry(action='get', resource='book', subject='Jamey')
 assert guard.is_allowed(inq1)
 assert guard.is_allowed(inq1)
 assert guard.is_allowed(inq1)
-assert guard.is_allowed(inq1)
-assert guard.is_allowed(inq1)
 assert not guard.is_allowed(inq2)
+assert guard.is_allowed(inq1)
+assert guard.is_allowed(inq1)
 
 # You can check cache state
 assert 4 == cache.info().hits
