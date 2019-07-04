@@ -33,6 +33,11 @@ from . import rules
 
 from .storage.memory import MemoryStorage
 
+from .cache import (
+    EnfoldCache,
+    create_cached_guard
+)
+
 
 ################
 #  Setting up  #
