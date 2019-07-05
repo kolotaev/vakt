@@ -1,51 +1,45 @@
-uid: 1
+uid: *
 actions:
   - Eq: fork
   - Eq: clone
 resources:
-  - StartsWith: repos/Google, ci = True
+  - StartsWith:
+    - repos/Google
+    - ci: True
 subjects:
   - name: Any
-    stars: And(Greater(50), Less(999))
+    stars:
+      - And:
+        - Greater: 50
+        - Less: 999
 context:
-  - referer: Eq https://github.com
+  - referer:
+    - Eq: https://github.com
 effect: allow
 description: >
-  Allow to fork or clone any Google repository for users that
-  have > 50 and < 999 stars and came from Github
+Allow to fork or clone any Google repository for users that
+have > 50 and < 999 stars and came from Github
 
 ---
 
-uid: 2
+uid: *
 actions:
   - Eq: fork
   - Eq: clone
 resources:
-  - StartsWith: repos/Google, ci = True
+  - StartsWith:
+    - repos/Google
+    - ci: True
 subjects:
   - name: Any
-    stars: And(Greater(50), Less(999))
+    stars:
+      - And:
+        - Greater: 50
+        - Less: 999
 context:
-  - referer: Eq https://github.com
+  - referer:
+    - Eq: https://github.com
 effect: allow
 description: >
-  Allow to fork or clone any Google repository for users that
-  have > 50 and < 999 stars and came from Github
-
----
-
-uid: 3
-actions:
-  - Eq: fork
-  - Eq: clone
-resources:
-  - StartsWith: repos/Google, ci = True
-subjects:
-  - name: Any
-    stars: And(Greater(50), Less(999))
-context:
-  - referer: Eq https://github.com
-effect: allow
-description: >
-  Allow to fork or clone any Google repository for users that
-  have > 50 and < 999 stars and came from Github
+Allow to fork or clone any Google repository for users that
+have > 50 and < 999 stars and came from Github
