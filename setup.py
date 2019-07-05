@@ -27,6 +27,7 @@ if __name__ == '__main__':
         python_requires='>=3.4',
         install_requires=[
             'jsonpickle~=1.0',
+            'pyyaml~=5.1'
         ],
         extras_require={
             'dev': [

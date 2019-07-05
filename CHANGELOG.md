@@ -9,6 +9,7 @@ exceptional situation.
 - [Cache] Added various cache mechanisms inside `cache` module: `EnfoldCache`. `AllowanceCache`.
 - [Policy] Added `PolicyAllow` and `PolicyDeny` for more convenient Policy effects declaration.
 - [Storage] Added `storage.observable.ObservableMutationStorage` as a Storage whose modify interface is observable.
+- [Policy] Added policies YAML reader that allows you to load policies from their definition in yaml file
 
 ### Changed
 - [Inquiry] Inquiry objects equality is now based on their contents equality. Same for its hash value.

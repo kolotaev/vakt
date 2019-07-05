@@ -17,8 +17,8 @@ context:
     - Eq: https://github.com
 effect: allow
 description: >
-Allow to fork or clone any Google repository for users that
-have > 50 and < 999 stars and came from Github
+  Allow to fork or clone any Google repository for users that
+  have > 50 and < 999 stars and came from Github
 
 ---
 
@@ -41,5 +41,5 @@ context:
     - Eq: https://github.com
 effect: allow
 description: >
-Allow to fork or clone any Google repository for users that
-have > 50 and < 999 stars and came from Github
+  Allow to fork or clone any Google repository for users that
+  have > 50 and < 999 stars and came from Github

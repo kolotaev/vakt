@@ -556,7 +556,7 @@ interact with each other, but rather work in tandem
 That said let's look at all those layers.
 
  
-- Caching of [`RegexChecker`](#checker).  
+##### Caching [`RegexChecker`](#checker)
 
 It's relevant only for `RegexChecker` and allows to cache parsing and execution of regex-defined Policies,
 which can be very expensive
@@ -576,7 +576,7 @@ chk = RegexChecker(2048)
 chk = RegexChecker()
 ```
 
-- Caching of the entire Storage backend.  
+##### Caching the entire Storage backend
 
 Some vakt's Storages may be not very clever at filtering Policies at `find_for_inquiry` especially when dealing with
 Rule-based policies. In this case they return the whole set of the existing policies stored in the external storage.
@@ -608,16 +608,18 @@ storage.add(Policy(1, actions=['get']))
 guard = Guard(storage, RegexChecker())
 ```
 
-- Caching of the Guard.  
+##### Caching the Guard
 
 `Guard.is_allowed` it the the centerpiece of vakt. Therefore it makes ultimate sense to cache it. 
 And `create_cached_guard()` function allows you to do exactly that. You need to pass it a Storage, a Checker and a 
-maxsize of a cache. It will return you a tuple of: Storage, Guard and AllowanceCache.
+maximum size of a cache. It will return you a tuple of: Storage, Guard and AllowanceCache:
 
-You must do all policies operations
-with this storage (which is slightly enhanced version of a Storage you provided to the function). The returned Guard is
-a normal vakt's `Guard`, but whose `is_allowed` is cached with `AllowaceCache`. The returned cache is an instance of 
-`AllowaceCache` and has a handy method `info` that provides current state of the cache.
+- You must do all policies operations with the returned storage 
+(which is a slightly enhanced version of a Storage you provided to the function).
+- The returned Guard is a normal vakt's `Guard`, but its `is_allowed` is cached with `AllowaceCache`.
+- The returned cache is an instance of `AllowaceCache` and has a handy method `info` that provides current state of the cache.
+
+How it works?
 
 Only the first Inquiry will be passed to `is_allowed`, all the subsequent answers for similar Inquiries will be taken 
 from cache. `AllowanceCache` is rather coarse-grained and if you call Storage's `add`, `update` or `delete` the whole
