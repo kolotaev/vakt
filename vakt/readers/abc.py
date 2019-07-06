@@ -7,9 +7,9 @@ from abc import ABCMeta, abstractmethod
 
 class Reader(metaclass=ABCMeta):
     @abstractmethod
-    def read(self, file):
+    def read(self):
         pass
 
     @abstractmethod
-    def populate(self, file, storage):
+    def populate(self, storage):
         pass

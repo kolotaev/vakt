@@ -1,4 +1,4 @@
-uid: *
+uid: 1
 actions:
   - Eq: fork
   - Eq: clone
@@ -22,7 +22,7 @@ description: >
 
 ---
 
-uid: *
+uid: auto
 actions:
   - Eq: fork
   - Eq: clone
@@ -39,7 +39,23 @@ subjects:
 context:
   - referer:
     - Eq: https://github.com
-effect: allow
+effect: deny
 description: >
   Allow to fork or clone any Google repository for users that
   have > 50 and < 999 stars and came from Github
+
+
+---
+
+uid: 2
+actions:
+  - "<read|get>"
+resources:
+  - "library:books:<.+>"
+  - "office:magazines:<.+>"
+subjects:
+  - "<[\w]+ M[\w]+>"
+effect: allow
+description: >
+  Allow all readers of the book library whose surnames start with M get and read any book or magazine,
+  but only when they connect from local library's computer
