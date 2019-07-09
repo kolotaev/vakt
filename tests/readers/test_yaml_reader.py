@@ -4,20 +4,18 @@ from vakt.readers.yaml import YamlReader
 from vakt.effects import ALLOW_ACCESS
 
 
-def test_read_onestring_based_definition():
+def test_read_one_string_based_definition():
     yaml = r"""
 uid: asdf-qwerty
 actions:
   - "<read|get>"
 resources:
-  - "library:books:<.+>"
-  - "office:magazines:<.+>"
+  - 'library:books:<.+>'
+  - 'office:magazines:<.+>'
 subjects:
-  - "<[\w]+ M[\w]+>"
+  - '<[\w]+ M[\w]+>'
 effect: allow
-description: >
-    Allow all readers of the book library whose surnames start with M get and read any book or magazine,
-    but only when they connect from local library's computer
+description: Allow all readers of the book library whose surnames start with M
     """
     with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
         reader = YamlReader('foo/bar.yaml')
@@ -26,13 +24,11 @@ description: >
         assert 1 == len(data)
         policy = data[0]
         assert 'asdf-qwerty' == policy.uid
-        assert \
-            'Allow to fork or clone any Google repository for users with > 50 and < 999 stars and came from Github'\
-            == policy.description
+        assert 'Allow all readers of the book library whose surnames start with M' == policy.description
         assert ALLOW_ACCESS == policy.effect
-        assert [] == policy.subjects
-        assert [] == policy.actions
-        assert [] == policy.resources
+        assert [r'<[\w]+ M[\w]+>'] == policy.subjects
+        assert ['<read|get>'] == policy.actions
+        assert ['library:books:<.+>', 'office:magazines:<.+>'] == policy.resources
         assert {} == policy.context
 
 

@@ -22,7 +22,7 @@ description: >
 
 ---
 
-uid: auto
+uid: 2
 actions:
   - Eq: fork
   - Eq: clone
@@ -47,14 +47,14 @@ description: >
 
 ---
 
-uid: 2
+uid: 3
 actions:
-  - "<read|get>"
+  - '<read|get>'
 resources:
-  - "library:books:<.+>"
-  - "office:magazines:<.+>"
+  - 'library:books:<.+>'
+  - 'office:magazines:<.+>'
 subjects:
-  - "<[\w]+ M[\w]+>"
+  - '<[\w]+ M[\w]+>'
 effect: allow
 description: >
   Allow all readers of the book library whose surnames start with M get and read any book or magazine,

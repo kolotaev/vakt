@@ -27,14 +27,31 @@ class YamlReader(Reader):
             storage.add(policy)
 
     def _policy_from_definition(self, data):
+        policy_data = {}
         if 'uid' in data:
-            uid = data['uid']
+            policy_data['uid'] = data['uid']
         else:
-            uid = self.auto_increment_counter
+            policy_data['uid'] = self.auto_increment_counter
             self.auto_increment_counter += 1
         if 'description' in data:
-            description = data['description'].strip()
+            policy_data['description'] = data['description'].strip()
         effect = data['effect'].strip()
         if effect not in (ALLOW_ACCESS, DENY_ACCESS):
             raise PolicyCreationError('Unknown policy effect: "%s"', effect)
-        return Policy(uid=uid, description=description, effect=effect)
+        policy_data['effect'] = effect
+        policy_data['actions'] = self._convert_attributes_list(data['actions'])
+        policy_data['resources'] = self._convert_attributes_list(data['resources'])
+        policy_data['subjects'] = self._convert_attributes_list(data['subjects'])
+        return Policy(**policy_data)
+
+    @staticmethod
+    def _convert_attributes_list(elements):
+        result = []
+        if not elements:
+            return None
+        if not isinstance(elements, list):
+            raise TypeError('elements in yaml file must be a list')
+        for el in elements:
+            if isinstance(el, str):
+                result.append(el)
+        return result
