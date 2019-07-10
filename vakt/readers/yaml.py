@@ -10,9 +10,10 @@ class YamlReader(Reader):
     """
     Reads policies from YAML file with policies definitions
     """
-    def __init__(self, file):
+    def __init__(self, file, custom_rules_map=None):
         self.file = file
         self.auto_increment_counter = 1
+        self.rules_map = self.get_rules_map(custom_rules_map)
 
     def read(self):
         f = open(self.file, 'r')
@@ -35,23 +36,39 @@ class YamlReader(Reader):
             self.auto_increment_counter += 1
         if 'description' in data:
             policy_data['description'] = data['description'].strip()
-        effect = data['effect'].strip()
+        effect = data.get('effect', '')
         if effect not in (ALLOW_ACCESS, DENY_ACCESS):
-            raise PolicyCreationError('Unknown policy effect: "%s"', effect)
+            raise PolicyCreationError('Unknown policy effect: "%s"' % effect)
         policy_data['effect'] = effect
-        policy_data['actions'] = self._convert_attributes_list(data['actions'])
-        policy_data['resources'] = self._convert_attributes_list(data['resources'])
-        policy_data['subjects'] = self._convert_attributes_list(data['subjects'])
+        policy_data['actions'] = self.convert_attributes_list(data.get('actions', []))
+        policy_data['resources'] = self.convert_attributes_list(data.get('resources', []))
+        policy_data['subjects'] = self.convert_attributes_list(data.get('subjects', []))
         return Policy(**policy_data)
 
-    @staticmethod
-    def _convert_attributes_list(elements):
+    def convert_attributes_list(self, elements):
         result = []
-        if not elements:
-            return None
         if not isinstance(elements, list):
             raise TypeError('elements in yaml file must be a list')
         for el in elements:
             if isinstance(el, str):
                 result.append(el)
+            elif isinstance(el, dict):
+                # result.append([])
+                result.append(self.process_rule_based_definition(el))
+        return result
+
+    def process_rule_based_definition(self, definition):
+        result = {}
+        for k, v in definition.items():
+            if k in self.rules_map:
+                klass = self.rules_map[k]
+                if not result:
+                    result = []
+                result.append(klass(*v))
+            else:
+                if not result:
+                    result = {}
+                result[k] = self.process_rule_based_definition(v)
+            # if
+            #     rule = klass(1)
         return result

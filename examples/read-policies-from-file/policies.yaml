@@ -30,6 +30,9 @@ resources:
   - StartsWith:
     - repos/Google
     - ci: True
+  - Or:
+    - Eq: bar
+    - Eq: foo
 subjects:
   - name: Any
     stars:
