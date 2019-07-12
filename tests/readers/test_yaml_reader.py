@@ -5,7 +5,7 @@ import pytest
 from vakt.readers.yaml import YamlReader
 from vakt.effects import ALLOW_ACCESS, DENY_ACCESS
 from vakt.exceptions import PolicyCreationError
-from vakt.rules import Eq
+import vakt.rules as r
 
 
 def test_read_string_based_definition():
@@ -188,18 +188,141 @@ description: >
         assert 'asdf' == data[0].uid
 
 
-@pytest.mark.parametrize('yaml, result', [
+@pytest.mark.parametrize('yaml, expect', [
+    (
+        """
+        effect: allow
+        """,
+        [],
+    ),
+    (
+        """
+        effect: allow
+        actions: []
+        """,
+        [],
+    ),
+    (
+        """
+        effect: allow
+        actions:
+          - Any:
+        """,
+        [r.Any()],
+    ),
+    (
+        """
+        effect: allow
+        actions:
+          - Any:
+          - Any:
+        """,
+        [r.Any(), r.Any()],
+    ),
+    (
+        """
+        effect: allow
+        actions:
+          - Any:
+          - Neither:
+          - Truthy:
+        """,
+        [r.Any(), r.Neither(), r.Truthy()],
+    ),
     (
         """
         effect: allow
         actions:
           - Eq: 123
         """,
-        [Eq(123)],
+        [r.Eq(123)],
+    ),
+    (
+        """
+        effect: allow
+        actions:
+          - Eq: 123
+          - Eq: 456
+        """,
+        [r.Eq(123), r.Eq(456)],
+    ),
+    (
+        """
+        effect: allow
+        actions:
+          - In:
+            - 12
+            - 99
+            - 88
+        """,
+        [r.In(12, 99, 88)],
+    ),
+    (
+        """
+        effect: allow
+        actions:
+          - In: [22, 44, 77]
+        """,
+        [r.In(22, 44, 77)],
+    ),
+    (
+        """
+        effect: allow
+        actions:
+          - In: []
+        """,
+        [r.In()],
+    ),
+    (
+        """
+        effect: allow
+        actions:
+          - In:
+        """,
+        [r.In()],
+    ),
+    (
+        """
+        effect: allow
+        actions:
+          - StartsWith:
+            - "foo-"
+            - ci: true
+        """,
+        [r.StartsWith('foo-', ci=True)],
+    ),
+    (
+        """
+        effect: allow
+        actions:
+          - StartsWith:
+            - "foo-"
+        """,
+        [r.StartsWith('foo-', ci=False)],
     ),
 ])
-def test_rule_definition_variants(yaml, result):
+def test_rule_attributes_definition_variants(yaml, expect):
     with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
         reader = YamlReader('foo/bar.yaml')
         data = list(reader.read())
-        assert result == data[0].actions
+        expected_actions = [a.to_json(sort=True) for a in expect]
+        actual_actions = [a.to_json(sort=True) for a in data[0].actions]
+        assert expected_actions == actual_actions
+
+
+@pytest.mark.parametrize('yaml', [
+    (
+        """
+        effect: allow
+        actions:
+          - StartsWith:
+        """,
+    ),
+])
+def test_rule_attributes_definition_bad_variants(yaml):
+    with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
+        reader = YamlReader('foo/bar.yaml')
+        with pytest.raises(PolicyCreationError) as excinfo:
+            d = reader.read()
+            _ = list(d)
+        assert 'Unknown policy effect: ""' in str(excinfo.value)

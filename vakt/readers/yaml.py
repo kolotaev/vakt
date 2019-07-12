@@ -62,13 +62,26 @@ class YamlReader(Reader):
         for k, v in definition.items():
             if k in self.rules_map:
                 klass = self.rules_map[k]
-                if not result:
-                    result = []
-                result.append(klass(*v))
+                args = []
+                kwargs = {}
+                if v is None:
+                    args = []
+                elif not isinstance(v, (list, tuple)):
+                    args = [v]
+                else:
+                    for i in v:
+                        if isinstance(i, dict):
+                            kwargs = self._merge_dicts(kwargs, i)
+                        else:
+                            args.append(i)
+                return klass(*args, **kwargs)
             else:
                 if not result:
                     result = {}
                 result[k] = self.process_rule_based_definition(v)
-            # if
-            #     rule = klass(1)
         return result
+
+    def _merge_dicts(self, x, y):
+        z = x.copy()
+        z.update(y)
+        return z

@@ -296,8 +296,8 @@ If the existing Rules are not enough for you, feel free to define your [own](./e
 | ------------- |-------------|-------------|-------------|
 | Eq      | `'age': Eq(40)` | `'age': 40`| |
 | NotEq      | `'age': NotEq(40)` | `'age': 40`| |
-| Greater      | `'height': Greater(6,2)` | `'height': 5.8`| |
-| Less      | `'height': Less(6,2)` | `'height': 5.8`| |
+| Greater      | `'height': Greater(6.2)` | `'height': 5.8`| |
+| Less      | `'height': Less(6.2)` | `'height': 5.8`| |
 | GreaterOrEqual      | `'stars': GreaterOrEqual(300)` | `'stars': 77`| |
 | LessOrEqual      | `'stars': LessOrEqual(300)` | `'stars': 300`| |
 
@@ -548,9 +548,8 @@ migrator.down(number=2)
 
 ### Caching
 
-Vakt has several layers of caching.
-It serves a single purpose: speed up policy enforcement decisions.
-In most of situations and use-cases you might want to use them all, thus they are designed not to
+Vakt has several layers of caching, that serve a single purpose: speed up policy enforcement decisions.
+In most situations and use-cases you might want to use them all, thus they are designed not to
 interact with each other, but rather work in tandem
 (nonetheless you are free to use any single layer alone or any combination of them).
 That said let's look at all those layers.
@@ -585,8 +584,8 @@ drastically. See [benchmark](#benchmark) for more details and exact numbers.
 
 In such a case you can use `EnfoldCache` that wraps your main storage (e.g. MongoStorage) into another one 
 (it's meant to be some in-memory Storage). It returns you a Storage that behind the scene routes all the read-calls 
-(get, get_all, find_for_inquiry, ...) to a in-memory one and all modify-calls (add, update, delete) to your main Storage.
-In-memory Storage is kept up-to date with the main Storage. In case a requested policy is not found in in-memory Storage
+(get, get_all, find_for_inquiry, ...) to an in-memory one and all modify-calls (add, update, delete) to your main Storage (
+don't worry, in-memory Storage is kept up-to date with the main Storage). In case a requested policy is not found in in-memory Storage
 it's considered a cache miss and a request is routed to a main Storage.
 
 Also, in order to keep Storages in sync, 
@@ -594,7 +593,7 @@ when you initialize `EnfoldCache` the in-memory Storage will fetch all the exist
 therefore be forewarned that it might take some amount of time depending on the size of a policy-set.  
 Optionally you can call `populate` method after initialization, but in this case __do not ever call any modify-related methods of 
 EnfoldCache'd storage before `populate()`, otherwise Storages will be in an unsynchronized state and it'll 
-result in broken `Guard` work.__
+result in broken `Guard` functionality.__
 
 ```python
 from vakt import EnfoldCache, MemoryStorage, Policy, Guard, RegexChecker
