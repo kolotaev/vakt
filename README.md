@@ -441,6 +441,8 @@ else:
     return "Go away, you violator!", 401
 ```
 
+To gain best performance read [Caching](#caching) section.
+
 *[Back to top](#documentation)*
 
 
@@ -457,8 +459,10 @@ delete(uid)                 # Delete Policy from storage by its ID
 find_for_inquiry(inquiry)   # Retrieve Policies that match the given Inquiry
 ```
 
-Storage may have various backend implementations (RDBMS, NoSQL databases, etc.). Vakt ships some Storage implementations
-out of the box. See below.
+Storage may have various backend implementations (RDBMS, NoSQL databases, etc.), they also may vary in performance
+characteristics, so see [Caching](#caching) and [Benchmark](#benchmark) sections.
+
+Vakt ships some Storage implementations out of the box. See below:
 
 ##### Memory
 Implementation that stores Policies in memory. It's not backed by any file or something, so every restart of your

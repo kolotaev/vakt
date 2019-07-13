@@ -481,11 +481,12 @@ description: >
         """,
         Policy(1, actions=[r.Or(r.Greater(50), r.Less(999), r.EndsWith('er', ci=True), r.In(777, 45))]),
     ),
-    # complex compound + dict-based
+    # simple + complex compound + dict-based
     (
         """
         effect: deny
         actions:
+        - Eq: 89.9
         - Or:
           - Greater: 50
           - Less: 999
@@ -511,6 +512,7 @@ description: >
             - Any:
         """,
         Policy(1, actions=[
+            r.Eq(89.9),
             r.Or(r.Greater(50), r.Less(999), r.EndsWith('er', ci=True), r.In(777, 45)),
             {
                 'nick': r.Or(r.EndsWith('er', ci=True), r.Eq('Jim')),
@@ -521,7 +523,7 @@ description: >
         ]),
     ),
 ])
-def test_rule_attributes_definition_variants(yaml, expect):
+def test_rule_definition_variants(yaml, expect):
     with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
         reader = YamlReader('foo/bar.yaml')
         data = list(reader.read())
@@ -539,8 +541,17 @@ def test_rule_attributes_definition_variants(yaml, expect):
           - StartsWith:
         """
     ),
+    (
+        """
+        effect: allow
+        actions:
+          - nick:
+            - Eq: Jim
+            stars: 90
+        """
+    ),
 ])
-def test_rule_attributes_definition_bad_variants(yaml):
+def test_rule_definition_bad_variants(yaml):
     with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
         reader = YamlReader('foo/bar.yaml')
         # todo raise
