@@ -5,6 +5,7 @@ from ..policy import Policy
 from ..effects import ALLOW_ACCESS, DENY_ACCESS
 from ..exceptions import PolicyCreationError
 from ..util import merge_dicts
+from ..rules.base import Rule
 
 
 class YamlReader(Reader):
@@ -41,12 +42,12 @@ class YamlReader(Reader):
         if effect not in (ALLOW_ACCESS, DENY_ACCESS):
             raise PolicyCreationError('Unknown policy effect: "%s"' % effect)
         policy_data['effect'] = effect
-        policy_data['actions'] = self.convert_attributes_list(data.get('actions', []))
-        policy_data['resources'] = self.convert_attributes_list(data.get('resources', []))
-        policy_data['subjects'] = self.convert_attributes_list(data.get('subjects', []))
+        policy_data['actions'] = self._convert_attributes_list(data.get('actions', []))
+        policy_data['resources'] = self._convert_attributes_list(data.get('resources', []))
+        policy_data['subjects'] = self._convert_attributes_list(data.get('subjects', []))
         return Policy(**policy_data)
 
-    def convert_attributes_list(self, elements):
+    def _convert_attributes_list(self, elements):
         result = []
         if not isinstance(elements, list):
             raise TypeError('elements in yaml file must be a list')
@@ -55,29 +56,33 @@ class YamlReader(Reader):
                 result.append(el)
             elif isinstance(el, dict):
                 # result.append([])
-                result.append(self.process_rule_based_definition(el))
+                result.append(self._process_rule_based_definition(el))
         return result
 
-    def process_rule_based_definition(self, definition):
+    def _process_rule_based_definition(self, definition):
         result = {}
         for k, v in definition.items():
-            if k in self.rules_map:
-                klass = self.rules_map[k]
-                args = []
-                kwargs = {}
-                if v is None:
+            if k in self.rules_map:  # if it's a Rule-name, e.g. {In: [12, 13]}
+                klass, args, kwargs = self.rules_map[k], [], {}
+                if v is None:  # for 0-args Rules: e.g. Any:
                     args = []
-                elif not isinstance(v, (list, tuple)):
+                elif not isinstance(v, (list, tuple)):  # for 1-arg Rules that are written in one line (Eq: 'Max')
                     args = [v]
-                else:
+                else:  # we have a list of simple or complex args for a Rule
                     for i in v:
                         if isinstance(i, dict):
-                            kwargs = merge_dicts(kwargs, i)
+                            i_val = self._process_rule_based_definition(i)
+                            if isinstance(i_val, Rule):  # means we process compound Rule: And(Greater(1), Less(90))
+                                args.append(i_val)
+                            else:  # means it's a keyword argument of a non-compound Rule
+                                kwargs = merge_dicts(kwargs, i_val)
                         else:
                             args.append(i)
                 return klass(*args, **kwargs)
-            else:
-                if not result:
-                    result = {}
-                result[k] = self.process_rule_based_definition(v[0])
+            else:  # it's a simple attribute name. e.g. {'city': someRule}
+                if isinstance(v, (list, tuple)):
+                    # only one rule is allowed for attribute! e.g.: {'nickname': Eq('Max)}
+                    result[k] = self._process_rule_based_definition(v[0])
+                else:
+                    result[k] = v
         return result

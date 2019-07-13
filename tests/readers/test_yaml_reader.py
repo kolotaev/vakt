@@ -190,6 +190,7 @@ description: >
 
 
 @pytest.mark.parametrize('yaml, expect', [
+    # basic
     (
         """
         effect: deny
@@ -230,6 +231,7 @@ description: >
         """,
         Policy(1, actions=[r.Any(), r.Neither(), r.Truthy()]),
     ),
+    # simple
     (
         """
         effect: deny
@@ -342,6 +344,7 @@ description: >
         """,
         Policy(1, actions=[r.StartsWith('foo-', ci=False), r.Any(), r.EndsWith('er', ci=True), r.Eq(890)]),
     ),
+    # dict-based
     (
         """
         effect: deny
@@ -405,6 +408,116 @@ description: >
             {'nick': r.Eq('otter'), 'first_name': r.EndsWith('er', ci=True)},
             {'role': r.Eq('admin')},
             {'sex': r.In('m', 'f')}
+        ]),
+    ),
+    # dict-based + simple
+    (
+        """
+        effect: deny
+        actions:
+        - Eq: 2000
+        - nick:
+          - Eq: otter
+          stars:
+          - Greater: 90
+        """,
+        Policy(1, actions=[r.Eq(2000), {'nick': r.Eq('otter'), 'stars': r.Greater(90)}]),
+    ),
+    # simple compound
+    (
+        """
+        effect: deny
+        actions:
+        - And:
+        """,
+        Policy(1, actions=[r.And()]),
+    ),
+    (
+        """
+        effect: deny
+        actions:
+        - And:
+          - Greater: 50
+        """,
+        Policy(1, actions=[r.And(r.Greater(50))]),
+    ),
+    (
+        """
+        effect: deny
+        actions:
+        - And:
+          - Greater: 50
+          - Less: 999
+        """,
+        Policy(1, actions=[r.And(r.Greater(50), r.Less(999))]),
+    ),
+    # complex compound
+    (
+        """
+        effect: deny
+        actions:
+        - Or:
+          - Greater: 50
+          - Less: 999
+          - In:
+            - 777
+            - 45
+        """,
+        Policy(1, actions=[r.Or(r.Greater(50), r.Less(999), r.In(777, 45))]),
+    ),
+    (
+        """
+        effect: deny
+        actions:
+        - Or:
+          - Greater: 50
+          - Less: 999
+          - EndsWith:
+            - er
+            - ci: yes
+          - In:
+            - 777
+            - 45
+        """,
+        Policy(1, actions=[r.Or(r.Greater(50), r.Less(999), r.EndsWith('er', ci=True), r.In(777, 45))]),
+    ),
+    # complex compound + dict-based
+    (
+        """
+        effect: deny
+        actions:
+        - Or:
+          - Greater: 50
+          - Less: 999
+          - EndsWith:
+            - er
+            - ci: yes
+          - In:
+            - 777
+            - 45
+        - nick:
+          - Or:
+            - EndsWith:
+              - er
+              - ci: yes
+            - Eq: Jim
+          stars:
+          - And:
+            - Greater: 12
+            - Less: 67
+          city:
+            - Eq: Halifax
+          province:
+            - Any:
+        """,
+        Policy(1, actions=[
+            r.Or(r.Greater(50), r.Less(999), r.EndsWith('er', ci=True), r.In(777, 45)),
+            {
+                'nick': r.Or(r.EndsWith('er', ci=True), r.Eq('Jim')),
+                'stars': r.And(r.Greater(12), r.Less(67)),
+                'city': r.Eq('Halifax'),
+                'province': r.Any(),
+            }
         ]),
     ),
 ])
