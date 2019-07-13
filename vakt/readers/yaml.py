@@ -78,7 +78,7 @@ class YamlReader(Reader):
             else:
                 if not result:
                     result = {}
-                result[k] = self.process_rule_based_definition(v)
+                result[k] = self.process_rule_based_definition(v[0])
         return result
 
     def _merge_dicts(self, x, y):

@@ -38,7 +38,7 @@ resources:
 subjects:
   - name: Any
     nick:
-      - Eq: true
+      - Eq: otter
     city:
       - EndsWith:
         - don

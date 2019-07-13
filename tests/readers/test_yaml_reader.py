@@ -6,6 +6,7 @@ from vakt.readers.yaml import YamlReader
 from vakt.effects import ALLOW_ACCESS, DENY_ACCESS
 from vakt.exceptions import PolicyCreationError
 import vakt.rules as r
+from vakt.policy import Policy
 
 
 def test_read_string_based_definition():
@@ -191,137 +192,245 @@ description: >
 @pytest.mark.parametrize('yaml, expect', [
     (
         """
-        effect: allow
+        effect: deny
         """,
-        [],
+        Policy(1),
     ),
     (
         """
-        effect: allow
+        effect: deny
         actions: []
         """,
-        [],
+        Policy(1),
     ),
     (
         """
-        effect: allow
+        effect: deny
         actions:
           - Any:
         """,
-        [r.Any()],
+        Policy(1, actions=[r.Any()]),
     ),
     (
         """
-        effect: allow
+        effect: deny
         actions:
           - Any:
           - Any:
         """,
-        [r.Any(), r.Any()],
+        Policy(1, actions=[r.Any(), r.Any()]),
     ),
     (
         """
-        effect: allow
+        effect: deny
         actions:
           - Any:
           - Neither:
           - Truthy:
         """,
-        [r.Any(), r.Neither(), r.Truthy()],
+        Policy(1, actions=[r.Any(), r.Neither(), r.Truthy()]),
     ),
     (
         """
-        effect: allow
+        effect: deny
         actions:
           - Eq: 123
         """,
-        [r.Eq(123)],
+        Policy(1, actions=[r.Eq(123)]),
     ),
     (
         """
-        effect: allow
+        effect: deny
         actions:
           - Eq: 123
           - Eq: 456
         """,
-        [r.Eq(123), r.Eq(456)],
+        Policy(1, actions=[r.Eq(123), r.Eq(456)]),
     ),
     (
         """
-        effect: allow
+        effect: deny
         actions:
           - In:
             - 12
             - 99
             - 88
         """,
-        [r.In(12, 99, 88)],
+        Policy(1, actions=[r.In(12, 99, 88)]),
     ),
     (
         """
-        effect: allow
+        effect: deny
         actions:
           - In: [22, 44, 77]
         """,
-        [r.In(22, 44, 77)],
+        Policy(1, actions=[r.In(22, 44, 77)]),
     ),
     (
         """
-        effect: allow
+        effect: deny
+        actions:
+          - In:
+            - 12
+            - 99
+            - 88
+          - NotIn:
+            - 77
+            - 4
+          - Greater: -9.89
+        """,
+        Policy(1, actions=[r.In(12, 99, 88), r.NotIn(77, 4), r.Greater(-9.89)]),
+    ),
+    (
+        """
+        effect: deny
         actions:
           - In: []
         """,
-        [r.In()],
+        Policy(1, actions=[r.In()]),
     ),
     (
         """
-        effect: allow
+        effect: deny
         actions:
           - In:
         """,
-        [r.In()],
+        Policy(1, actions=[r.In()]),
     ),
     (
         """
-        effect: allow
+        effect: deny
         actions:
           - StartsWith:
             - "foo-"
             - ci: true
         """,
-        [r.StartsWith('foo-', ci=True)],
+        Policy(1, actions=[r.StartsWith('foo-', ci=True)]),
     ),
     (
         """
-        effect: allow
+        effect: deny
         actions:
           - StartsWith:
             - "foo-"
         """,
-        [r.StartsWith('foo-', ci=False)],
+        Policy(1, actions=[r.StartsWith('foo-', ci=False)]),
+    ),
+    (
+        """
+        effect: deny
+        actions:
+          - StartsWith:
+            - "foo-"
+          - EndsWith:
+            - er
+            - ci: yes
+        """,
+        Policy(1, actions=[r.StartsWith('foo-', ci=False), r.EndsWith('er', ci=True)]),
+    ),
+    (
+        """
+        effect: deny
+        actions:
+          - StartsWith:
+            - "foo-"
+          - Any:
+          - EndsWith:
+            - er
+            - ci: yes
+          - Eq: 890
+        """,
+        Policy(1, actions=[r.StartsWith('foo-', ci=False), r.Any(), r.EndsWith('er', ci=True), r.Eq(890)]),
+    ),
+    (
+        """
+        effect: deny
+        actions:
+        - nick:
+          - Any:
+        """,
+        Policy(1, actions=[{'nick': r.Any()}]),
+    ),
+    (
+        """
+        effect: deny
+        actions:
+        - nick:
+          - Eq: otter
+        """,
+        Policy(1, actions=[{'nick': r.Eq('otter')}]),
+    ),
+    (
+        """
+        effect: deny
+        actions:
+        - nick:
+          - Eq: otter
+          stars:
+          - Greater: 90
+        """,
+        Policy(1, actions=[{'nick': r.Eq('otter'), 'stars': r.Greater(90)}]),
+    ),
+    (
+        """
+        effect: deny
+        actions:
+        - nick:
+          - Eq: otter
+          first_name:
+          - EndsWith:
+            - er
+            - ci: yes
+        """,
+        Policy(1, actions=[{'nick': r.Eq('otter'), 'first_name': r.EndsWith('er', ci=True)}]),
+    ),
+    (
+        """
+        effect: deny
+        actions:
+        - nick:
+          - Eq: otter
+          first_name:
+          - EndsWith:
+            - er
+            - ci: yes
+        - role:
+          - Eq: admin
+        - sex:
+          - In:
+            - male
+            - female
+        """,
+        Policy(1, actions=[
+            {'nick': r.Eq('otter'), 'first_name': r.EndsWith('er', ci=True)},
+            {'role': r.Eq('admin')},
+            {'sex': r.In('male', 'female')}
+        ]),
     ),
 ])
 def test_rule_attributes_definition_variants(yaml, expect):
     with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
         reader = YamlReader('foo/bar.yaml')
         data = list(reader.read())
-        expected_actions = [a.to_json(sort=True) for a in expect]
-        actual_actions = [a.to_json(sort=True) for a in data[0].actions]
-        assert expected_actions == actual_actions
+        expected_policy = expect.to_json(sort=True)
+        actual_policy = data[0].to_json(sort=True)
+        assert expected_policy == actual_policy
 
 
+@pytest.mark.skip('fixme')
 @pytest.mark.parametrize('yaml', [
     (
         """
         effect: allow
         actions:
           - StartsWith:
-        """,
+        """
     ),
 ])
 def test_rule_attributes_definition_bad_variants(yaml):
     with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
         reader = YamlReader('foo/bar.yaml')
+        # todo raise
         with pytest.raises(PolicyCreationError) as excinfo:
             d = reader.read()
             _ = list(d)
