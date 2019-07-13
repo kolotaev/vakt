@@ -4,6 +4,7 @@ from .abc import Reader
 from ..policy import Policy
 from ..effects import ALLOW_ACCESS, DENY_ACCESS
 from ..exceptions import PolicyCreationError
+from ..util import merge_dicts
 
 
 class YamlReader(Reader):
@@ -71,7 +72,7 @@ class YamlReader(Reader):
                 else:
                     for i in v:
                         if isinstance(i, dict):
-                            kwargs = self._merge_dicts(kwargs, i)
+                            kwargs = merge_dicts(kwargs, i)
                         else:
                             args.append(i)
                 return klass(*args, **kwargs)
@@ -80,8 +81,3 @@ class YamlReader(Reader):
                     result = {}
                 result[k] = self.process_rule_based_definition(v[0])
         return result
-
-    def _merge_dicts(self, x, y):
-        z = x.copy()
-        z.update(y)
-        return z

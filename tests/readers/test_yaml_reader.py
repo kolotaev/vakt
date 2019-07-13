@@ -398,13 +398,13 @@ description: >
           - Eq: admin
         - sex:
           - In:
-            - male
-            - female
+            - m
+            - f
         """,
         Policy(1, actions=[
             {'nick': r.Eq('otter'), 'first_name': r.EndsWith('er', ci=True)},
             {'role': r.Eq('admin')},
-            {'sex': r.In('male', 'female')}
+            {'sex': r.In('m', 'f')}
         ]),
     ),
 ])
