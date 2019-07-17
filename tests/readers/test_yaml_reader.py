@@ -522,8 +522,44 @@ description: >
             }
         ]),
     ),
+    # context definition
+    (
+        """
+        effect: deny
+        context:
+        - ip:
+          - CIDR: 0.0.0.0/0
+        """,
+        Policy(1, context={'ip': r.CIDR('0.0.0.0/0')}),
+    ),
+    (
+        """
+        effect: deny
+        context:
+        - ip:
+          - CIDR: 0.0.0.0/0
+          referer:
+          - Eq: https://github.com
+        """,
+        Policy(1, context={'ip': r.CIDR('0.0.0.0/0'), 'referer': r.Eq('https://github.com')}),
+    ),
+    (
+        """
+        effect: deny
+        context:
+        - ip:
+          - CIDR: 0.0.0.0/0
+          referer:
+          - Eq: https://github.com
+        - ip:
+          - CIDR: 192.0.0.1/24
+          referer:
+          - Eq: https://bitbuket.com
+        """,
+        Policy(1, context={'ip': r.CIDR('0.0.0.0/0'), 'referer': r.Eq('https://github.com')}),
+    ),
 ])
-def test_rule_definition_variants(yaml, expect):
+def test_definition_variants(yaml, expect):
     with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
         reader = YamlReader('foo/bar.yaml')
         data = list(reader.read())
@@ -550,12 +586,22 @@ def test_rule_definition_variants(yaml, expect):
             stars: 90
         """
     ),
+    (
+        """
+        effect: deny
+        context:
+        - ip:
+          - CIDR: 0.0.0.0/0
+        - referer:
+          - Eq: https://github.com
+        """,
+    ),
 ])
-def test_rule_definition_bad_variants(yaml):
+def test_definition_bad_variants(yaml):
     with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
         reader = YamlReader('foo/bar.yaml')
         # todo raise
         with pytest.raises(PolicyCreationError) as excinfo:
             d = reader.read()
-            _ = list(d)
+            list(d)
         assert 'Unknown policy effect: ""' in str(excinfo.value)

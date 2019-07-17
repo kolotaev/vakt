@@ -45,6 +45,10 @@ class YamlReader(Reader):
         policy_data['actions'] = self._convert_attributes_list(data.get('actions', []))
         policy_data['resources'] = self._convert_attributes_list(data.get('resources', []))
         policy_data['subjects'] = self._convert_attributes_list(data.get('subjects', []))
+        context = self._convert_attributes_list(data.get('context', []))
+        if len(context) > 0:
+            # context can have only one dict-based definition. Others will be discarded
+            policy_data['context'] = context[0]
         return Policy(**policy_data)
 
     def _convert_attributes_list(self, elements):
