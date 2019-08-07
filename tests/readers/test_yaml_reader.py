@@ -4,7 +4,7 @@ import pytest
 
 from vakt.readers.yaml import YamlReader
 from vakt.effects import ALLOW_ACCESS, DENY_ACCESS
-from vakt.exceptions import PolicyCreationError
+from vakt.exceptions import PolicyReadError
 import vakt.rules as r
 from vakt.policy import Policy
 
@@ -83,7 +83,7 @@ effect: unknown
     with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
         reader = YamlReader('foo/bar.yaml')
         data = reader.read()
-        with pytest.raises(PolicyCreationError) as excinfo:
+        with pytest.raises(PolicyReadError) as excinfo:
             list(data)
         assert 'Unknown policy effect: "unknown"' in str(excinfo.value)
 
@@ -134,7 +134,7 @@ subjects:
     with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
         reader = YamlReader('foo/bar.yaml')
         data = reader.read()
-        with pytest.raises(PolicyCreationError) as excinfo:
+        with pytest.raises(PolicyReadError) as excinfo:
             list(data)
         assert 'Unknown policy effect: ""' in str(excinfo.value)
 
@@ -568,15 +568,16 @@ def test_definition_variants(yaml, expect):
         assert expected_policy == actual_policy
 
 
-@pytest.mark.skip('fixme')
-@pytest.mark.parametrize('yaml', [
-    (
-        """
-        effect: allow
-        actions:
-          - StartsWith:
-        """
-    ),
+@pytest.mark.parametrize('yaml, msg', [
+    # (
+    #     """
+    #     effect: allow
+    #     actions:
+    #       - StartsWith:
+    #     """,
+    #     "Reader failed to read Policy. Caused by: __init__() missing 1 required positional " +
+    #     "argument: 'val'. Data was: {'effect': 'allow', 'actions': [{'StartsWith': None}]}"
+    # ),
     (
         """
         effect: allow
@@ -584,7 +585,8 @@ def test_definition_variants(yaml, expect):
           - nick:
             - Eq: Jim
             stars: 90
-        """
+        """,
+        "kjkj"
     ),
     (
         """
@@ -595,13 +597,13 @@ def test_definition_variants(yaml, expect):
         - referer:
           - Eq: https://github.com
         """,
+        "jhjh"
     ),
 ])
-def test_definition_bad_variants(yaml):
+def test_definition_bad_variants(yaml, msg):
     with patch('vakt.readers.yaml.open', mock_open(read_data=yaml)):
         reader = YamlReader('foo/bar.yaml')
-        # todo raise
-        with pytest.raises(PolicyCreationError) as excinfo:
-            d = reader.read()
-            list(d)
-        assert 'Unknown policy effect: ""' in str(excinfo.value)
+        with pytest.raises(PolicyReadError) as excinfo:
+            policies = reader.read()
+            ps = list(policies)
+        assert msg in str(excinfo.value)

@@ -6,11 +6,13 @@ from ..effects import ALLOW_ACCESS, DENY_ACCESS
 from ..exceptions import PolicyCreationError
 from ..util import merge_dicts
 from ..rules.base import Rule
+from ..exceptions import PolicyReadError
 
 
 class YamlReader(Reader):
     """
-    Reads policies from YAML file with policies definitions
+    Reads policies from YAML file with policies definitions.
+
     """
     def __init__(self, file, custom_rules_map=None):
         self.file = file
@@ -18,10 +20,17 @@ class YamlReader(Reader):
         self.rules_map = self.get_rules_map(custom_rules_map)
 
     def read(self):
+        """
+        Reads policies definitions from YAML file.
+        If some policy fails to be created from definition PolicyReadError is raised.
+        """
         f = open(self.file, 'r')
         try:
             for data in yaml.safe_load_all(f):
-                yield self._policy_from_definition(data)
+                try:
+                    yield self._policy_from_definition(data)
+                except Exception as e:
+                    raise PolicyReadError(e, data)
         finally:
             f.close()
 
@@ -30,6 +39,9 @@ class YamlReader(Reader):
             storage.add(policy)
 
     def _policy_from_definition(self, data):
+        """
+        Create policy from YAML definition
+        """
         policy_data = {}
         if 'uid' in data:
             policy_data['uid'] = data['uid']
@@ -59,7 +71,6 @@ class YamlReader(Reader):
             if isinstance(el, str):
                 result.append(el)
             elif isinstance(el, dict):
-                # result.append([])
                 result.append(self._process_rule_based_definition(el))
         return result
 
