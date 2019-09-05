@@ -2,6 +2,7 @@
 SQL Storage for Policies.
 """
 
+import json
 import logging
 
 from sqlalchemy.exc import IntegrityError
@@ -83,11 +84,12 @@ class SQLStorage(Storage):
                 PolicyModel.resources.any(PolicyResourceModel.resource.like("%{}%".format(inquiry.resource))),
                 PolicyModel.actions.any(PolicyActionModel.action.like("%{}%".format(inquiry.action))))
         elif isinstance(checker, StringExactChecker):
+            # A string is converted to a JSON string before inserting
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
-                PolicyModel.subjects.any(PolicySubjectModel.subject == '"{}"'.format(inquiry.subject)),
-                PolicyModel.resources.any(PolicyResourceModel.resource == '"{}"'.format(inquiry.resource)),
-                PolicyModel.actions.any(PolicyActionModel.action == '"{}"'.format(inquiry.action)))
+                PolicyModel.subjects.any(PolicySubjectModel.subject == json.dumps(inquiry.subject)),
+                PolicyModel.resources.any(PolicyResourceModel.resource == json.dumps(inquiry.resource)),
+                PolicyModel.actions.any(PolicyActionModel.action == json.dumps(inquiry.action)))
         elif isinstance(checker, RegexChecker):
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED)
