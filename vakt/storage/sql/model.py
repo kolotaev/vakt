@@ -45,12 +45,13 @@ class PolicyModel(Base):
     __tablename__ = 'policy'
 
     uid = Column(String(254), primary_key=True)
+    type = Column(String)
     description = Column(String(254))
     effect = Column(String(254))
     context = Column(String(254))
-    subjects = relationship(PolicySubjectModel, passive_deletes=True)
-    resources = relationship(PolicyResourceModel, passive_deletes=True)
-    actions = relationship(PolicyActionModel, passive_deletes=True)
+    subjects = relationship(PolicySubjectModel, passive_deletes=True, lazy='joined')
+    resources = relationship(PolicyResourceModel, passive_deletes=True, lazy='joined')
+    actions = relationship(PolicyActionModel, passive_deletes=True, lazy='joined')
 
     @classmethod
     def from_policy(cls, policy):
@@ -63,6 +64,7 @@ class PolicyModel(Base):
         policy_dict = json.loads(policy_json)
         rvalue = cls()
         rvalue.uid = policy_dict['uid']
+        rvalue.type = policy_dict['type']
         rvalue.effect = policy_dict['effect']
         rvalue.description = policy_dict['description']
         rvalue.context = json.dumps(policy_dict['context'])
@@ -80,6 +82,7 @@ class PolicyModel(Base):
         policy_json = policy.to_json()
         policy_dict = json.loads(policy_json)
         self.uid = policy_dict['uid']
+        self.type = policy_dict['type']
         self.effect = policy_dict['effect']
         self.description = policy_dict['description']
         self.context = json.dumps(policy_dict['context'])

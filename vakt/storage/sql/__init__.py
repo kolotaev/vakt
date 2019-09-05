@@ -6,9 +6,11 @@ import logging
 
 from sqlalchemy.exc import IntegrityError
 
-from .model import PolicyModel
+from .model import PolicyModel, PolicyActionModel, PolicyResourceModel, PolicySubjectModel
 from ..abc import Storage
-from ...exceptions import PolicyExistsError
+from ...checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
+from ...exceptions import PolicyExistsError, UnknownCheckerType
+from ...policy import TYPE_STRING_BASED, TYPE_RULE_BASED
 
 log = logging.getLogger(__name__)
 
@@ -48,7 +50,9 @@ class SQLStorage(Storage):
             yield policy_model.to_policy()
 
     def find_for_inquiry(self, inquiry, checker=None):
-        pass
+        cur = self._get_filtered_cursor(inquiry, checker)
+        for policy_model in cur:
+            yield policy_model.to_policy()
 
     def update(self, policy):
         try:
@@ -65,3 +69,33 @@ class SQLStorage(Storage):
     def delete(self, uid):
         self.session.query(PolicyModel).filter(PolicyModel.uid == uid).delete()
         log.info('Deleted Policy with UID=%s.', uid)
+
+    def _get_filtered_cursor(self, inquiry, checker):
+        """
+            Returns cursor with proper query-filter based on the checker type.
+        """
+        cur = self.session.query(PolicyModel)
+        if isinstance(checker, StringFuzzyChecker):
+
+            return cur.filter(
+                PolicyModel.type == TYPE_STRING_BASED,
+                PolicyModel.subjects.any(PolicySubjectModel.subject.like("%{}%".format(inquiry.subject))),
+                PolicyModel.resources.any(PolicyResourceModel.resource.like("%{}%".format(inquiry.resource))),
+                PolicyModel.actions.any(PolicyActionModel.action.like("%{}%".format(inquiry.action))))
+        elif isinstance(checker, StringExactChecker):
+            return cur.filter(
+                PolicyModel.type == TYPE_STRING_BASED,
+                PolicyModel.subjects.any(PolicySubjectModel.subject == '"{}"'.format(inquiry.subject)),
+                PolicyModel.resources.any(PolicyResourceModel.resource == '"{}"'.format(inquiry.resource)),
+                PolicyModel.actions.any(PolicyActionModel.action == '"{}"'.format(inquiry.action)))
+        elif isinstance(checker, RegexChecker):
+            return cur.filter(
+                PolicyModel.type == TYPE_STRING_BASED)
+        elif isinstance(checker, RulesChecker):
+            return cur.filter(
+                PolicyModel.type == TYPE_RULE_BASED)
+        elif not checker:
+            return cur
+        else:
+            log.error('Provided Checker type is not supported.')
+            raise UnknownCheckerType(checker)

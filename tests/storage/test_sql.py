@@ -1,19 +1,33 @@
+import operator
 import random
 import types
+import unittest
 import uuid
 
 import pytest
 from bson.objectid import ObjectId
 from sqlalchemy import create_engine
+from sqlalchemy.event import listens_for
 from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.pool import Pool
 
-from vakt.storage.sql.model import Base
-from vakt.exceptions import PolicyExistsError
+from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
+from vakt.effects import ALLOW_ACCESS
+from vakt.exceptions import PolicyExistsError, UnknownCheckerType
+from vakt.guard import Inquiry, Guard
 from vakt.policy import Policy
 from vakt.rules.logic import Any
 from vakt.rules.operator import Eq
 from vakt.rules.string import Equal
+from vakt.storage.memory import MemoryStorage
 from vakt.storage.sql import SQLStorage
+from vakt.storage.sql.model import Base
+
+
+# Need for switching on case sensitive LIKE statements on SqlLite
+@listens_for(Pool, "connect")
+def my_on_connect(dbapi_con, connection_record):
+    dbapi_con.execute('pragma case_sensitive_like=ON')
 
 
 @pytest.mark.integration
@@ -143,6 +157,150 @@ class TestSQLStorage:
         st.add(Policy('1'))
         st.add(Policy('2'))
         found = st.get_all(500, 0)
+        assert isinstance(found, types.GeneratorType)
+        l = []
+        for p in found:
+            l.append(p.uid)
+        assert 2 == len(l)
+
+    @pytest.mark.parametrize('checker, expect_number', [
+        (None, 5),
+        (RegexChecker(), 3),
+        (RulesChecker(), 2),
+        (StringExactChecker(), 1),
+        (StringFuzzyChecker(), 1),
+    ])
+    def test_find_for_inquiry_returns_existing_policies(self, st, checker, expect_number):
+        st.add(Policy('1', subjects=['<[mM]ax', '<.*>']))
+        st.add(Policy('2', subjects=['sam<.*>', 'foo']))
+        st.add(Policy('3', subjects=[{'stars': Eq(90)}, Eq('Max')]))
+        st.add(Policy('4', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
+        inquiry = Inquiry(subject='Jim', action='delete', resource='server')
+        found = st.find_for_inquiry(inquiry, checker)
+
+        assert expect_number == len(list(found))
+
+    def test_find_for_inquiry_with_exact_string_checker(self, st):
+        st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['books', 'comics', 'magazines']))
+        st.add(Policy('2', subjects=['maxim'], actions=['get'], resources=['books', 'comics', 'magazines']))
+        st.add(Policy('3', subjects=['sam', 'nina']))
+        st.add(Policy('4', subjects=[Eq('sam'), Eq('nina')]))
+        inquiry = Inquiry(subject='max', action='get', resource='books')
+        found = st.find_for_inquiry(inquiry, StringExactChecker())
+        found = list(found)
+        assert 1 == len(found)
+        assert '1' == found[0].uid
+
+    def test_find_for_inquiry_with_fuzzy_string_checker(self, st):
+        st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['books', 'comics', 'magazines']))
+        st.add(Policy('2', subjects=['maxim'], actions=['get'], resources=['books', 'foos']))
+        st.add(Policy('3', subjects=['Max'], actions=['get'], resources=['books', 'comics']))
+        st.add(Policy('4', subjects=['sam', 'nina']))
+        st.add(Policy('5', subjects=[Eq('sam'), Eq('nina')]))
+        inquiry = Inquiry(subject='max', action='et', resource='oo')
+        found = st.find_for_inquiry(inquiry, StringFuzzyChecker())
+        found = list(found)
+        assert 2 == len(found)
+        ids = [found[0].uid, found[1].uid]
+        assert '1' in ids
+        assert '2' in ids
+        inquiry = Inquiry(subject='Max', action='get', resource='comics')
+        found = st.find_for_inquiry(inquiry, StringFuzzyChecker())
+        found = list(found)
+        assert 1 == len(found)
+        assert '3' == found[0].uid
+
+    @pytest.mark.parametrize('policies, inquiry, expected_reference', [
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['get', 'post'],
+                    effect=ALLOW_ACCESS,
+                    resources=['<.*>'],
+                    subjects=['<[Mm]ax>', '<Jim>']
+                ),
+            ],
+            Inquiry(action='get', resource='printer', subject='Max'),
+            True,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['<.*>'],
+                    effect=ALLOW_ACCESS,
+                    resources=['<.*>'],
+                    subjects=['<.*>']
+                ),
+            ],
+            Inquiry(action='get', resource='printer', subject='Max'),
+            True,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['<.*>'],
+                    effect=ALLOW_ACCESS,
+                    resources=['library:books:<.+>'],
+                    subjects=['<.*>']
+                ),
+            ],
+            Inquiry(action='get', resource='library:books:dracula', subject='Max'),
+            True,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=[r'<\d+>'],
+                    effect=ALLOW_ACCESS,
+                    resources=[r'<\w{1,3}>'],
+                    subjects=[r'<\w{2}-\d+>']
+                ),
+            ],
+            Inquiry(action='12', resource='Pie', subject='Jo-1'),
+            True,
+        ),
+    ])
+    def test_find_for_inquiry_with_regex_checker(self, st, policies, inquiry, expected_reference):
+        mem_storage = MemoryStorage()  # it returns all stored policies so we consider Guard as a reference
+        for p in policies:
+            st.add(p)
+            mem_storage.add(p)
+        reference_answer = Guard(mem_storage, RegexChecker()).is_allowed(inquiry)
+        assert expected_reference == reference_answer, 'Check reference answer'
+        assert reference_answer == Guard(st, RegexChecker()).is_allowed(inquiry), \
+            'SQL storage should give the same answers as reference'
+
+    def test_find_for_inquiry_with_rules_checker(self, st):
+        assertions = unittest.TestCase('__init__')
+        st.add(Policy(1, subjects=[{'name': Equal('Max')}], actions=[{'foo': Equal('bar')}]))
+        st.add(Policy(2, subjects=[{'name': Equal('Max')}], actions=[{'foo': Equal('bar2')}]))
+        st.add(Policy(3, subjects=['sam', 'nina']))
+        st.add(Policy(4, actions=[r'<\d+>'], effect=ALLOW_ACCESS, resources=[r'<\w{1,3}>'], subjects=[r'<\w{2}-\d+>']))
+        st.add(Policy(5, subjects=[{'name': Equal('Jim')}], actions=[{'foo': Equal('bar3')}]))
+        inquiry = Inquiry(subject={'name': 'max'}, action='get', resource='books')
+        found = st.find_for_inquiry(inquiry, RulesChecker())
+        found = list(found)
+        assert 3 == len(found)
+        # assertions.assertListEqual([1, 2, 5], list(map(operator.attrgetter('uid'), found))) --> SQL storage treats
+        #                                                                                         UID as strings
+        assertions.assertListEqual(['1', '2', '5'], list(map(operator.attrgetter('uid'), found)))
+
+    def test_find_for_inquiry_with_unknown_checker(self, st):
+        st.add(Policy('1'))
+        inquiry = Inquiry(subject='sam', action='get', resource='books')
+        with pytest.raises(UnknownCheckerType):
+            list(st.find_for_inquiry(inquiry, Inquiry()))
+
+    def test_find_for_inquiry_returns_generator(self, st):
+        st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
+        st.add(Policy('2', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
+        inquiry = Inquiry(subject='max', action='get', resource='comics')
+        found = st.find_for_inquiry(inquiry)
         assert isinstance(found, types.GeneratorType)
         l = []
         for p in found:
