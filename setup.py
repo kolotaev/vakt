@@ -38,7 +38,7 @@ if __name__ == '__main__':
                 'pymongo~=3.5',
             ],
             'sql': [
-                'SQLAlchemy~=1.3.0'
+                'SQLAlchemy~=1.3.8'
             ],
         },
         packages=find_packages(exclude='tests'),
