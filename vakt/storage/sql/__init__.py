@@ -6,6 +6,7 @@ import json
 import logging
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import FlushError
 
 from .model import PolicyModel, PolicyActionModel, PolicyResourceModel, PolicySubjectModel
 from ..abc import Storage
@@ -62,7 +63,8 @@ class SQLStorage(Storage):
                 return
             policy_model.update(policy)
             self.session.commit()
-        except IntegrityError:
+        # Added FlushError for PyPy compatibility
+        except (IntegrityError, FlushError):
             self.session.rollback()
             raise
         log.info('Updated Policy with UID=%s. New value is: %s', policy.uid, policy)
