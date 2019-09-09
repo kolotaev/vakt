@@ -606,4 +606,9 @@ def test_definition_bad_variants(yaml, msg):
         with pytest.raises(PolicyReadError) as excinfo:
             policies = reader.read()
             ps = list(policies)
+            import vakt
+            ms = vakt.MemoryStorage()
+            ms.add(ps[0])
+            g = vakt.Guard(ms, vakt.RulesChecker())
+            assert g.is_allowed(vakt.Inquiry(action={'nick': 'Jim', 'stars': 90}))
         assert msg in str(excinfo.value)
