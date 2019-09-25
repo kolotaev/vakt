@@ -34,9 +34,9 @@ Attribute-based access control (ABAC) SDK for Python.
 - [JSON](#json)
 - [Logging](#logging)
 - [Examples](./examples)
-- [Acknowledgements](#acknowledgements)
 - [Milestones](#milestones)
 - [Benchmark](#benchmark)
+- [Acknowledgements](#acknowledgements)
 - [Development](#development)
 - [License](#license)
 
@@ -596,18 +596,9 @@ Vakt logs can be comprehended in 2 basic levels:
 *[Back to top](#documentation)*
 
 
-### Acknowledgements
-
-Initial code ideas of Vakt are based on
-[Amazon IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md) and
-[Ladon](https://github.com/ory/ladon) Policies SDK as its reference implementation.
-
-*[Back to top](#documentation)*
-
-
 ### Milestones
 
-Most valueble features to be implemented in the importance order:
+Most valuable features to be implemented in the importance order:
 
 - [ ] SQL Storage
 - [ ] Rules that reference Inquiry data for Rule-based policies 
@@ -669,6 +660,15 @@ regex policy related:
   --cache CACHE         number of LRU-cache for RegexChecker (default:
                         RegexChecker's default cache-size)
 ```
+
+*[Back to top](#documentation)*
+
+
+### Acknowledgements
+
+Initial code ideas of Vakt are based on
+[Amazon IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md) and
+[Ladon](https://github.com/ory/ladon) Policies SDK as its reference implementation.
 
 *[Back to top](#documentation)*
 
