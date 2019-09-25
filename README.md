@@ -35,6 +35,7 @@ Attribute-based access control (ABAC) SDK for Python.
 - [Logging](#logging)
 - [Examples](./examples)
 - [Acknowledgements](#acknowledgements)
+- [Milestones](#milestones)
 - [Benchmark](#benchmark)
 - [Development](#development)
 - [License](#license)
@@ -600,6 +601,19 @@ Vakt logs can be comprehended in 2 basic levels:
 Initial code ideas of Vakt are based on
 [Amazon IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md) and
 [Ladon](https://github.com/ory/ladon) Policies SDK as its reference implementation.
+
+*[Back to top](#documentation)*
+
+
+### Milestones
+
+Most valueble features to be implemented in the importance order:
+
+- [ ] SQL Storage
+- [ ] Rules that reference Inquiry data for Rule-based policies 
+- [ ] Caching mechanisms (for Storage and Guard)
+- [ ] YAML-based language for declarative policy definitions
+- [ ] Redis Storage
 
 *[Back to top](#documentation)*
 
