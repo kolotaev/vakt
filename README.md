@@ -598,7 +598,7 @@ Vakt logs can be comprehended in 2 basic levels:
 
 ### Milestones
 
-Most valuable features to be implemented in the importance order:
+Most valuable features to be implemented in the order of importance:
 
 - [ ] SQL Storage
 - [ ] Rules that reference Inquiry data for Rule-based policies 
