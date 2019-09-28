@@ -30,6 +30,7 @@ Attribute-based access control (ABAC) SDK for Python.
 	- [Storage](#storage)
         - [Memory](#memory)
         - [MongoDB](#mongodb)
+        - [SQL](#sql)
     - [Migration](#migration)
 - [JSON](#json)
 - [Logging](#logging)
@@ -96,6 +97,11 @@ pip install vakt
 For MongoDB storage:
 ```bash
 pip install vakt[mongo]
+```
+
+For SQL storage:
+```bash
+pip install vakt[sql]
 ```
 
 *[Back to top](#documentation)*
@@ -259,7 +265,7 @@ from vakt import Policy, rules
 
 Policy(
     ...,
-    subjects=[{'name': rules.Eq('.KIMZihH0gsrc')}],
+    subjects=[{'name': rules.Eq('Tommy')}],
 ),
 
 Policy(
@@ -479,6 +485,28 @@ Actions are the same as for any Storage that conforms interface of `vakt.storage
 Beware that currently MongoStorage supports indexed `find_for_inquiry()` only for StringExact and StringFuzzy checkers.
 RegexChecker (see [this issue](https://jira.mongodb.org/browse/SERVER-11947)) and RulesChecker simply
 return all the Policies from the database.
+
+
+##### SQL
+SQL storage is backed by SQLAlchemy, thus it should support any RDBMS available for it:
+MySQL, Postgres, Oracle, MSSQL, Sqlite, etc.
+
+Example for MySQL.
+
+```python
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+from vakt.storage.sql import SQLStorage
+from vakt.storage.sql.model import Base
+
+engine = create_engine('mysql://root:root@localhost/vakt_db', echo=True)
+Base.metadata.create_all(engine)
+storage = SQLStorage(scoped_session=scoped_session(sessionmaker(bind=engine)))
+```
+
+Note that vakt focuses on testing SQLStorage functionality only for two most popular open-source databases:
+MySQL and Postgres. Other databases support may have worse performance characteristics and/or bugs.
+Feel free to report any issues.
 
 *[Back to top](#documentation)*
 
