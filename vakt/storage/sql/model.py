@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, SmallInteger, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -45,7 +45,7 @@ class PolicyModel(Base):
     __tablename__ = 'policy'
 
     uid = Column(String(254), primary_key=True)
-    type = Column(String)
+    type = Column(SmallInteger)
     description = Column(String(254))
     effect = Column(String(254))
     context = Column(String(254))
