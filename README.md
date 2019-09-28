@@ -707,7 +707,7 @@ To hack Vakt locally run:
 
 ```bash
 $ ...                              # activate virtual environment w/ preferred method (optional)
-$ pip install -e .[dev,mongo]      # to install all dependencies
+$ pip install -e .[dev,mongo,sql]  # to install all dependencies
 $ pytest -m "not integration"      # to run non-integration tests with coverage report
 $ pytest --cov=vakt tests/         # to get coverage report
 $ pylint vakt                      # to check code quality with PyLint

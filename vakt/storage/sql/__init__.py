@@ -6,7 +6,6 @@ import json
 import logging
 
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm.exc import FlushError
 
 from .model import PolicyModel, PolicyActionModel, PolicyResourceModel, PolicySubjectModel
 from ..abc import Storage
