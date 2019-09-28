@@ -2,11 +2,18 @@ import logging
 import uuid
 import os
 
-import Pyro4
-import pymongo
 import vakt
 from vakt.rules import Eq, Any, NotEq, StartsWith, In, RegexMatch, CIDR, And, Greater, Less
+
+import Pyro4
+
+import pymongo
 from vakt.storage.mongo import MongoStorage
+
+from vakt.storage.sql import SQLStorage
+from vakt.storage.sql.model import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 
 # Policies that guard our tiny Github clone.
@@ -35,7 +42,7 @@ policies = [
         effect=vakt.ALLOW_ACCESS,
         context={'ip': CIDR('127.0.0.1/32')},
         description="""
-        Allow access to administration interface subcategories: 'panel', 'switch' if user is not 
+        Allow access to administration interface subcategories: 'panel', 'switch' if user is not
         a developer and came from local IP address.
         """
     ),
@@ -72,11 +79,21 @@ class GitHubGuardian:
         # Here we instantiate the Policy Storage.
         # In this case it's Memory or MongoDB Storage,
         # but we can opt to SQL Storage, any other third-party storage, etc.
-        print('st', os.environ.get('STORAGE'))
-        if os.environ.get('STORAGE') == 'mongo':
+        def create_sql_storage(dsn):
+            engine = create_engine(dsn, echo=True)
+            Base.metadata.create_all(engine)
+            session = scoped_session(sessionmaker(bind=engine))
+            return SQLStorage(scoped_session=session)
+        print('storage is ', os.environ.get('STORAGE'))
+        use_storage = os.environ.get('STORAGE')
+        if use_storage == 'mongo':
             user, password, host = 'root', 'root', 'localhost:27017'
             uri = 'mongodb://%s:%s@%s' % (user, password, host)
-            return MongoStorage(pymongo.MongoClient(host=host), 'vakt_db', collection='vakt_book_library')
+            return MongoStorage(pymongo.MongoClient(host=host), 'vakt_db', collection='vakt_github_guard')
+        elif use_storage == 'mysql':
+            return create_sql_storage('mysql://root:root@localhost/vakt_db')
+        elif use_storage == 'pg':
+            return create_sql_storage('postgresql+psycopg2://postgres:root@localhost/vakt_db')
         else:
             return vakt.MemoryStorage()
 

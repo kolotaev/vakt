@@ -1,3 +1,5 @@
 vakt>=1.2
 Pyro4==4.75
 pymongo==3.7.2
+mysql==0.0.2
+psycopg2==2.7.4
