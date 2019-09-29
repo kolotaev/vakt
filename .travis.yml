@@ -32,7 +32,7 @@ install:
 
 script:
   # test all suites with coverages
-  - DATABASE_DSN=sqlite:///:memory: make coverage
+  - DATABASE_DSN="sqlite:///:memory:" make coverage
   # test SQL integration for MySQL
   - DATABASE_DSN=mysql://root:@localhost/vakt_db make test-sql-i
   # test SQL integration for Postgres
