@@ -6,10 +6,7 @@ import uuid
 
 import pytest
 from bson.objectid import ObjectId
-from sqlalchemy import create_engine
-from sqlalchemy.event import listens_for
 from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy.pool import Pool
 
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
 from vakt.effects import ALLOW_ACCESS
@@ -23,19 +20,15 @@ from vakt.storage.memory import MemoryStorage
 from vakt.storage.sql import SQLStorage
 from vakt.storage.sql.model import Base
 
-
-# Need for switching on case sensitive LIKE statements on SqlLite
-@listens_for(Pool, "connect")
-def my_on_connect(dbapi_con, connection_record):
-    dbapi_con.execute('pragma case_sensitive_like=ON')
+from . import create_test_sql_engine
 
 
-@pytest.mark.integration
+@pytest.mark.sql_integration
 class TestSQLStorage:
 
     @pytest.yield_fixture
     def session(self):
-        engine = create_engine('sqlite:///:memory:', echo=False)
+        engine = create_test_sql_engine()
         Base.metadata.create_all(engine)
         session = scoped_session(sessionmaker(bind=engine))
         yield session

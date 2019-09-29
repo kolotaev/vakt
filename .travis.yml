@@ -27,7 +27,8 @@ install:
   - make deps
 
 script:
-  - make coverage
+  # test all suites with coverages
+  - DATABASE_DSN=sqlite:///:memory: make coverage
   - make bench
 
 after_success:
