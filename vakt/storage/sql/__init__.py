@@ -77,7 +77,6 @@ class SQLStorage(Storage):
         """
         cur = self.session.query(PolicyModel)
         if isinstance(checker, StringFuzzyChecker):
-
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
                 PolicyModel.subjects.any(PolicySubjectModel.subject.like("%{}%".format(inquiry.subject))),

@@ -24,20 +24,21 @@ python:
 before_script:
   - sleep 15
   - mongo vakt_db --eval 'db.createUser({user:"test_user",pwd:"test_password",roles:["readWrite"]});'
-  - mysql -e 'CREATE DATABASE vakt_db;'
+  - mysql -e 'CREATE DATABASE vakt_db CHARACTER SET utf8 COLLATE utf8_bin;'
   - psql -c 'create database vakt_db;' -U postgres
 
 install:
   - make deps
 
 script:
-  # test all suites with coverages
+  # test all suites with coverage
   - DATABASE_DSN="sqlite:///:memory:" make coverage
   # test SQL integration for MySQL
-  - DATABASE_DSN=mysql://root:@localhost/vakt_db make test-sql-i
+  - DATABASE_DSN="mysql://root@127.0.0.1/vakt_db?charset=utf8" make test-sql-i
   # test SQL integration for Postgres
-  - DATABASE_DSN=postgresql+psycopg2://postgres:@localhost/vakt_db make test-sql-i
-  - make bench
+#  - DATABASE_DSN="postgresql+psycopg2://postgres:@localhost/vakt_db" make test-sql-i
+  # Run performance tests
+#  - make bench
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

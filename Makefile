@@ -22,13 +22,13 @@ test-ni:
 test-i:
 	${PY_TEST} -m "integration"
 
+# SQL integration test runs for Sqlite, MySQL and Postgres
+# examples:
+# DATABASE_DSN=sqlite:///:memory: make test-sql-i
+# DATABASE_DSN=mysql://root:root@localhost/vakt_db ...
+# DATABASE_DSN=postgresql+psycopg2://postgres:root@localhost/vakt_db ...
 .PHONY: test-sql-i
 test-sql-i:
-	# SQL integration test runs for Sqlite, MySQL and Postgres
-	# examples:
-	# DATABASE_DSN=sqlite:///:memory: make test-sql-i
-	# DATABASE_DSN=mysql://root:root@localhost/vakt_db ...
-	# DATABASE_DSN=postgresql+psycopg2://postgres:root@localhost/vakt_db ...
 	${PY_TEST} -m "sql_integration"
 
 .PHONY: coverage

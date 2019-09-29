@@ -499,7 +499,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from vakt.storage.sql import SQLStorage
 from vakt.storage.sql.model import Base
 
-engine = create_engine('mysql://root:root@localhost/vakt_db', echo=True)
+engine = create_engine('mysql://root:root@localhost/vakt_db', encoding='utf-8', echo=True)
 Base.metadata.create_all(engine)
 storage = SQLStorage(scoped_session=scoped_session(sessionmaker(bind=engine)))
 ```
