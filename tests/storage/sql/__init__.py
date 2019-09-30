@@ -9,9 +9,9 @@ from sqlalchemy.pool import Pool
 from vakt.storage.sql.model import Base
 
 
-# Need for switching on case sensitive LIKE statements on SqlLite
-@listens_for(Pool, "connect")
-def my_on_connect(dbapi_con, connection_record):
+# Need for switching on case sensitive LIKE statements on Sqlite
+@listens_for(Pool, 'connect')
+def run_on_connect(dbapi_con, connection_record):
     try:
         dbapi_con.execute('pragma case_sensitive_like=ON')
     except:
