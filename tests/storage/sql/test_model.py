@@ -1,8 +1,6 @@
 import json
 import uuid
 
-import pytest
-
 from vakt.policy import Policy
 from vakt.rules.operator import Eq
 from vakt.rules.string import Equal
@@ -34,7 +32,6 @@ def policy__model_assert(policy_model, policy):
     assert policy_model.context == json.dumps(policy_dict["context"])
 
 
-@pytest.mark.integration
 class TestModel:
 
     def test_from_policy(self):

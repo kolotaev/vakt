@@ -1,26 +1,20 @@
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.event import listens_for
 from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy.pool import Pool
 
 from vakt.storage.sql import SQLStorage
 from vakt.storage.sql.migrations import SQLMigrationSet, Migration0To1x1x0
 from vakt.storage.sql.model import Base, PolicyActionModel, PolicySubjectModel, PolicyResourceModel, PolicyModel
 
-
-# Need for switching on case sensitive LIKE statements on SqlLite
-@listens_for(Pool, "connect")
-def my_on_connect(dbapi_con, connection_record):
-    dbapi_con.execute('pragma case_sensitive_like=ON')
+from . import create_test_sql_engine
 
 
-@pytest.mark.integration
+@pytest.mark.sql_integration
 class TestSQLMigrationSet:
 
     @pytest.yield_fixture
     def session(self):
-        engine = create_engine('sqlite:///:memory:', echo=False)
+        engine = create_test_sql_engine()
         session = scoped_session(sessionmaker(bind=engine))
         yield session
         Base.metadata.drop_all(engine)
@@ -50,7 +44,7 @@ class TestSQLMigrationSet:
         assert 0 == migration_set.last_applied()
 
 
-@pytest.mark.integration
+@pytest.mark.sql_integration
 class TestMigration0To1x1x0:
 
     @pytest.yield_fixture

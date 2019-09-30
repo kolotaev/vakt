@@ -37,6 +37,12 @@ class SQLStorage(Storage):
             self.session.rollback()
             log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
             raise PolicyExistsError(policy.uid)
+        # todo - figure out why FlushError is raised instead of IntegrityError on PyPy tests
+        except FlushError as e:
+            if 'conflicts with persistent instance' in str(e):
+                self.session.rollback()
+                log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
+                raise PolicyExistsError(policy.uid)
         log.info('Added Policy: %s', policy)
 
     def get(self, uid):
@@ -78,7 +84,6 @@ class SQLStorage(Storage):
         """
         cur = self.session.query(PolicyModel)
         if isinstance(checker, StringFuzzyChecker):
-
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
                 PolicyModel.subjects.any(PolicySubjectModel.subject.like("%{}%".format(inquiry.subject))),

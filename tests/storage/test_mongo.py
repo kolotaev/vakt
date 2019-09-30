@@ -82,7 +82,7 @@ class TestMongoStorage:
         id = str(uuid.uuid4())
         st.add(Policy(id, description='foo'))
         with pytest.raises(PolicyExistsError):
-            st.add(st.add(Policy(id, description='bar')))
+            st.add(Policy(id, description='bar'))
 
     def test_get(self, st):
         st.add(Policy('1'))

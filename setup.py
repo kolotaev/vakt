@@ -33,11 +33,14 @@ if __name__ == '__main__':
                 'pytest~=4.0',
                 'pytest-cov~=2.6',
                 'pylint~=1.0',
+                'PyMySQL~=0.9',
+                'psycopg2cffi~=2.7',
             ],
             'mongo': [
                 'pymongo~=3.5',
             ],
             'sql': [
+                # todo - attach to minor release instead of a patch
                 'SQLAlchemy~=1.3.8'
             ],
         },

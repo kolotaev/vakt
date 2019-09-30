@@ -6,6 +6,8 @@ language: python
 
 services:
   - mongodb
+  - mysql
+  - postgresql
 
 cache: pip
 
@@ -22,12 +24,20 @@ python:
 before_script:
   - sleep 15
   - mongo vakt_db --eval 'db.createUser({user:"test_user",pwd:"test_password",roles:["readWrite"]});'
+  - mysql -e 'CREATE DATABASE vakt_db CHARACTER SET utf8 COLLATE utf8_bin;'
+  - psql -c "CREATE DATABASE vakt_db ENCODING='UTF8';" -U postgres
 
 install:
   - make deps
 
 script:
-  - make coverage
+  # test all suites with coverage
+  - DATABASE_DSN="sqlite:///:memory:" make coverage
+  # test SQL integration for MySQL
+  - DATABASE_DSN="mysql+pymysql://root@127.0.0.1/vakt_db" make test-sql-i
+  # test SQL integration for Postgres
+  - DATABASE_DSN="postgresql+psycopg2cffi://postgres:@localhost/vakt_db" make test-sql-i
+  # Run performance tests
   - make bench
 
 after_success:
