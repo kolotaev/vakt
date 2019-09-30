@@ -6,6 +6,7 @@ import json
 import logging
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import FlushError
 
 from .model import PolicyModel, PolicyActionModel, PolicyResourceModel, PolicySubjectModel
 from ..abc import Storage
@@ -36,6 +37,12 @@ class SQLStorage(Storage):
             self.session.rollback()
             log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
             raise PolicyExistsError(policy.uid)
+        # todo - figure out why FlushError is raised instead of IntegrityError on PyPy tests
+        except FlushError as e:
+            if 'conflicts with persistent instance' in str(e):
+                self.session.rollback()
+                log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
+                raise PolicyExistsError(policy.uid)
         log.info('Added Policy: %s', policy)
 
     def get(self, uid):
