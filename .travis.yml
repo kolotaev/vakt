@@ -38,7 +38,7 @@ script:
   # test SQL integration for Postgres
   - DATABASE_DSN="postgresql+psycopg2cffi://postgres:@localhost/vakt_db" make test-sql-i
   # Run performance tests
-  - make bench
+#  - make bench
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
