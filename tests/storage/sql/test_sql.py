@@ -89,11 +89,11 @@ class TestSQLStorage:
         assert isinstance(st.get('1'), Policy)
         assert '1' == st.get('1').uid
         # SQL storage stores all uid as string
-        assert '2' == st.get(2).uid
-        assert 'some text' == st.get(2).description
+        assert '2' == st.get('2').uid
+        assert 'some text' == st.get('2').description
 
     def test_get_nonexistent(self, st):
-        assert None is st.get(123456789)
+        assert None is st.get('123456789')
 
     @pytest.mark.parametrize('limit, offset, result', [
         (500, 0, 200),
@@ -301,6 +301,7 @@ class TestSQLStorage:
         assert 2 == len(l)
 
     def test_update(self, st):
+        # SQL storage stores all uids as string
         id = str(uuid.uuid4())
         policy = Policy(id)
         st.add(policy)
@@ -313,14 +314,13 @@ class TestSQLStorage:
         assert id == st.get(id).uid
         assert 'foo' == st.get(id).description
         assert ['a', 'b', 'c'] == st.get(id).actions
-        p = Policy(2, actions=[Any()], subjects=[Eq('max'), Eq('bob')])
+        p = Policy('2', actions=[Any()], subjects=[Eq('max'), Eq('bob')])
         st.add(p)
-        # SQL storage stores all uid as string
-        assert '2' == st.get(2).uid
+        assert '2' == st.get('2').uid
         p.actions = [Eq('get')]
         st.update(p)
-        assert 1 == len(st.get(2).actions)
-        assert 'get' == st.get(2).actions[0].val
+        assert 1 == len(st.get('2').actions)
+        assert 'get' == st.get('2').actions[0].val
 
     def test_update_non_existing_does_not_create_anything(self, st):
         id = str(uuid.uuid4())
