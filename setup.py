@@ -33,7 +33,7 @@ if __name__ == '__main__':
                 'pytest~=4.0',
                 'pytest-cov~=2.6',
                 'pylint~=1.0',
-                'mysql~=0.0',
+                'PyMySQL~=0.9',
                 # 'psycopg2~=2.7',
             ],
             'mongo': [

@@ -34,7 +34,7 @@ script:
   # test all suites with coverage
   - DATABASE_DSN="sqlite:///:memory:" make coverage
   # test SQL integration for MySQL
-  - DATABASE_DSN="mysql://root@127.0.0.1/vakt_db?charset=utf8" make test-sql-i
+  - DATABASE_DSN="mysql+pymysql://root@127.0.0.1/vakt_db?charset=utf8" make test-sql-i
   # test SQL integration for Postgres
 #  - DATABASE_DSN="postgresql+psycopg2://postgres:@localhost/vakt_db" make test-sql-i
   # Run performance tests
