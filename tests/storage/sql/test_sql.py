@@ -9,7 +9,7 @@ from bson.objectid import ObjectId
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
-from vakt.effects import ALLOW_ACCESS
+from vakt.effects import ALLOW_ACCESS, DENY_ACCESS
 from vakt.exceptions import PolicyExistsError, UnknownCheckerType
 from vakt.guard import Inquiry, Guard
 from vakt.policy import Policy
@@ -338,3 +338,19 @@ class TestSQLStorage:
         uid = str(ObjectId())
         st.delete(uid)
         assert None is st.get(uid)
+
+    @pytest.mark.parametrize('effect', [
+        ALLOW_ACCESS,
+        DENY_ACCESS,
+    ])
+    def test_effect_boolean_conversion(self, st, effect):
+        policy = Policy('1', effect=effect)
+        st.add(policy)
+        policy_back = st.get('1')
+        assert effect == policy_back.effect
+        policy.effect = 'foo'
+        st.update(policy)
+        policy.effect = effect
+        st.update(policy)
+        policy_back = st.get('1')
+        assert effect == policy_back.effect

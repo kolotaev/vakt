@@ -497,10 +497,12 @@ Example for MySQL.
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from vakt.storage.sql import SQLStorage
-from vakt.storage.sql.model import Base
+
+
+# Don't forget to run migrations here (even the initial one)
+...
 
 engine = create_engine('mysql://root:root@localhost/vakt_db')
-Base.metadata.create_all(engine)
 storage = SQLStorage(scoped_session=scoped_session(sessionmaker(bind=engine)))
 ```
 
