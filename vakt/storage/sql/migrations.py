@@ -32,7 +32,7 @@ class SQLMigrationSet(MigrationSet):
         MigrationModel.metadata.create_all(self.storage.session.bind)
 
     def migrations(self):
-        return [Migration0To1x1x0(self.storage)]
+        return [Migration0To1x3x0(self.storage)]
 
     def save_applied_number(self, number):
         try:
@@ -55,9 +55,10 @@ class SQLMigrationSet(MigrationSet):
         return 0
 
 
-class Migration0To1x1x0(Migration):
+class Migration0To1x3x0(Migration):
     """
-        Migration between versions 0 and 1.1.0
+        Migration between versions 0 and 1.3.0.
+        This migration is initial.
     """
 
     def __init__(self, storage):
