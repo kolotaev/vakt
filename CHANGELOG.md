@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.3.0] - TBA
+### Added
+- [Storage] SQLStorage implementation with support for all RDBMS backed by SQL Alchemy.
+
+
 ## [1.2.1] - 2019-04-24
 ### Changed
 - [vakt] `MongoStorage` is not imported into vakt package by default.

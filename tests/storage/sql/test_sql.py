@@ -279,8 +279,6 @@ class TestSQLStorage:
         found = st.find_for_inquiry(inquiry, RulesChecker())
         found = list(found)
         assert 3 == len(found)
-        # assertions.assertListEqual([1, 2, 5], list(map(operator.attrgetter('uid'), found))) --> SQL storage treats
-        #                                                                                         UID as strings
         assertions.assertListEqual(['1', '2', '5'], list(map(operator.attrgetter('uid'), found)))
 
     def test_find_for_inquiry_with_unknown_checker(self, st):
