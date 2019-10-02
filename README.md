@@ -499,10 +499,9 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from vakt.storage.sql import SQLStorage
 
 
-# Don't forget to run migrations here (even the initial one)
-...
-
 engine = create_engine('mysql://root:root@localhost/vakt_db')
+# Don't forget to run migrations here (especially for the first time)
+...
 storage = SQLStorage(scoped_session=scoped_session(sessionmaker(bind=engine)))
 ```
 
@@ -668,9 +667,9 @@ Output is:
 
 Script usage:
 ```
-usage: benchmark.py [-h] [-n [POLICIES_NUMBER]] [-d {mongo,memory}]
-                    [-c {regex,rules,exact,fuzzy}] [--regexp] [--same SAME]
-                    [--cache CACHE]
+usage: benchmark.py [-h] [-n [POLICIES_NUMBER]] [-s {mongo,memory,sql}]
+                    [-d [SQL_DSN]] [-c {regex,rules,exact,fuzzy}] [--regexp]
+                    [--same SAME] [--cache CACHE]
 
 Run vakt benchmark.
 
@@ -678,8 +677,11 @@ optional arguments:
   -h, --help            show this help message and exit
   -n [POLICIES_NUMBER], --number [POLICIES_NUMBER]
                         number of policies to create in DB (default: 100000)
-  -d {mongo,memory}, --storage {mongo,memory}
+  -s {mongo,memory,sql}, --storage {mongo,memory,sql}
                         type of storage (default: memory)
+  -d [SQL_DSN], --dsn [SQL_DSN]
+                        DSN connection string for sql storage (default:
+                        sqlite:///:memory:)
   -c {regex,rules,exact,fuzzy}, --checker {regex,rules,exact,fuzzy}
                         type of checker (default: regex)
 
