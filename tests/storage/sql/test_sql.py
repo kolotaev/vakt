@@ -103,8 +103,8 @@ class TestSQLStorage:
         (200, 1, 199),
         (199, 0, 199),
         (200, 50, 150),
-        # (0, 0, 200), --> The output of this test should be 0 as checked by the following parameters
         (0, 0, 0),
+        (0, 100, 0),
         (1, 0, 1),
         (5, 4, 5),
     ])

@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 ### Added
 - [Storage] SQLStorage implementation with support for all RDBMS backed by SQL Alchemy.
 
+### Changed
+- [Storage] `MongoStorage` and `MemoryStorage` now return empty list if `get_all` is called with limit=0.
+From this version all storages must have this behaviour for consistency.
+
 
 ## [1.2.1] - 2019-04-24
 ### Changed
