@@ -12,37 +12,37 @@ Base = declarative_base()
 class PolicySubjectModel(Base):
     """Storage model for policy subjects"""
 
-    __tablename__ = 'policy_subject'
+    __tablename__ = 'vakt_policy_subjects'
 
     id = Column(Integer, primary_key=True)
-    uid = Column(String(255), ForeignKey('policy.uid', ondelete='CASCADE'))
+    uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
     subject = Column(Text())
 
 
 class PolicyResourceModel(Base):
     """Storage model for policy resources"""
 
-    __tablename__ = 'policy_resource'
+    __tablename__ = 'vakt_policy_resources'
 
     id = Column(Integer, primary_key=True)
-    uid = Column(String(255), ForeignKey('policy.uid', ondelete='CASCADE'))
+    uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
     resource = Column(Text())
 
 
 class PolicyActionModel(Base):
     """Storage model for policy actions"""
 
-    __tablename__ = 'policy_action'
+    __tablename__ = 'vakt_policy_actions'
 
     id = Column(Integer, primary_key=True)
-    uid = Column(String(255), ForeignKey('policy.uid', ondelete='CASCADE'))
+    uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
     action = Column(Text())
 
 
 class PolicyModel(Base):
     """Storage model for policy"""
 
-    __tablename__ = 'policy'
+    __tablename__ = 'vakt_policies'
 
     uid = Column(String(255), primary_key=True)
     type = Column(SmallInteger)

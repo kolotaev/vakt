@@ -13,7 +13,7 @@ class MigrationModel(MigrationBase):
         Migration version storage
     """
 
-    __tablename__ = 'migrations'
+    __tablename__ = 'vakt_migrations'
 
     id = Column(Integer, primary_key=True)
     version = Column(Integer, nullable=False)
