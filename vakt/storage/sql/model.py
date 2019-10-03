@@ -60,18 +60,8 @@ class PolicyModel(Base):
 
             :param policy: object of type policy
         """
-        policy_json = policy.to_json()
-        policy_dict = json.loads(policy_json)
         rvalue = cls()
-        rvalue.uid = policy_dict['uid']
-        rvalue.type = policy_dict['type']
-        rvalue.effect = policy_dict['effect'] == ALLOW_ACCESS
-        rvalue.description = policy_dict['description']
-        rvalue.context = json.dumps(policy_dict['context'])
-        rvalue.subjects = [PolicySubjectModel(subject=json.dumps(subject)) for subject in policy_dict['subjects']]
-        rvalue.resources = [PolicyResourceModel(resource=json.dumps(resource)) for resource in policy_dict['resources']]
-        rvalue.actions = [PolicyActionModel(action=json.dumps(action)) for action in policy_dict['actions']]
-        return rvalue
+        return cls._create(policy, model=rvalue)
 
     def update(self, policy):
         """
@@ -79,16 +69,7 @@ class PolicyModel(Base):
 
             :param policy: object of type policy
         """
-        policy_json = policy.to_json()
-        policy_dict = json.loads(policy_json)
-        self.uid = policy_dict['uid']
-        self.type = policy_dict['type']
-        self.effect = policy_dict['effect'] == ALLOW_ACCESS
-        self.description = policy_dict['description']
-        self.context = json.dumps(policy_dict['context'])
-        self.subjects = [PolicySubjectModel(subject=json.dumps(subject)) for subject in policy_dict['subjects']]
-        self.resources = [PolicyResourceModel(resource=json.dumps(resource)) for resource in policy_dict['resources']]
-        self.actions = [PolicyActionModel(action=json.dumps(action)) for action in policy_dict['actions']]
+        self._create(policy, model=self)
 
     def to_policy(self):
         """
@@ -107,3 +88,23 @@ class PolicyModel(Base):
         }
         policy_json = json.dumps(policy_dict)
         return Policy.from_json(policy_json)
+
+    @classmethod
+    def _create(cls, policy, model):
+        """
+            Helper to create PolicyModel from Policy object for add and update operations.
+
+            :param policy: object of type Policy
+            :param model: object of type PolicyModel
+        """
+        policy_json = policy.to_json()
+        policy_dict = json.loads(policy_json)
+        model.uid = policy_dict['uid']
+        model.type = policy_dict['type']
+        model.effect = policy_dict['effect'] == ALLOW_ACCESS
+        model.description = policy_dict['description']
+        model.context = json.dumps(policy_dict['context'])
+        model.subjects = [PolicySubjectModel(subject=json.dumps(subject)) for subject in policy_dict['subjects']]
+        model.resources = [PolicyResourceModel(resource=json.dumps(resource)) for resource in policy_dict['resources']]
+        model.actions = [PolicyActionModel(action=json.dumps(action)) for action in policy_dict['actions']]
+        return model
