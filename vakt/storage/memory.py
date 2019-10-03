@@ -34,10 +34,8 @@ class MemoryStorage(Storage):
     def get_all(self, limit, offset):
         self._check_limit_and_offset(limit, offset)
         result = [v for v in self.policies.values()]
-        if offset > len(result):
+        if offset > len(result) or limit == 0:
             return []
-        if limit == 0:
-            limit = len(result)
         return result[offset:limit+offset]
 
     def find_for_inquiry(self, inquiry, checker=None):

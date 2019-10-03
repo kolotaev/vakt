@@ -6,12 +6,16 @@ import contextlib
 from functools import partial
 
 from pymongo import MongoClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 from vakt import (
     MemoryStorage, DENY_ACCESS, ALLOW_ACCESS,
     Policy, RegexChecker, RulesChecker, Guard, Inquiry,
 )
 from vakt.storage.mongo import MongoStorage
+from vakt.storage.sql import SQLStorage
+from vakt.storage.sql.migrations import SQLMigrationSet
 from vakt.rules import operator, logic, list, net
 
 
@@ -25,8 +29,10 @@ similar_regexp_policies_created = 0
 parser = argparse.ArgumentParser(description='Run vakt benchmark.')
 parser.add_argument('-n', '--number', dest='policies_number', nargs='?', type=int, default=100000,
                     help='number of policies to create in DB (default: %(default)d)')
-parser.add_argument('-d', '--storage', choices=('mongo', 'memory'), default='memory',
+parser.add_argument('-s', '--storage', choices=('mongo', 'memory', 'sql'), default='memory',
                     help='type of storage (default: %(default)s)')
+parser.add_argument('-d', '--dsn', dest='sql_dsn', nargs='?', type=str, default='sqlite:///:memory:',
+                    help='DSN connection string for sql storage (default: %(default)s)')
 parser.add_argument('-c', '--checker', choices=('regex', 'rules', 'exact', 'fuzzy'), default='regex',
                     help='type of checker (default: %(default)s)')
 
@@ -165,6 +171,16 @@ def get_storage():
         yield MongoStorage(client, db_name, collection=collection)
         client[db_name][collection].delete_many({})
         client.close()
+    elif ARGS.storage == 'sql':
+        engine = create_engine(ARGS.sql_dsn)
+        sql_session = scoped_session(sessionmaker(bind=engine))
+        storage = SQLStorage(scoped_session=sql_session)
+        migration = SQLMigrationSet(storage)
+        migration.up()
+        yield storage
+        # todo - why there is left uncommitted transaction?
+        sql_session.commit()
+        migration.down()
     else:
         yield MemoryStorage()
 

@@ -9,7 +9,7 @@ from bson.objectid import ObjectId
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
-from vakt.effects import ALLOW_ACCESS
+from vakt.effects import ALLOW_ACCESS, DENY_ACCESS
 from vakt.exceptions import PolicyExistsError, UnknownCheckerType
 from vakt.guard import Inquiry, Guard
 from vakt.policy import Policy
@@ -103,8 +103,8 @@ class TestSQLStorage:
         (200, 1, 199),
         (199, 0, 199),
         (200, 50, 150),
-        # (0, 0, 200), --> The output of this test should be 0 as checked by the following parameters
         (0, 0, 0),
+        (0, 100, 0),
         (1, 0, 1),
         (5, 4, 5),
     ])
@@ -279,8 +279,6 @@ class TestSQLStorage:
         found = st.find_for_inquiry(inquiry, RulesChecker())
         found = list(found)
         assert 3 == len(found)
-        # assertions.assertListEqual([1, 2, 5], list(map(operator.attrgetter('uid'), found))) --> SQL storage treats
-        #                                                                                         UID as strings
         assertions.assertListEqual(['1', '2', '5'], list(map(operator.attrgetter('uid'), found)))
 
     def test_find_for_inquiry_with_unknown_checker(self, st):
@@ -338,3 +336,19 @@ class TestSQLStorage:
         uid = str(ObjectId())
         st.delete(uid)
         assert None is st.get(uid)
+
+    @pytest.mark.parametrize('effect', [
+        ALLOW_ACCESS,
+        DENY_ACCESS,
+    ])
+    def test_effect_boolean_conversion(self, st, effect):
+        policy = Policy('1', effect=effect)
+        st.add(policy)
+        policy_back = st.get('1')
+        assert effect == policy_back.effect
+        policy.effect = 'foo'
+        st.update(policy)
+        policy.effect = effect
+        st.update(policy)
+        policy_back = st.get('1')
+        assert effect == policy_back.effect

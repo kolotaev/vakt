@@ -27,6 +27,8 @@ class Storage(metaclass=ABCMeta):
         """
         Retrieve all the policies within a window.
 
+        All storages must have the same behaviour when using limit=0: return empty list.
+
         Returns Iterable
         """
         pass

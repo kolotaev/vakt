@@ -1,10 +1,10 @@
 import json
 
-from sqlalchemy import Column, Integer, SmallInteger, String, ForeignKey
+from sqlalchemy import Column, Integer, SmallInteger, String, ForeignKey, Text, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from ...policy import Policy
+from ...policy import Policy, ALLOW_ACCESS, DENY_ACCESS
 
 Base = declarative_base()
 
@@ -12,43 +12,43 @@ Base = declarative_base()
 class PolicySubjectModel(Base):
     """Storage model for policy subjects"""
 
-    __tablename__ = 'policy_subject'
+    __tablename__ = 'vakt_policy_subjects'
 
     id = Column(Integer, primary_key=True)
-    uid = Column(String(254), ForeignKey('policy.uid', ondelete='CASCADE'))
-    subject = Column(String(254))
+    uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
+    subject = Column(Text())
 
 
 class PolicyResourceModel(Base):
     """Storage model for policy resources"""
 
-    __tablename__ = 'policy_resource'
+    __tablename__ = 'vakt_policy_resources'
 
     id = Column(Integer, primary_key=True)
-    uid = Column(String(254), ForeignKey('policy.uid', ondelete='CASCADE'))
-    resource = Column(String(254))
+    uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
+    resource = Column(Text())
 
 
 class PolicyActionModel(Base):
     """Storage model for policy actions"""
 
-    __tablename__ = 'policy_action'
+    __tablename__ = 'vakt_policy_actions'
 
     id = Column(Integer, primary_key=True)
-    uid = Column(String(254), ForeignKey('policy.uid', ondelete='CASCADE'))
-    action = Column(String(254))
+    uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
+    action = Column(Text())
 
 
 class PolicyModel(Base):
     """Storage model for policy"""
 
-    __tablename__ = 'policy'
+    __tablename__ = 'vakt_policies'
 
-    uid = Column(String(254), primary_key=True)
+    uid = Column(String(255), primary_key=True)
     type = Column(SmallInteger)
-    description = Column(String(254))
-    effect = Column(String(254))
-    context = Column(String(254))
+    description = Column(Text())
+    effect = Column(Boolean())
+    context = Column(Text())
     subjects = relationship(PolicySubjectModel, passive_deletes=True, lazy='joined')
     resources = relationship(PolicyResourceModel, passive_deletes=True, lazy='joined')
     actions = relationship(PolicyActionModel, passive_deletes=True, lazy='joined')
@@ -65,7 +65,7 @@ class PolicyModel(Base):
         rvalue = cls()
         rvalue.uid = policy_dict['uid']
         rvalue.type = policy_dict['type']
-        rvalue.effect = policy_dict['effect']
+        rvalue.effect = policy_dict['effect'] == ALLOW_ACCESS
         rvalue.description = policy_dict['description']
         rvalue.context = json.dumps(policy_dict['context'])
         rvalue.subjects = [PolicySubjectModel(subject=json.dumps(subject)) for subject in policy_dict['subjects']]
@@ -83,7 +83,7 @@ class PolicyModel(Base):
         policy_dict = json.loads(policy_json)
         self.uid = policy_dict['uid']
         self.type = policy_dict['type']
-        self.effect = policy_dict['effect']
+        self.effect = policy_dict['effect'] == ALLOW_ACCESS
         self.description = policy_dict['description']
         self.context = json.dumps(policy_dict['context'])
         self.subjects = [PolicySubjectModel(subject=json.dumps(subject)) for subject in policy_dict['subjects']]
@@ -98,7 +98,7 @@ class PolicyModel(Base):
         """
         policy_dict = {
             "uid": self.uid,
-            "effect": self.effect,
+            "effect": ALLOW_ACCESS if self.effect else DENY_ACCESS,
             "description": self.description,
             "context": json.loads(self.context),
             "subjects": [json.loads(x.subject) for x in self.subjects],

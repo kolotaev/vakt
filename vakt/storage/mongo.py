@@ -54,6 +54,9 @@ class MongoStorage(Storage):
 
     def get_all(self, limit, offset):
         self._check_limit_and_offset(limit, offset)
+        # Special check for: https://docs.mongodb.com/manual/reference/method/cursor.limit/#zero-value
+        if limit == 0:
+            return []
         cur = self.collection.find(limit=limit, skip=offset)
         return self.__feed_policies(cur)
 

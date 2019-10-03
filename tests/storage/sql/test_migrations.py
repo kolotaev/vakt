@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from vakt.storage.sql import SQLStorage
-from vakt.storage.sql.migrations import SQLMigrationSet, Migration0To1x1x0
+from vakt.storage.sql.migrations import SQLMigrationSet, Migration0To1x3x0
 from vakt.storage.sql.model import Base, PolicyActionModel, PolicySubjectModel, PolicyResourceModel, PolicyModel
 
 from . import create_test_sql_engine
@@ -45,7 +45,7 @@ class TestSQLMigrationSet:
 
 
 @pytest.mark.sql_integration
-class TestMigration0To1x1x0:
+class TestMigration0To1x3x0:
 
     @pytest.yield_fixture
     def engine(self):
@@ -61,7 +61,7 @@ class TestMigration0To1x1x0:
     @pytest.yield_fixture
     def migration(self, session):
         storage = SQLStorage(scoped_session=session)
-        yield Migration0To1x1x0(storage)
+        yield Migration0To1x3x0(storage)
         session.remove()
 
     def test_order(self, migration):
