@@ -633,6 +633,7 @@ Most valuable features to be implemented in the order of importance:
 - [ ] Rules that reference Inquiry data for Rule-based policies 
 - [ ] Caching mechanisms (for Storage and Guard)
 - [ ] YAML-based language for declarative policy definitions
+- [ ] Enhanced audit logging
 - [ ] Redis Storage
 
 *[Back to top](#documentation)*
