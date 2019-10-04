@@ -164,7 +164,7 @@ class TestSQLStorage:
         (StringFuzzyChecker(), 1),
     ])
     def test_find_for_inquiry_returns_existing_policies(self, st, checker, expect_number):
-        st.add(Policy('1', subjects=['<[mM]ax', '<.*>']))
+        st.add(Policy('1', subjects=['<[mM]ax>', '<.*>']))
         st.add(Policy('2', subjects=['sam<.*>', 'foo']))
         st.add(Policy('3', subjects=[{'stars': Eq(90)}, Eq('Max')]))
         st.add(Policy('4', subjects=['Jim'], actions=['delete'], resources=['server']))
