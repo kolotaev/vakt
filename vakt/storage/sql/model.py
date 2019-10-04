@@ -5,6 +5,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 from ...policy import Policy, ALLOW_ACCESS, DENY_ACCESS
+from ...rules.base import Rule
+
 
 Base = declarative_base()
 
@@ -77,17 +79,13 @@ class PolicyModel(Base):
 
             :return: object of type `Policy`
         """
-        policy_dict = {
-            "uid": self.uid,
-            "effect": ALLOW_ACCESS if self.effect else DENY_ACCESS,
-            "description": self.description,
-            "context": json.loads(self.context),
-            "subjects": [json.loads(x.subject) for x in self.subjects],
-            "resources": [json.loads(x.resource) for x in self.resources],
-            "actions": [json.loads(x.action) for x in self.actions]
-        }
-        policy_json = json.dumps(policy_dict)
-        return Policy.from_json(policy_json)
+        return Policy(uid=self.uid,
+                      effect=ALLOW_ACCESS if self.effect else DENY_ACCESS,
+                      description=self.description,
+                      context=Rule.from_json(self.context),
+                      subjects=[Rule.from_json(x.subject) for x in self.subjects],
+                      resources=[Rule.from_json(x.resource) for x in self.resources],
+                      actions=[Rule.from_json(x.action) for x in self.actions])
 
     @classmethod
     def _create(cls, policy, model):
@@ -104,7 +102,7 @@ class PolicyModel(Base):
         model.effect = policy_dict['effect'] == ALLOW_ACCESS
         model.description = policy_dict['description']
         model.context = json.dumps(policy_dict['context'])
-        model.subjects = [PolicySubjectModel(subject=json.dumps(subject)) for subject in policy_dict['subjects']]
-        model.resources = [PolicyResourceModel(resource=json.dumps(resource)) for resource in policy_dict['resources']]
-        model.actions = [PolicyActionModel(action=json.dumps(action)) for action in policy_dict['actions']]
+        model.subjects = [PolicySubjectModel(subject=json.dumps(x)) for x in policy_dict['subjects']]
+        model.resources = [PolicyResourceModel(resource=json.dumps(x)) for x in policy_dict['resources']]
+        model.actions = [PolicyActionModel(action=json.dumps(x)) for x in policy_dict['actions']]
         return model

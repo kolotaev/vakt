@@ -498,11 +498,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from vakt.storage.sql import SQLStorage
 
-
 engine = create_engine('mysql://root:root@localhost/vakt_db')
+storage = SQLStorage(scoped_session=scoped_session(sessionmaker(bind=engine)))
+
 # Don't forget to run migrations here (especially for the first time)
 ...
-storage = SQLStorage(scoped_session=scoped_session(sessionmaker(bind=engine)))
 ```
 
 Note that vakt focuses on testing SQLStorage functionality only for two most popular open-source databases:
