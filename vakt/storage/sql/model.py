@@ -4,8 +4,9 @@ from sqlalchemy import Column, Integer, SmallInteger, String, ForeignKey, Text, 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from ...policy import Policy, ALLOW_ACCESS, DENY_ACCESS
+from ...policy import Policy, ALLOW_ACCESS, DENY_ACCESS, TYPE_STRING_BASED
 from ...rules.base import Rule
+from ...parser import compile_regex
 
 
 Base = declarative_base()
@@ -19,6 +20,7 @@ class PolicySubjectModel(Base):
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
     subject = Column(Text())
+    subject_regex = Column(String(2000))
 
 
 class PolicyResourceModel(Base):
@@ -29,6 +31,7 @@ class PolicyResourceModel(Base):
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
     resource = Column(Text())
+    resource_regex = Column(String(2000))
 
 
 class PolicyActionModel(Base):
@@ -39,6 +42,7 @@ class PolicyActionModel(Base):
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
     action = Column(Text())
+    action_regex = Column(String(2000))
 
 
 class PolicyModel(Base):
@@ -102,7 +106,24 @@ class PolicyModel(Base):
         model.effect = policy_dict['effect'] == ALLOW_ACCESS
         model.description = policy_dict['description']
         model.context = json.dumps(policy_dict['context'])
-        model.subjects = [PolicySubjectModel(subject=json.dumps(x)) for x in policy_dict['subjects']]
-        model.resources = [PolicyResourceModel(resource=json.dumps(x)) for x in policy_dict['resources']]
-        model.actions = [PolicyActionModel(action=json.dumps(x)) for x in policy_dict['actions']]
+        model.subjects = [
+            PolicySubjectModel(subject=x, subject_regex=compiled) for (x, compiled)
+            in cls._policy_elements(policy, policy_dict['subjects'])
+        ]
+        model.resources = [
+            PolicyResourceModel(resource=x, resource_regex=compiled) for (x, compiled)
+            in cls._policy_elements(policy, policy_dict['resources'])
+        ]
+        model.actions = [
+            PolicyActionModel(action=x, action_regex=compiled) for (x, compiled)
+            in cls._policy_elements(policy, policy_dict['actions'])
+        ]
         return model
+
+    @classmethod
+    def _policy_elements(cls, policy, elements):
+        for el in elements:
+            compiled = None
+            if policy.type == TYPE_STRING_BASED and (policy.start_tag in el and policy.end_tag in el):
+                compiled = compile_regex(el, policy.start_tag, policy.end_tag).pattern
+            yield (json.dumps(el), compiled)

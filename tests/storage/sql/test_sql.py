@@ -157,22 +157,23 @@ class TestSQLStorage:
         assert 2 == len(l)
 
     @pytest.mark.parametrize('checker, expect_number', [
-        (None, 5),
+        (None, 6),
         (RegexChecker(), 3),
         (RulesChecker(), 2),
         (StringExactChecker(), 1),
         (StringFuzzyChecker(), 1),
     ])
     def test_find_for_inquiry_returns_existing_policies(self, st, checker, expect_number):
-        st.add(Policy('1', subjects=['<[mM]ax>', '<.*>']))
-        st.add(Policy('2', subjects=['sam<.*>', 'foo']))
-        st.add(Policy('3', subjects=[{'stars': Eq(90)}, Eq('Max')]))
-        st.add(Policy('4', subjects=['Jim'], actions=['delete'], resources=['server']))
-        st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
+        st.add(Policy('1', subjects=['<[mM]ax>', '<.*>'], actions=['delete'], resources=['server']))
+        st.add(Policy('2', subjects=['Ji<[mM]+>'], actions=['delete'], resources=[r'server<\s*>']))
+        st.add(Policy('3', subjects=['sam<.*>', 'foo']))
+        st.add(Policy('4', subjects=[{'stars': Eq(90)}, Eq('Max')]))
+        st.add(Policy('5', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('6', subjects=[Eq('Jim'), Eq('Nina')]))
         inquiry = Inquiry(subject='Jim', action='delete', resource='server')
         found = st.find_for_inquiry(inquiry, checker)
-
-        assert expect_number == len(list(found))
+        found = list(found)
+        assert expect_number == len(found)
 
     def test_find_for_inquiry_with_exact_string_checker(self, st):
         st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['books', 'comics', 'magazines']))
@@ -248,10 +249,10 @@ class TestSQLStorage:
             [
                 Policy(
                     uid=1,
-                    actions=[r'<\d+>'],
+                    actions=[r'<[0-9]+>'],
                     effect=ALLOW_ACCESS,
-                    resources=[r'<\w{1,3}>'],
-                    subjects=[r'<\w{2}-\d+>']
+                    resources=[r'<[a-zA-Z]{1,3}>'],
+                    subjects=[r'<[a-zA-Z0-9]{2}-[0-9]+>']
                 ),
             ],
             Inquiry(action='12', resource='Pie', subject='Jo-1'),

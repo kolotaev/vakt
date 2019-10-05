@@ -5,6 +5,7 @@ SQL Storage for Policies.
 import json
 import logging
 
+from sqlalchemy import and_, or_, literal
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import FlushError
 
@@ -13,6 +14,7 @@ from ..abc import Storage
 from ...checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
 from ...exceptions import PolicyExistsError, UnknownCheckerType
 from ...policy import TYPE_STRING_BASED, TYPE_RULE_BASED
+
 
 log = logging.getLogger(__name__)
 
@@ -86,24 +88,65 @@ class SQLStorage(Storage):
         if isinstance(checker, StringFuzzyChecker):
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
-                PolicyModel.subjects.any(PolicySubjectModel.subject.like("%{}%".format(inquiry.subject))),
+                PolicyModel.actions.any(PolicyActionModel.action.like("%{}%".format(inquiry.action))),
                 PolicyModel.resources.any(PolicyResourceModel.resource.like("%{}%".format(inquiry.resource))),
-                PolicyModel.actions.any(PolicyActionModel.action.like("%{}%".format(inquiry.action))))
+                PolicyModel.subjects.any(PolicySubjectModel.subject.like("%{}%".format(inquiry.subject))))
         elif isinstance(checker, StringExactChecker):
             # A string is converted to a JSON string before inserting
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
-                PolicyModel.subjects.any(PolicySubjectModel.subject == json.dumps(inquiry.subject)),
+                PolicyModel.actions.any(PolicyActionModel.action == json.dumps(inquiry.action)),
                 PolicyModel.resources.any(PolicyResourceModel.resource == json.dumps(inquiry.resource)),
-                PolicyModel.actions.any(PolicyActionModel.action == json.dumps(inquiry.action)))
+                PolicyModel.subjects.any(PolicySubjectModel.subject == json.dumps(inquiry.subject)))
         elif isinstance(checker, RegexChecker):
+            regex_operator = self._get_dialect_regex_operator()
+            if not regex_operator:
+                return cur.filter(PolicyModel.type == TYPE_STRING_BASED)
             return cur.filter(
-                PolicyModel.type == TYPE_STRING_BASED)
+                PolicyModel.type == TYPE_STRING_BASED,
+                PolicyModel.actions.any(
+                    or_(
+                        and_(PolicyActionModel.action_regex.is_(None),
+                             PolicyActionModel.action == json.dumps(inquiry.action)),
+                        and_(PolicyActionModel.action_regex.isnot(None),
+                             literal(inquiry.action).
+                             op(regex_operator, is_comparison=True)(PolicyActionModel.action_regex))
+                    ),
+                ),
+                PolicyModel.resources.any(
+                    or_(
+                        and_(PolicyResourceModel.resource_regex.is_(None),
+                             PolicyResourceModel.resource == json.dumps(inquiry.resource)),
+                        and_(PolicyResourceModel.resource_regex.isnot(None),
+                             literal(inquiry.resource).
+                             op(regex_operator, is_comparison=True)(PolicyResourceModel.resource_regex))
+                    ),
+                ),
+                PolicyModel.subjects.any(
+                    or_(
+                        and_(PolicySubjectModel.subject_regex.is_(None),
+                             PolicySubjectModel.subject == json.dumps(inquiry.subject)),
+                        and_(PolicySubjectModel.subject_regex.isnot(None),
+                             literal(inquiry.subject).
+                             op(regex_operator, is_comparison=True)(PolicySubjectModel.subject_regex))
+                    ),
+                )
+            )
         elif isinstance(checker, RulesChecker):
-            return cur.filter(
-                PolicyModel.type == TYPE_RULE_BASED)
+            return cur.filter(PolicyModel.type == TYPE_RULE_BASED)
         elif not checker:
             return cur
         else:
             log.error('Provided Checker type is not supported.')
             raise UnknownCheckerType(checker)
+
+    def _get_dialect_regex_operator(self):
+        """
+        Get database-specific regex operator.
+        """
+        dialect = self.session.bind.engine.dialect.name
+        if dialect == 'mysql':
+            return 'REGEXP BINARY'
+        elif dialect == 'postgresql':
+            return '~'
+        return None
