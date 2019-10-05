@@ -5,7 +5,6 @@ import unittest
 import uuid
 
 import pytest
-from bson.objectid import ObjectId
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
@@ -66,17 +65,6 @@ class TestSQLStorage:
         assert isinstance(st.get('2').resources[0]['books'], Eq)
         assert 'Harry' == st.get('2').resources[0]['books'].val
 
-    def test_add_with_bson_object_id(self, st):
-        id = str(ObjectId())
-        p = Policy(
-            uid=id,
-            description='foo',
-        )
-        st.add(p)
-
-        back = st.get(id)
-        assert id == back.uid
-
     def test_policy_create_existing(self, st):
         id = str(uuid.uuid4())
         st.add(Policy(id, description='foo'))
@@ -87,8 +75,8 @@ class TestSQLStorage:
         st.add(Policy('1'))
         st.add(Policy(2, description='some text'))
         assert isinstance(st.get('1'), Policy)
-        assert '1' == st.get('1').uid
         # SQL storage stores all uid as string
+        assert '1' == st.get('1').uid
         assert '2' == st.get('2').uid
         assert 'some text' == st.get('2').description
 
@@ -96,20 +84,20 @@ class TestSQLStorage:
         assert None is st.get('123456789')
 
     @pytest.mark.parametrize('limit, offset, result', [
-        (500, 0, 200),
-        (101, 1, 101),
-        (500, 50, 150),
-        (200, 0, 200),
-        (200, 1, 199),
-        (199, 0, 199),
-        (200, 50, 150),
+        (50, 0, 20),
+        (11, 1, 11),
+        (50, 5, 15),
+        (20, 0, 20),
+        (20, 1, 19),
+        (19, 0, 19),
+        (20, 5, 15),
         (0, 0, 0),
-        (0, 100, 0),
+        (0, 10, 0),
         (1, 0, 1),
         (5, 4, 5),
     ])
     def test_get_all(self, st, limit, offset, result):
-        for i in range(200):
+        for i in range(20):
             desc = ''.join(random.choice('abcde') for _ in range(30))
             st.add(Policy(str(i), description=desc))
         policies = list(st.get_all(limit=limit, offset=offset))
@@ -334,7 +322,7 @@ class TestSQLStorage:
         assert None is st.get('1')
 
     def test_delete_nonexistent(self, st):
-        uid = str(ObjectId())
+        uid = str('non-existent-id')
         st.delete(uid)
         assert None is st.get(uid)
 
