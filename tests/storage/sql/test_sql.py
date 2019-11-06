@@ -146,7 +146,6 @@ class TestSQLStorage:
 
     @pytest.mark.parametrize('checker, expect_number', [
         (None, 6),
-        (RegexChecker(), 3),
         (RulesChecker(), 2),
         (StringExactChecker(), 1),
         (StringFuzzyChecker(), 1),
@@ -155,11 +154,33 @@ class TestSQLStorage:
         st.add(Policy('1', subjects=['<[mM]ax>', '<.*>'], actions=['delete'], resources=['server']))
         st.add(Policy('2', subjects=['Ji<[mM]+>'], actions=['delete'], resources=[r'server<\s*>']))
         st.add(Policy('3', subjects=['sam<.*>', 'foo']))
-        st.add(Policy('4', subjects=[{'stars': Eq(90)}, Eq('Max')]))
         st.add(Policy('5', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('4', subjects=[{'stars': Eq(90)}, Eq('Max')]))
         st.add(Policy('6', subjects=[Eq('Jim'), Eq('Nina')]))
         inquiry = Inquiry(subject='Jim', action='delete', resource='server')
         found = st.find_for_inquiry(inquiry, checker)
+        found = list(found)
+        assert expect_number == len(found)
+
+    @pytest.mark.parametrize('dialect, expect_number', [
+        ('sqlite', 7),
+        ('mysql', 5),
+        ('postgresql', 5),
+    ])
+    def test_regex_checker_find_for_inquiry_policies_count_return_by_storage(self, st, dialect, expect_number):
+        if st.dialect != dialect:
+            pytest.skip('skipping for %s dialect' % dialect)
+        st.add(Policy('1', subjects=['<[mM]ax>', '<.*>'], actions=['delete'], resources=['server']))
+        st.add(Policy('2', subjects=['Ji<[mM]+>'], actions=['delete'], resources=[r'server<\s*>']))
+        st.add(Policy('3', subjects=['sam<.*>', 'foo']))
+        st.add(Policy('5', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('6', subjects=['Ji<[mM]+>'], actions=[r'<[a-zA-Z]{6}>'], resources=['serve<(r|rs)>']))
+        st.add(Policy('7', subjects=['Ji<[mM]+>'], actions=[r'<[a-zA-Z]{6}>'], resources=['serve<(u|rs)>']))
+        st.add(Policy('8', subjects=['Ji<[mM]+>'], actions=[r'<[a-zA-Z]{6}>'], resources=['serve<(u|rs)>', 'server']))
+        st.add(Policy('40', subjects=[{'stars': Eq(90)}, Eq('Max')]))
+        st.add(Policy('60', subjects=[Eq('Jim'), Eq('Nina')]))
+        inquiry = Inquiry(subject='Jim', action='delete', resource='server')
+        found = st.find_for_inquiry(inquiry, RegexChecker())
         found = list(found)
         assert expect_number == len(found)
 

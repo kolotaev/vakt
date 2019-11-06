@@ -32,9 +32,9 @@ install:
 
 script:
   # test all suites with coverage
-  - DATABASE_DSN="sqlite:///:memory:" make coverage
-  # test SQL integration for MySQL
-  - DATABASE_DSN="mysql+pymysql://root@127.0.0.1/vakt_db" make test-sql-i
+  - DATABASE_DSN="mysql+pymysql://root@127.0.0.1/vakt_db" make coverage
+  # test SQL integration for SQLite
+  - DATABASE_DSN="sqlite:///:memory:" make test-sql-i
   # test SQL integration for Postgres
   - DATABASE_DSN="postgresql+psycopg2cffi://postgres:@localhost/vakt_db" make test-sql-i
   # Run performance tests
