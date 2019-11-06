@@ -5,7 +5,7 @@ SQL Storage for Policies.
 import json
 import logging
 
-from sqlalchemy import and_, or_, literal
+from sqlalchemy import and_, or_, literal, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import FlushError
 
@@ -29,6 +29,7 @@ class SQLStorage(Storage):
             :param scoped_session: SQL Alchemy scoped session
         """
         self.session = scoped_session
+        self.dialect = self.session.bind.engine.dialect.name
 
     def add(self, policy):
         try:
@@ -99,8 +100,7 @@ class SQLStorage(Storage):
                 PolicyModel.resources.any(PolicyResourceModel.resource == json.dumps(inquiry.resource)),
                 PolicyModel.subjects.any(PolicySubjectModel.subject == json.dumps(inquiry.subject)))
         elif isinstance(checker, RegexChecker):
-            regex_operator = self._get_dialect_regex_operator()
-            if not regex_operator:
+            if not self._supports_regex_operator():
                 return cur.filter(PolicyModel.type == TYPE_STRING_BASED)
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
@@ -109,8 +109,7 @@ class SQLStorage(Storage):
                         and_(PolicyActionModel.action_regex.is_(None),
                              PolicyActionModel.action == json.dumps(inquiry.action)),
                         and_(PolicyActionModel.action_regex.isnot(None),
-                             literal(inquiry.action).
-                             op(regex_operator, is_comparison=True)(PolicyActionModel.action_regex))
+                             self._regex_operation(inquiry.action, PolicyActionModel.action_regex))
                     ),
                 ),
                 PolicyModel.resources.any(
@@ -118,8 +117,7 @@ class SQLStorage(Storage):
                         and_(PolicyResourceModel.resource_regex.is_(None),
                              PolicyResourceModel.resource == json.dumps(inquiry.resource)),
                         and_(PolicyResourceModel.resource_regex.isnot(None),
-                             literal(inquiry.resource).
-                             op(regex_operator, is_comparison=True)(PolicyResourceModel.resource_regex))
+                             self._regex_operation(inquiry.resource, PolicyResourceModel.resource_regex))
                     ),
                 ),
                 PolicyModel.subjects.any(
@@ -127,8 +125,7 @@ class SQLStorage(Storage):
                         and_(PolicySubjectModel.subject_regex.is_(None),
                              PolicySubjectModel.subject == json.dumps(inquiry.subject)),
                         and_(PolicySubjectModel.subject_regex.isnot(None),
-                             literal(inquiry.subject).
-                             op(regex_operator, is_comparison=True)(PolicySubjectModel.subject_regex))
+                             self._regex_operation(inquiry.subject, PolicySubjectModel.subject_regex))
                     ),
                 )
             )
@@ -140,13 +137,21 @@ class SQLStorage(Storage):
             log.error('Provided Checker type is not supported.')
             raise UnknownCheckerType(checker)
 
-    def _get_dialect_regex_operator(self):
+    def _supports_regex_operator(self):
         """
-        Get database-specific regex operator.
+        Does database support regex operator?
         """
-        dialect = self.session.bind.engine.dialect.name
-        if dialect == 'mysql':
-            return 'REGEXP BINARY'
-        elif dialect == 'postgresql':
-            return '~'
+        return self.dialect in ['mysql', 'postgresql', 'oracle']
+
+    def _regex_operation(self, left, right):
+        """
+        Get database-specific regex operation.
+        Don't forget to check if there is a support for regex operator before using it.
+        """
+        if self.dialect == 'mysql':
+            return literal(left).op('REGEXP BINARY', is_comparison=True)(right)
+        elif self.dialect == 'postgresql':
+            return literal(left).op('~', is_comparison=True)(right)
+        elif self.dialect == 'oracle':
+            return func.REGEXP_LIKE(left, right)
         return None
