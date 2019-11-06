@@ -119,7 +119,9 @@ class TestSQLStorage:
         assert 1 == len(policies)
         assert '1' == policies[0].uid
         assert 'foo bar баз' == policies[0].description
-        assert ['Edward Rooney', 'Florence Sparrow'] == policies[0].subjects
+        assert 2 == len(policies[0].subjects)
+        assert 'Edward Rooney' in policies[0].subjects
+        assert 'Florence Sparrow' in policies[0].subjects
         assert ['<.*>'] == policies[0].actions
         assert ['<.*>'] == policies[0].resources
         assert isinstance(policies[0].context['secret'], Equal)
