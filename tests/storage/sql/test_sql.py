@@ -21,7 +21,7 @@ from vakt.storage.sql.model import Base
 
 from . import create_test_sql_engine
 
-
+# todo - indices
 @pytest.mark.sql_integration
 class TestSQLStorage:
 

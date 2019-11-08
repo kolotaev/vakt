@@ -67,7 +67,7 @@ class PolicyModel(Base):
             :param policy: object of type policy
         """
         rvalue = cls()
-        return cls._create(policy, model=rvalue)
+        return cls._save(policy, model=rvalue)
 
     def update(self, policy):
         """
@@ -75,7 +75,7 @@ class PolicyModel(Base):
 
             :param policy: object of type policy
         """
-        self._create(policy, model=self)
+        self._save(policy, model=self)
 
     def to_policy(self):
         """
@@ -87,12 +87,12 @@ class PolicyModel(Base):
                       effect=ALLOW_ACCESS if self.effect else DENY_ACCESS,
                       description=self.description,
                       context=Rule.from_json(self.context),
-                      subjects=[Rule.from_json(x.subject) for x in self.subjects],
-                      resources=[Rule.from_json(x.resource) for x in self.resources],
-                      actions=[Rule.from_json(x.action) for x in self.actions])
+                      subjects=[self._policy_element_from_db(x.subject) for x in self.subjects],
+                      resources=[self._policy_element_from_db(x.resource) for x in self.resources],
+                      actions=[self._policy_element_from_db(x.action) for x in self.actions])
 
     @classmethod
-    def _create(cls, policy, model):
+    def _save(cls, policy, model):
         """
             Helper to create PolicyModel from Policy object for add and update operations.
 
@@ -108,22 +108,33 @@ class PolicyModel(Base):
         model.context = json.dumps(policy_dict['context'])
         model.subjects = [
             PolicySubjectModel(subject=x, subject_regex=compiled) for (x, compiled)
-            in cls._policy_elements(policy, policy_dict['subjects'])
+            in cls._policy_elements_to_db(policy, policy_dict['subjects'])
         ]
         model.resources = [
             PolicyResourceModel(resource=x, resource_regex=compiled) for (x, compiled)
-            in cls._policy_elements(policy, policy_dict['resources'])
+            in cls._policy_elements_to_db(policy, policy_dict['resources'])
         ]
         model.actions = [
             PolicyActionModel(action=x, action_regex=compiled) for (x, compiled)
-            in cls._policy_elements(policy, policy_dict['actions'])
+            in cls._policy_elements_to_db(policy, policy_dict['actions'])
         ]
         return model
 
     @classmethod
-    def _policy_elements(cls, policy, elements):
+    def _policy_elements_to_db(cls, policy, elements):
         for el in elements:
-            compiled = None
-            if policy.type == TYPE_STRING_BASED and (policy.start_tag in el and policy.end_tag in el):
-                compiled = compile_regex(el, policy.start_tag, policy.end_tag).pattern
-            yield (json.dumps(el), compiled)
+            value, compiled_value = None, None
+            if policy.type == TYPE_STRING_BASED:
+                value = el
+                if policy.start_tag in el and policy.end_tag in el:
+                    compiled_value = compile_regex(el, policy.start_tag, policy.end_tag).pattern
+            else:  # it's a rule-based policy and it's value is a json
+                value = json.dumps(el)
+            yield (value, compiled_value)
+
+    @classmethod
+    def _policy_element_from_db(cls, element):
+        try:
+            return Rule.from_json(element)
+        except:
+            return element

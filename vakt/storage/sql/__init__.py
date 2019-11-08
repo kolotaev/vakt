@@ -2,7 +2,6 @@
 SQL Storage for Policies.
 """
 
-import json
 import logging
 
 from sqlalchemy import and_, or_, literal, func
@@ -89,16 +88,15 @@ class SQLStorage(Storage):
         if isinstance(checker, StringFuzzyChecker):
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
-                PolicyModel.actions.any(PolicyActionModel.action.like("%{}%".format(inquiry.action))),
-                PolicyModel.resources.any(PolicyResourceModel.resource.like("%{}%".format(inquiry.resource))),
-                PolicyModel.subjects.any(PolicySubjectModel.subject.like("%{}%".format(inquiry.subject))))
+                PolicyModel.actions.any(PolicyActionModel.action.like('%{}%'.format(inquiry.action))),
+                PolicyModel.resources.any(PolicyResourceModel.resource.like('%{}%'.format(inquiry.resource))),
+                PolicyModel.subjects.any(PolicySubjectModel.subject.like('%{}%'.format(inquiry.subject))))
         elif isinstance(checker, StringExactChecker):
-            # A string is converted to a JSON string before inserting
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
-                PolicyModel.actions.any(PolicyActionModel.action == json.dumps(inquiry.action)),
-                PolicyModel.resources.any(PolicyResourceModel.resource == json.dumps(inquiry.resource)),
-                PolicyModel.subjects.any(PolicySubjectModel.subject == json.dumps(inquiry.subject)))
+                PolicyModel.actions.any(PolicyActionModel.action == inquiry.action),
+                PolicyModel.resources.any(PolicyResourceModel.resource == inquiry.resource),
+                PolicyModel.subjects.any(PolicySubjectModel.subject == inquiry.subject))
         elif isinstance(checker, RegexChecker):
             if not self._supports_regex_operator():
                 return cur.filter(PolicyModel.type == TYPE_STRING_BASED)
@@ -107,7 +105,7 @@ class SQLStorage(Storage):
                 PolicyModel.actions.any(
                     or_(
                         and_(PolicyActionModel.action_regex.is_(None),
-                             PolicyActionModel.action == json.dumps(inquiry.action)),
+                             PolicyActionModel.action == inquiry.action),
                         and_(PolicyActionModel.action_regex.isnot(None),
                              self._regex_operation(inquiry.action, PolicyActionModel.action_regex))
                     ),
@@ -115,7 +113,7 @@ class SQLStorage(Storage):
                 PolicyModel.resources.any(
                     or_(
                         and_(PolicyResourceModel.resource_regex.is_(None),
-                             PolicyResourceModel.resource == json.dumps(inquiry.resource)),
+                             PolicyResourceModel.resource == inquiry.resource),
                         and_(PolicyResourceModel.resource_regex.isnot(None),
                              self._regex_operation(inquiry.resource, PolicyResourceModel.resource_regex))
                     ),
@@ -123,7 +121,7 @@ class SQLStorage(Storage):
                 PolicyModel.subjects.any(
                     or_(
                         and_(PolicySubjectModel.subject_regex.is_(None),
-                             PolicySubjectModel.subject == json.dumps(inquiry.subject)),
+                             PolicySubjectModel.subject == inquiry.subject),
                         and_(PolicySubjectModel.subject_regex.isnot(None),
                              self._regex_operation(inquiry.subject, PolicySubjectModel.subject_regex))
                     ),
