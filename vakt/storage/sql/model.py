@@ -9,7 +9,6 @@ from ...rules.base import Rule
 from ...parser import compile_regex
 from ...exceptions import RuleCreationError
 
-
 Base = declarative_base()
 
 
@@ -108,30 +107,32 @@ class PolicyModel(Base):
         model.description = policy_dict['description']
         model.context = json.dumps(policy_dict['context'])
         model.subjects = [
-            PolicySubjectModel(subject=x, subject_regex=compiled) for (x, compiled)
-            in cls._policy_elements_to_db(policy, policy_dict['subjects'])
+            PolicySubjectModel(subject=x, subject_regex=compiled)
+            for y in policy_dict['subjects']
+            for (x, compiled) in cls._policy_element_to_db(policy, y)
         ]
         model.resources = [
-            PolicyResourceModel(resource=x, resource_regex=compiled) for (x, compiled)
-            in cls._policy_elements_to_db(policy, policy_dict['resources'])
+            PolicyResourceModel(resource=x, resource_regex=compiled)
+            for y in policy_dict['resources']
+            for (x, compiled) in cls._policy_element_to_db(policy, y)
         ]
         model.actions = [
-            PolicyActionModel(action=x, action_regex=compiled) for (x, compiled)
-            in cls._policy_elements_to_db(policy, policy_dict['actions'])
+            PolicyActionModel(action=x, action_regex=compiled)
+            for y in policy_dict['actions']
+            for (x, compiled) in cls._policy_element_to_db(policy, y)
         ]
         return model
 
     @classmethod
-    def _policy_elements_to_db(cls, policy, elements):
-        for el in elements:
-            value, compiled_value = None, None
-            if policy.type == TYPE_STRING_BASED:
-                value = el
-                if policy.start_tag in el and policy.end_tag in el:
-                    compiled_value = compile_regex(el, policy.start_tag, policy.end_tag).pattern
-            else:  # it's a rule-based policy and it's value is a json
-                value = json.dumps(el)
-            yield (value, compiled_value)
+    def _policy_element_to_db(cls, policy, el):
+        value, compiled_value = None, None
+        if policy.type == TYPE_STRING_BASED:
+            value = el
+            if policy.start_tag in el and policy.end_tag in el:
+                compiled_value = compile_regex(el, policy.start_tag, policy.end_tag).pattern
+        else:  # it's a rule-based policy and it's value is a json
+            value = json.dumps(el)
+        yield (value, compiled_value)
 
     @classmethod
     def _policy_element_from_db(cls, element):
