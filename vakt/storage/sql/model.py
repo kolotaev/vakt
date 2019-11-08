@@ -7,6 +7,7 @@ from sqlalchemy.orm import relationship
 from ...policy import Policy, ALLOW_ACCESS, DENY_ACCESS, TYPE_STRING_BASED
 from ...rules.base import Rule
 from ...parser import compile_regex
+from ...exceptions import RuleCreationError
 
 
 Base = declarative_base()
@@ -136,5 +137,5 @@ class PolicyModel(Base):
     def _policy_element_from_db(cls, element):
         try:
             return Rule.from_json(element)
-        except:
+        except RuleCreationError:
             return element
