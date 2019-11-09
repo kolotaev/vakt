@@ -88,15 +88,15 @@ class SQLStorage(Storage):
         if isinstance(checker, StringFuzzyChecker):
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
-                PolicyModel.actions.any(PolicyActionModel.action.like('%{}%'.format(inquiry.action))),
-                PolicyModel.resources.any(PolicyResourceModel.resource.like('%{}%'.format(inquiry.resource))),
-                PolicyModel.subjects.any(PolicySubjectModel.subject.like('%{}%'.format(inquiry.subject))))
+                PolicyModel.actions.any(PolicyActionModel.action_string.like('%{}%'.format(inquiry.action))),
+                PolicyModel.resources.any(PolicyResourceModel.resource_string.like('%{}%'.format(inquiry.resource))),
+                PolicyModel.subjects.any(PolicySubjectModel.subject_string.like('%{}%'.format(inquiry.subject))))
         elif isinstance(checker, StringExactChecker):
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
-                PolicyModel.actions.any(PolicyActionModel.action == inquiry.action),
-                PolicyModel.resources.any(PolicyResourceModel.resource == inquiry.resource),
-                PolicyModel.subjects.any(PolicySubjectModel.subject == inquiry.subject))
+                PolicyModel.actions.any(PolicyActionModel.action_string == inquiry.action),
+                PolicyModel.resources.any(PolicyResourceModel.resource_string == inquiry.resource),
+                PolicyModel.subjects.any(PolicySubjectModel.subject_string == inquiry.subject))
         elif isinstance(checker, RegexChecker):
             if not self._supports_regex_operator():
                 return cur.filter(PolicyModel.type == TYPE_STRING_BASED)
@@ -105,7 +105,7 @@ class SQLStorage(Storage):
                 PolicyModel.actions.any(
                     or_(
                         and_(PolicyActionModel.action_regex.is_(None),
-                             PolicyActionModel.action == inquiry.action),
+                             PolicyActionModel.action_string == inquiry.action),
                         and_(PolicyActionModel.action_regex.isnot(None),
                              self._regex_operation(inquiry.action, PolicyActionModel.action_regex))
                     ),
@@ -113,7 +113,7 @@ class SQLStorage(Storage):
                 PolicyModel.resources.any(
                     or_(
                         and_(PolicyResourceModel.resource_regex.is_(None),
-                             PolicyResourceModel.resource == inquiry.resource),
+                             PolicyResourceModel.resource_string == inquiry.resource),
                         and_(PolicyResourceModel.resource_regex.isnot(None),
                              self._regex_operation(inquiry.resource, PolicyResourceModel.resource_regex))
                     ),
@@ -121,7 +121,7 @@ class SQLStorage(Storage):
                 PolicyModel.subjects.any(
                     or_(
                         and_(PolicySubjectModel.subject_regex.is_(None),
-                             PolicySubjectModel.subject == inquiry.subject),
+                             PolicySubjectModel.subject_string == inquiry.subject),
                         and_(PolicySubjectModel.subject_regex.isnot(None),
                              self._regex_operation(inquiry.subject, PolicySubjectModel.subject_regex))
                     ),
