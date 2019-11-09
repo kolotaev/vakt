@@ -391,6 +391,11 @@ Syntax for description of Policy fields is:
 Where `<>` are delimiters of a regular expression boundaries part. Custom Policy can redefine them by overriding
 `start_tag` and `end_tag` properties. Generally you always want to use the first variant: `<foo.*>`.
 
+**WARNING. Please note, that storages have varying level of regexp support. For example,
+most SQL databases allow to use POSIX metacharacters whereas python `re` module
+and thus MemoryStorage does not. So, while defining policies you're safe and sound
+as long as you understand how storage of your choice handles the regexps you specified.**
+
 * StringExactChecker - the most quick checker:
 ```
 Checker that uses exact string equality. Case-sensitive.
