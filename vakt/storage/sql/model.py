@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import Column, Integer, SmallInteger, String, ForeignKey, Text, Boolean
+from sqlalchemy import Column, Integer, SmallInteger, String, ForeignKey, Text, JSON, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -18,7 +18,7 @@ class PolicySubjectModel(Base):
 
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
-    subject = Column(Text())
+    subject = Column(JSON())
     subject_string = Column(String(2000))
     subject_regex = Column(String(2000))
 
@@ -30,7 +30,7 @@ class PolicyResourceModel(Base):
 
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
-    resource = Column(Text())
+    resource = Column(JSON())
     resource_string = Column(String(2000))
     resource_regex = Column(String(2000))
 
@@ -42,7 +42,7 @@ class PolicyActionModel(Base):
 
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
-    action = Column(Text())
+    action = Column(JSON())
     action_string = Column(String(2000))
     action_regex = Column(String(2000))
 
@@ -56,7 +56,7 @@ class PolicyModel(Base):
     type = Column(SmallInteger)
     description = Column(Text())
     effect = Column(Boolean())
-    context = Column(Text())
+    context = Column(JSON())
     subjects = relationship(PolicySubjectModel, passive_deletes=True, lazy='joined')
     resources = relationship(PolicyResourceModel, passive_deletes=True, lazy='joined')
     actions = relationship(PolicyActionModel, passive_deletes=True, lazy='joined')
