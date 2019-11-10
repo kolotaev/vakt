@@ -40,8 +40,7 @@ if __name__ == '__main__':
                 'pymongo~=3.5',
             ],
             'sql': [
-                # todo - attach to minor release instead of a patch
-                'SQLAlchemy~=1.3.8'
+                'SQLAlchemy~=1.3'
             ],
         },
         packages=find_packages(exclude='tests'),
