@@ -19,8 +19,10 @@ class PolicySubjectModel(Base):
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
     subject = Column(JSON(), comment='JSON value for rule-based policies')
-    subject_string = Column(String(2000), comment='Initial string value for string-based policies')
-    subject_regex = Column(String(2000), comment='Regexp from initial string value for string-based policies')
+    subject_string = Column(String(255), index=True, comment='Initial string value for string-based policies')
+    subject_regex = Column(String(520),
+                           index=True,
+                           comment='Regexp from initial string value for string-based policies')
 
 
 class PolicyResourceModel(Base):
@@ -31,8 +33,10 @@ class PolicyResourceModel(Base):
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
     resource = Column(JSON(), comment='JSON value for rule-based policies')
-    resource_string = Column(String(2000), comment='Initial string value for string-based policies')
-    resource_regex = Column(String(2000), comment='Regexp from initial string value for string-based policies')
+    resource_string = Column(String(255), index=True, comment='Initial string value for string-based policies')
+    resource_regex = Column(String(520),
+                            index=True,
+                            comment='Regexp from initial string value for string-based policies')
 
 
 class PolicyActionModel(Base):
@@ -43,8 +47,10 @@ class PolicyActionModel(Base):
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
     action = Column(JSON(), comment='JSON value for rule-based policies')
-    action_string = Column(String(2000), comment='Initial string value for string-based policies')
-    action_regex = Column(String(2000), comment='Regexp from initial string value for string-based policies')
+    action_string = Column(String(255), index=True, comment='Initial string value for string-based policies')
+    action_regex = Column(String(520),
+                          index=True,
+                          comment='Regexp from initial string value for string-based policies')
 
 
 class PolicyModel(Base):
