@@ -21,7 +21,7 @@ from vakt.storage.sql.model import Base
 
 from . import create_test_sql_engine
 
-# todo - indices
+
 @pytest.mark.sql_integration
 class TestSQLStorage:
 
@@ -291,7 +291,9 @@ class TestSQLStorage:
         found = st.find_for_inquiry(inquiry, RulesChecker())
         found = list(found)
         assert 3 == len(found)
-        assertions.assertListEqual(['1', '2', '5'], list(map(operator.attrgetter('uid'), found)))
+        found_uids = list(map(operator.attrgetter('uid'), found))
+        found_uids.sort()
+        assertions.assertListEqual(['1', '2', '5'], found_uids)
 
     def test_find_for_inquiry_with_unknown_checker(self, st):
         st.add(Policy('1'))
