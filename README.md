@@ -44,8 +44,8 @@ Attribute-based access control (ABAC) SDK for Python.
 
 ### Description
 
-Vakt is an attribute-based access control ([ABAC](https://en.wikipedia.org/wiki/Attribute-based_access_control))
-toolkit that is based on policies, also sometimes referred as PBAC.
+Vakt is an attribute-based and policy-based access control ([ABAC](https://en.wikipedia.org/wiki/Attribute-based_access_control))
+toolkit that is based on policies.
 ABAC stands aside of RBAC and ACL models, giving you
 a fine-grained control on definition of the rules that restrict an access to resources and is generally considered a
 "next generation" authorization model.
@@ -634,7 +634,7 @@ Vakt logs can be comprehended in 2 basic levels:
 
 Most valuable features to be implemented in the order of importance:
 
-- [ ] SQL Storage
+- [x] SQL Storage
 - [ ] Rules that reference Inquiry data for Rule-based policies 
 - [ ] Caching mechanisms (for Storage and Guard)
 - [ ] YAML-based language for declarative policy definitions

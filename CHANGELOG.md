@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## [1.3.0] - TBA
+## [1.3.0] - 2019-11-11
 ### Added
 - [Storage] SQLStorage implementation with support for all RDBMS backed by SQL Alchemy.
 
