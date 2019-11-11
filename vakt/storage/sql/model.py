@@ -1,10 +1,12 @@
 import json
 
-from sqlalchemy import Column, Integer, SmallInteger, String, ForeignKey, Text, Boolean
+from sqlalchemy import Column, Integer, SmallInteger, String, ForeignKey, Text, JSON, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from ...policy import Policy, ALLOW_ACCESS, DENY_ACCESS
+from ...policy import Policy, ALLOW_ACCESS, DENY_ACCESS, TYPE_STRING_BASED
+from ...rules.base import Rule
+from ...parser import compile_regex
 
 Base = declarative_base()
 
@@ -16,7 +18,11 @@ class PolicySubjectModel(Base):
 
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
-    subject = Column(Text())
+    subject = Column(JSON(), comment='JSON value for rule-based policies')
+    subject_string = Column(String(255), index=True, comment='Initial string value for string-based policies')
+    subject_regex = Column(String(520),
+                           index=True,
+                           comment='Regexp from initial string value for string-based policies')
 
 
 class PolicyResourceModel(Base):
@@ -26,7 +32,11 @@ class PolicyResourceModel(Base):
 
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
-    resource = Column(Text())
+    resource = Column(JSON(), comment='JSON value for rule-based policies')
+    resource_string = Column(String(255), index=True, comment='Initial string value for string-based policies')
+    resource_regex = Column(String(520),
+                            index=True,
+                            comment='Regexp from initial string value for string-based policies')
 
 
 class PolicyActionModel(Base):
@@ -36,7 +46,11 @@ class PolicyActionModel(Base):
 
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), ForeignKey('vakt_policies.uid', ondelete='CASCADE'))
-    action = Column(Text())
+    action = Column(JSON(), comment='JSON value for rule-based policies')
+    action_string = Column(String(255), index=True, comment='Initial string value for string-based policies')
+    action_regex = Column(String(520),
+                          index=True,
+                          comment='Regexp from initial string value for string-based policies')
 
 
 class PolicyModel(Base):
@@ -48,7 +62,7 @@ class PolicyModel(Base):
     type = Column(SmallInteger)
     description = Column(Text())
     effect = Column(Boolean())
-    context = Column(Text())
+    context = Column(JSON())
     subjects = relationship(PolicySubjectModel, passive_deletes=True, lazy='joined')
     resources = relationship(PolicyResourceModel, passive_deletes=True, lazy='joined')
     actions = relationship(PolicyActionModel, passive_deletes=True, lazy='joined')
@@ -60,18 +74,8 @@ class PolicyModel(Base):
 
             :param policy: object of type policy
         """
-        policy_json = policy.to_json()
-        policy_dict = json.loads(policy_json)
         rvalue = cls()
-        rvalue.uid = policy_dict['uid']
-        rvalue.type = policy_dict['type']
-        rvalue.effect = policy_dict['effect'] == ALLOW_ACCESS
-        rvalue.description = policy_dict['description']
-        rvalue.context = json.dumps(policy_dict['context'])
-        rvalue.subjects = [PolicySubjectModel(subject=json.dumps(subject)) for subject in policy_dict['subjects']]
-        rvalue.resources = [PolicyResourceModel(resource=json.dumps(resource)) for resource in policy_dict['resources']]
-        rvalue.actions = [PolicyActionModel(action=json.dumps(action)) for action in policy_dict['actions']]
-        return rvalue
+        return cls._save(policy, model=rvalue)
 
     def update(self, policy):
         """
@@ -79,16 +83,7 @@ class PolicyModel(Base):
 
             :param policy: object of type policy
         """
-        policy_json = policy.to_json()
-        policy_dict = json.loads(policy_json)
-        self.uid = policy_dict['uid']
-        self.type = policy_dict['type']
-        self.effect = policy_dict['effect'] == ALLOW_ACCESS
-        self.description = policy_dict['description']
-        self.context = json.dumps(policy_dict['context'])
-        self.subjects = [PolicySubjectModel(subject=json.dumps(subject)) for subject in policy_dict['subjects']]
-        self.resources = [PolicyResourceModel(resource=json.dumps(resource)) for resource in policy_dict['resources']]
-        self.actions = [PolicyActionModel(action=json.dumps(action)) for action in policy_dict['actions']]
+        self._save(policy, model=self)
 
     def to_policy(self):
         """
@@ -96,14 +91,68 @@ class PolicyModel(Base):
 
             :return: object of type `Policy`
         """
-        policy_dict = {
-            "uid": self.uid,
-            "effect": ALLOW_ACCESS if self.effect else DENY_ACCESS,
-            "description": self.description,
-            "context": json.loads(self.context),
-            "subjects": [json.loads(x.subject) for x in self.subjects],
-            "resources": [json.loads(x.resource) for x in self.resources],
-            "actions": [json.loads(x.action) for x in self.actions]
-        }
-        policy_json = json.dumps(policy_dict)
-        return Policy.from_json(policy_json)
+        return Policy(uid=self.uid,
+                      effect=ALLOW_ACCESS if self.effect else DENY_ACCESS,
+                      description=self.description,
+                      context=Rule.from_json(self.context),
+                      subjects=[
+                          self._policy_element_from_db(self.type, x.subject, x.subject_string)
+                          for x in self.subjects
+                      ],
+                      resources=[
+                          self._policy_element_from_db(self.type, x.resource, x.resource_string)
+                          for x in self.resources
+                      ],
+                      actions=[
+                          self._policy_element_from_db(self.type, x.action, x.action_string)
+                          for x in self.actions
+                      ])
+
+    @classmethod
+    def _save(cls, policy, model):
+        """
+            Helper to create PolicyModel from Policy object for add and update operations.
+
+            :param policy: object of type Policy
+            :param model: object of type PolicyModel
+        """
+        policy_json = policy.to_json()
+        policy_dict = json.loads(policy_json)
+        model.uid = policy_dict['uid']
+        model.type = policy_dict['type']
+        model.effect = policy_dict['effect'] == ALLOW_ACCESS
+        model.description = policy_dict['description']
+        model.context = json.dumps(policy_dict['context'])
+        model.subjects = [
+            PolicySubjectModel(subject=x, subject_string=string, subject_regex=compiled)
+            for y in policy_dict['subjects']
+            for (x, string, compiled) in cls._policy_element_to_db(policy, y)
+        ]
+        model.resources = [
+            PolicyResourceModel(resource=x, resource_string=string, resource_regex=compiled)
+            for y in policy_dict['resources']
+            for (x, string, compiled) in cls._policy_element_to_db(policy, y)
+        ]
+        model.actions = [
+            PolicyActionModel(action=x, action_string=string, action_regex=compiled)
+            for y in policy_dict['actions']
+            for (x, string, compiled) in cls._policy_element_to_db(policy, y)
+        ]
+        return model
+
+    @classmethod
+    def _policy_element_to_db(cls, policy, el):
+        json_value, string_value, compiled = None, None, None
+        if policy.type == TYPE_STRING_BASED:
+            string_value = el
+            if policy.start_tag in el and policy.end_tag in el:
+                compiled = compile_regex(el, policy.start_tag, policy.end_tag).pattern
+        else:  # it's a rule-based policy and it's value is a json
+            json_value = json.dumps(el)
+        yield (json_value, string_value, compiled)
+
+    @classmethod
+    def _policy_element_from_db(cls, policy_type, element_json, element_string):
+        if policy_type == TYPE_STRING_BASED:
+            return element_string
+        return Rule.from_json(element_json)

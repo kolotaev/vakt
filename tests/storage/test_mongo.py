@@ -96,20 +96,20 @@ class TestMongoStorage:
         assert None is st.get(123456789)
 
     @pytest.mark.parametrize('limit, offset, result', [
-        (500, 0, 200),
-        (101, 1, 101),
-        (500, 50, 150),
-        (200, 0, 200),
-        (200, 1, 199),
-        (199, 0, 199),
-        (200, 50, 150),
+        (50, 0, 20),
+        (11, 1, 11),
+        (50, 5, 15),
+        (20, 0, 20),
+        (20, 1, 19),
+        (19, 0, 19),
+        (20, 5, 15),
         (0, 0, 0),
-        (0, 100, 0),
+        (0, 10, 0),
         (1, 0, 1),
         (5, 4, 5),
     ])
     def test_get_all(self, st, limit, offset, result):
-        for i in range(200):
+        for i in range(20):
             desc = ''.join(random.choice('abcde') for _ in range(30))
             st.add(Policy(str(i), description=desc))
         policies = list(st.get_all(limit=limit, offset=offset))
@@ -164,7 +164,7 @@ class TestMongoStorage:
         (StringFuzzyChecker(), 1),
     ])
     def test_find_for_inquiry_returns_existing_policies(self, st, checker, expect_number):
-        st.add(Policy('1', subjects=['<[mM]ax', '<.*>']))
+        st.add(Policy('1', subjects=['<[mM]ax>', '<.*>']))
         st.add(Policy('2', subjects=['sam<.*>', 'foo']))
         st.add(Policy('3', subjects=[{'stars': Eq(90)}, Eq('Max')]))
         st.add(Policy('4', subjects=['Jim'], actions=['delete'], resources=['server']))

@@ -2,9 +2,9 @@
 SQL Storage for Policies.
 """
 
-import json
 import logging
 
+from sqlalchemy import and_, or_, literal, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import FlushError
 
@@ -13,6 +13,7 @@ from ..abc import Storage
 from ...checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
 from ...exceptions import PolicyExistsError, UnknownCheckerType
 from ...policy import TYPE_STRING_BASED, TYPE_RULE_BASED
+
 
 log = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ class SQLStorage(Storage):
             :param scoped_session: SQL Alchemy scoped session
         """
         self.session = scoped_session
+        self.dialect = self.session.bind.engine.dialect.name
 
     def add(self, policy):
         try:
@@ -86,24 +88,68 @@ class SQLStorage(Storage):
         if isinstance(checker, StringFuzzyChecker):
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
-                PolicyModel.subjects.any(PolicySubjectModel.subject.like("%{}%".format(inquiry.subject))),
-                PolicyModel.resources.any(PolicyResourceModel.resource.like("%{}%".format(inquiry.resource))),
-                PolicyModel.actions.any(PolicyActionModel.action.like("%{}%".format(inquiry.action))))
+                PolicyModel.actions.any(PolicyActionModel.action_string.like('%{}%'.format(inquiry.action))),
+                PolicyModel.resources.any(PolicyResourceModel.resource_string.like('%{}%'.format(inquiry.resource))),
+                PolicyModel.subjects.any(PolicySubjectModel.subject_string.like('%{}%'.format(inquiry.subject))))
         elif isinstance(checker, StringExactChecker):
-            # A string is converted to a JSON string before inserting
             return cur.filter(
                 PolicyModel.type == TYPE_STRING_BASED,
-                PolicyModel.subjects.any(PolicySubjectModel.subject == json.dumps(inquiry.subject)),
-                PolicyModel.resources.any(PolicyResourceModel.resource == json.dumps(inquiry.resource)),
-                PolicyModel.actions.any(PolicyActionModel.action == json.dumps(inquiry.action)))
+                PolicyModel.actions.any(PolicyActionModel.action_string == inquiry.action),
+                PolicyModel.resources.any(PolicyResourceModel.resource_string == inquiry.resource),
+                PolicyModel.subjects.any(PolicySubjectModel.subject_string == inquiry.subject))
         elif isinstance(checker, RegexChecker):
+            if not self._supports_regex_operator():
+                return cur.filter(PolicyModel.type == TYPE_STRING_BASED)
             return cur.filter(
-                PolicyModel.type == TYPE_STRING_BASED)
+                PolicyModel.type == TYPE_STRING_BASED,
+                PolicyModel.actions.any(
+                    or_(
+                        and_(PolicyActionModel.action_regex.is_(None),
+                             PolicyActionModel.action_string == inquiry.action),
+                        and_(PolicyActionModel.action_regex.isnot(None),
+                             self._regex_operation(inquiry.action, PolicyActionModel.action_regex))
+                    ),
+                ),
+                PolicyModel.resources.any(
+                    or_(
+                        and_(PolicyResourceModel.resource_regex.is_(None),
+                             PolicyResourceModel.resource_string == inquiry.resource),
+                        and_(PolicyResourceModel.resource_regex.isnot(None),
+                             self._regex_operation(inquiry.resource, PolicyResourceModel.resource_regex))
+                    ),
+                ),
+                PolicyModel.subjects.any(
+                    or_(
+                        and_(PolicySubjectModel.subject_regex.is_(None),
+                             PolicySubjectModel.subject_string == inquiry.subject),
+                        and_(PolicySubjectModel.subject_regex.isnot(None),
+                             self._regex_operation(inquiry.subject, PolicySubjectModel.subject_regex))
+                    ),
+                )
+            )
         elif isinstance(checker, RulesChecker):
-            return cur.filter(
-                PolicyModel.type == TYPE_RULE_BASED)
+            return cur.filter(PolicyModel.type == TYPE_RULE_BASED)
         elif not checker:
             return cur
         else:
             log.error('Provided Checker type is not supported.')
             raise UnknownCheckerType(checker)
+
+    def _supports_regex_operator(self):
+        """
+        Does database support regex operator?
+        """
+        return self.dialect in ['mysql', 'postgresql', 'oracle']
+
+    def _regex_operation(self, left, right):
+        """
+        Get database-specific regex operation.
+        Don't forget to check if there is a support for regex operator before using it.
+        """
+        if self.dialect == 'mysql':
+            return literal(left).op('REGEXP BINARY', is_comparison=True)(right)
+        elif self.dialect == 'postgresql':
+            return literal(left).op('~', is_comparison=True)(right)
+        elif self.dialect == 'oracle':
+            return func.REGEXP_LIKE(left, right)
+        return None

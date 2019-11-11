@@ -5,7 +5,6 @@ import unittest
 import uuid
 
 import pytest
-from bson.objectid import ObjectId
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
@@ -66,17 +65,6 @@ class TestSQLStorage:
         assert isinstance(st.get('2').resources[0]['books'], Eq)
         assert 'Harry' == st.get('2').resources[0]['books'].val
 
-    def test_add_with_bson_object_id(self, st):
-        id = str(ObjectId())
-        p = Policy(
-            uid=id,
-            description='foo',
-        )
-        st.add(p)
-
-        back = st.get(id)
-        assert id == back.uid
-
     def test_policy_create_existing(self, st):
         id = str(uuid.uuid4())
         st.add(Policy(id, description='foo'))
@@ -87,8 +75,8 @@ class TestSQLStorage:
         st.add(Policy('1'))
         st.add(Policy(2, description='some text'))
         assert isinstance(st.get('1'), Policy)
-        assert '1' == st.get('1').uid
         # SQL storage stores all uid as string
+        assert '1' == st.get('1').uid
         assert '2' == st.get('2').uid
         assert 'some text' == st.get('2').description
 
@@ -96,20 +84,20 @@ class TestSQLStorage:
         assert None is st.get('123456789')
 
     @pytest.mark.parametrize('limit, offset, result', [
-        (500, 0, 200),
-        (101, 1, 101),
-        (500, 50, 150),
-        (200, 0, 200),
-        (200, 1, 199),
-        (199, 0, 199),
-        (200, 50, 150),
+        (50, 0, 20),
+        (11, 1, 11),
+        (50, 5, 15),
+        (20, 0, 20),
+        (20, 1, 19),
+        (19, 0, 19),
+        (20, 5, 15),
         (0, 0, 0),
-        (0, 100, 0),
+        (0, 10, 0),
         (1, 0, 1),
         (5, 4, 5),
     ])
     def test_get_all(self, st, limit, offset, result):
-        for i in range(200):
+        for i in range(20):
             desc = ''.join(random.choice('abcde') for _ in range(30))
             st.add(Policy(str(i), description=desc))
         policies = list(st.get_all(limit=limit, offset=offset))
@@ -131,7 +119,9 @@ class TestSQLStorage:
         assert 1 == len(policies)
         assert '1' == policies[0].uid
         assert 'foo bar баз' == policies[0].description
-        assert ['Edward Rooney', 'Florence Sparrow'] == policies[0].subjects
+        assert 2 == len(policies[0].subjects)
+        assert 'Edward Rooney' in policies[0].subjects
+        assert 'Florence Sparrow' in policies[0].subjects
         assert ['<.*>'] == policies[0].actions
         assert ['<.*>'] == policies[0].resources
         assert isinstance(policies[0].context['secret'], Equal)
@@ -157,22 +147,44 @@ class TestSQLStorage:
         assert 2 == len(l)
 
     @pytest.mark.parametrize('checker, expect_number', [
-        (None, 5),
-        (RegexChecker(), 3),
+        (None, 6),
         (RulesChecker(), 2),
         (StringExactChecker(), 1),
         (StringFuzzyChecker(), 1),
     ])
     def test_find_for_inquiry_returns_existing_policies(self, st, checker, expect_number):
-        st.add(Policy('1', subjects=['<[mM]ax', '<.*>']))
-        st.add(Policy('2', subjects=['sam<.*>', 'foo']))
-        st.add(Policy('3', subjects=[{'stars': Eq(90)}, Eq('Max')]))
-        st.add(Policy('4', subjects=['Jim'], actions=['delete'], resources=['server']))
-        st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
+        st.add(Policy('1', subjects=['<[mM]ax>', '<.*>'], actions=['delete'], resources=['server']))
+        st.add(Policy('2', subjects=['Ji<[mM]+>'], actions=['delete'], resources=[r'server<\s*>']))
+        st.add(Policy('3', subjects=['sam<.*>', 'foo']))
+        st.add(Policy('5', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('4', subjects=[{'stars': Eq(90)}, Eq('Max')]))
+        st.add(Policy('6', subjects=[Eq('Jim'), Eq('Nina')]))
         inquiry = Inquiry(subject='Jim', action='delete', resource='server')
         found = st.find_for_inquiry(inquiry, checker)
+        found = list(found)
+        assert expect_number == len(found)
 
-        assert expect_number == len(list(found))
+    @pytest.mark.parametrize('dialect, expect_number', [
+        ('sqlite', 7),
+        ('mysql', 5),
+        ('postgresql', 5),
+    ])
+    def test_regex_checker_find_for_inquiry_policies_count_return_by_storage(self, st, dialect, expect_number):
+        if st.dialect != dialect:
+            pytest.skip('skipping for %s dialect' % dialect)
+        st.add(Policy('1', subjects=['<[mM]ax>', '<.*>'], actions=['delete'], resources=['server']))
+        st.add(Policy('2', subjects=['Ji<[mM]+>'], actions=['delete'], resources=[r'server<\s*>']))
+        st.add(Policy('3', subjects=['sam<.*>', 'foo']))
+        st.add(Policy('5', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('6', subjects=['Ji<[mM]+>'], actions=[r'<[a-zA-Z]{6}>'], resources=['serve<(r|rs)>']))
+        st.add(Policy('7', subjects=['Ji<[mM]+>'], actions=[r'<[a-zA-Z]{6}>'], resources=['serve<(u|rs)>']))
+        st.add(Policy('8', subjects=['Ji<[mM]+>'], actions=[r'<[a-zA-Z]{6}>'], resources=['serve<(u|rs)>', 'server']))
+        st.add(Policy('40', subjects=[{'stars': Eq(90)}, Eq('Max')]))
+        st.add(Policy('60', subjects=[Eq('Jim'), Eq('Nina')]))
+        inquiry = Inquiry(subject='Jim', action='delete', resource='server')
+        found = st.find_for_inquiry(inquiry, RegexChecker())
+        found = list(found)
+        assert expect_number == len(found)
 
     def test_find_for_inquiry_with_exact_string_checker(self, st):
         st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['books', 'comics', 'magazines']))
@@ -248,10 +260,10 @@ class TestSQLStorage:
             [
                 Policy(
                     uid=1,
-                    actions=[r'<\d+>'],
+                    actions=[r'<[0-9]+>'],
                     effect=ALLOW_ACCESS,
-                    resources=[r'<\w{1,3}>'],
-                    subjects=[r'<\w{2}-\d+>']
+                    resources=[r'<[a-zA-Z]{1,3}>'],
+                    subjects=[r'<[a-zA-Z0-9]{2}-[0-9]+>']
                 ),
             ],
             Inquiry(action='12', resource='Pie', subject='Jo-1'),
@@ -279,7 +291,9 @@ class TestSQLStorage:
         found = st.find_for_inquiry(inquiry, RulesChecker())
         found = list(found)
         assert 3 == len(found)
-        assertions.assertListEqual(['1', '2', '5'], list(map(operator.attrgetter('uid'), found)))
+        found_uids = list(map(operator.attrgetter('uid'), found))
+        found_uids.sort()
+        assertions.assertListEqual(['1', '2', '5'], found_uids)
 
     def test_find_for_inquiry_with_unknown_checker(self, st):
         st.add(Policy('1'))
@@ -333,7 +347,7 @@ class TestSQLStorage:
         assert None is st.get('1')
 
     def test_delete_nonexistent(self, st):
-        uid = str(ObjectId())
+        uid = str('non-existent-id')
         st.delete(uid)
         assert None is st.get(uid)
 

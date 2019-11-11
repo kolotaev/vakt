@@ -11,24 +11,42 @@ def policy__model_assert(policy_model, policy):
     """
         Assert if the given policy model object `policy_model` is equal to the policy object `policy`
     """
+
+    def element(el):
+        if isinstance(el, dict):
+            return json.dumps(el)
+        elif isinstance(el, str):
+            return el
+        return None
+
     policy_json = policy.to_json()
     policy_dict = json.loads(policy_json)
 
     assert policy_model.uid == policy.uid
     assert policy_model.type == policy.type
     assert policy_model.description == policy.description
+
     assert len(policy_model.subjects) == len(policy.subjects)
     assert all(isinstance(policy_model.subjects[x], PolicySubjectModel) for x in range(len(policy_model.subjects)))
-    assert all(policy_model.subjects[x].subject == json.dumps(policy_dict["subjects"][x]) for x in
+    assert all(policy_model.subjects[x].subject == element(policy_dict["subjects"][x]) for x in
+               range(len(policy_model.subjects))) or \
+           all(policy_model.subjects[x].subject_string == element(policy_dict["subjects"][x]) for x in
                range(len(policy_model.subjects)))
+
     assert len(policy_model.resources) == len(policy.resources)
     assert all(isinstance(policy_model.resources[x], PolicyResourceModel) for x in range(len(policy_model.resources)))
-    assert all(policy_model.resources[x].resource == json.dumps(policy_dict["resources"][x]) for x in
+    assert all(policy_model.resources[x].resource == element(policy_dict["resources"][x]) for x in
+               range(len(policy_model.resources))) or \
+           all(policy_model.resources[x].resource_string == element(policy_dict["resources"][x]) for x in
                range(len(policy_model.resources)))
+
     assert len(policy_model.actions) == len(policy.actions)
     assert all(isinstance(policy_model.actions[x], PolicyActionModel) for x in range(len(policy_model.actions)))
-    assert all(policy_model.actions[x].action == json.dumps(policy_dict["actions"][x]) for x in
+    assert all(policy_model.actions[x].action == element(policy_dict["actions"][x]) for x in
+               range(len(policy_model.actions))) or \
+           all(policy_model.actions[x].action_string == element(policy_dict["actions"][x]) for x in
                range(len(policy_model.actions)))
+
     assert policy_model.context == json.dumps(policy_dict["context"])
 
 

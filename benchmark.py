@@ -178,7 +178,7 @@ def get_storage():
         migration = SQLMigrationSet(storage)
         migration.up()
         yield storage
-        # todo - why there is left uncommitted transaction?
+        # todo - why is there left an uncommitted transaction?
         sql_session.commit()
         migration.down()
     else:
