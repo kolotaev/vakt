@@ -41,7 +41,7 @@ policies = [
         but only when they connect from local library's computer
         """,
         effect=ALLOW_ACCESS,
-        subjects=[r'<[\w]+ M[\w]+>'],
+        subjects=[r'<[a-zA-Z]+ M[a-z]+>'],
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
         context={
@@ -89,12 +89,12 @@ def init():
         return SQLStorage(scoped_session=session)
     use_storage = os.environ.get('STORAGE')
     print('storage is ', use_storage)
-    if  use_storage == 'mongo':
+    if use_storage == 'mongo':
         user, password, host = 'root', 'example', 'localhost:27017'
         uri = 'mongodb://%s:%s@%s' % (user, password, host)
         st = MongoStorage(MongoClient(host=host), 'vakt_db', collection='vakt_book_library')
     elif use_storage == 'mysql':
-        st = create_sql_storage('mysql://root:root@localhost/vakt_db')
+        st = create_sql_storage('mysql+pymysql://root:root@localhost/vakt_db')
     elif use_storage == 'pg':
         st = create_sql_storage('postgresql+psycopg2://postgres:root@localhost/vakt_db')
     else:

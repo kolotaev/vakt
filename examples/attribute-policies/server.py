@@ -91,7 +91,7 @@ class GitHubGuardian:
             uri = 'mongodb://%s:%s@%s' % (user, password, host)
             return MongoStorage(pymongo.MongoClient(host=host), 'vakt_db', collection='vakt_github_guard')
         elif use_storage == 'mysql':
-            return create_sql_storage('mysql://root:root@localhost/vakt_db')
+            return create_sql_storage('mysql+pymysql://root:root@localhost/vakt_db')
         elif use_storage == 'pg':
             return create_sql_storage('postgresql+psycopg2://postgres:root@localhost/vakt_db')
         else:
