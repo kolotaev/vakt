@@ -41,7 +41,7 @@ lint:
 
 .PHONY: release
 release: test
-	${PYTHON} setup.py sdist upload -r pypi
+	${PYTHON} setup.py sdist && ${PYTHON} -m twine upload dist/*
 
 # runs mutation testing
 .PHONY: mutation
