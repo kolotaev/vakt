@@ -150,7 +150,7 @@ class MongoStorage(Storage):
                     ]
                 }
             )
-        return {'$match': {'$expr': {'$and': conditions}}}
+        return [{'$match': {'$expr': {'$and': conditions}}}]
 
     @staticmethod
     def __prepare_doc(policy):
