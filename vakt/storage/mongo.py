@@ -61,8 +61,11 @@ class MongoStorage(Storage):
         return self.__feed_policies(cur)
 
     def find_for_inquiry(self, inquiry, checker=None):
-        q_filter = self._create_filter(inquiry, checker)
-        cur = self.collection.find(q_filter)
+        q_filter, use_aggregation = self._create_filter(inquiry, checker)
+        if use_aggregation:
+            cur = self.collection.aggregate(q_filter)
+        else:
+            cur = self.collection.find(q_filter)
         return self.__feed_policies(cur)
 
     def update(self, policy):
@@ -79,28 +82,25 @@ class MongoStorage(Storage):
 
     def _create_filter(self, inquiry, checker):
         """
-        Returns proper query-filter based on the checker type.
+        Returns proper query-filter based on the checker type and a flag that marks whether aggregation should be used
         """
         if isinstance(checker, StringFuzzyChecker):
-            return self.__string_query_on_conditions('$regex', lambda field: getattr(inquiry, field))
+            return self.__string_query_on_conditions('$regex', inquiry), False
         elif isinstance(checker, StringExactChecker):
-            return self.__string_query_on_conditions('$eq', lambda field: getattr(inquiry, field))
-            # We do not use Reverse-regexp match since it's not implemented yet in MongoDB.
-            # Doing it via Javascript function gives no benefits over Vakt final Guard check.
-            # See: https://jira.mongodb.org/browse/SERVER-11947
+            return self.__string_query_on_conditions('$eq', inquiry), False
         elif isinstance(checker, RegexChecker):
-            return {'type': TYPE_STRING_BASED}
+            return self.__regex_query_on_conditions(inquiry), True
         elif isinstance(checker, RulesChecker):
-            return {'type': TYPE_RULE_BASED}
+            return {'type': TYPE_RULE_BASED}, False
         elif not checker:
-            return {}
+            return {}, False
         else:
             log.error('Provided Checker type is not supported.')
             raise UnknownCheckerType(checker)
 
-    def __string_query_on_conditions(self, operator, get_value):
+    def __string_query_on_conditions(self, operator, inquiry):
         """
-        Construct MongoDB query.
+        Construct MongoDB query for string-based Checkers.
         """
         conditions = [
             {'type': TYPE_STRING_BASED}
@@ -110,12 +110,47 @@ class MongoStorage(Storage):
                 {
                     field: {
                         '$elemMatch': {
-                            operator: get_value(field.rstrip('s'))
+                            operator: getattr(inquiry, field.rstrip('s'))
                         }
                     }
                 }
             )
         return {"$and": conditions}
+
+    def __regex_query_on_conditions(self, inquiry):
+        """
+        Construct MongoDB query for RegexChecker.
+        """
+        #  # db.vakt_policies_test.aggregate([ {$addFields: { actionsAll: "$actions"}}, {$unwind: "$actions"}, {$addFields: { result: {$regexMatch: {input: "hkh45", regex: "$actions"}}}}, {$match: {"result": true}}, {$group: {_id: "$_id", "init": {$first: "$$ROOT" }}}, { $replaceRoot: { newRoot: "$init" }}, {$set: {"actions": "$actionsAll"} }, {$unset: ["actionsAll", "result"]}  ]).pretty()
+        # db.vakt_policies_test.aggregate([ {$match: {"$expr": { $anyElementTrue: [ {$map: { input: "$actions", as: "action", in: { $regexMatch: {input: "hkh", regex: "$$action"}} } }  ] }  } } ]).pretty()
+        # db.vakt_policies_test.aggregate([ {$match: {"$expr": {$and: [{$eq: ["$uid", "4000"]}, { $anyElementTrue: [ {$map: { input: "$actions", as: "action", in: { $regexMatch: {input: "hkh", regex: "$$action"}} } }  ] }  ]}  } } ]).pretty()
+
+        conditions = [
+            {
+                '$eq': {'$type': TYPE_STRING_BASED}
+            }
+        ]
+        for field in self.condition_fields:
+            field_singular = field.rstrip('s')
+            conditions.append(
+                {
+                    '$anyElementTrue': [
+                        {
+                            '$map': {
+                                'input': "$%s" % field,
+                                'as': field_singular,
+                                'in': {
+                                    '$regexMatch': {
+                                        'input':  getattr(inquiry, field_singular),
+                                        'regex': "$$%s" % field_singular
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            )
+        return {'$match': {'$expr': {'$and': conditions}}}
 
     @staticmethod
     def __prepare_doc(policy):
