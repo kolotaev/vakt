@@ -134,6 +134,7 @@ class MongoStorage(Storage):
         ]
         for field in self.condition_fields:
             field_singular = field.rstrip('s')
+            inquiry_value = getattr(inquiry, field_singular)
             conditions.append(
                 {
                     '$anyElementTrue': [
@@ -142,10 +143,17 @@ class MongoStorage(Storage):
                                 'input': "$%s" % self.condition_field_compiled_name(field),
                                 'as': field_singular,
                                 'in': {
-                                    '$regexMatch': {
-                                        'input':  getattr(inquiry, field_singular),
-                                        'regex': "$$%s" % field_singular
-                                    }
+                                    '$or': [
+                                        {
+                                            '$eq': ["$$%s" % field_singular, inquiry_value]
+                                        },
+                                        {
+                                            '$regexMatch': {
+                                                'input':  inquiry_value,
+                                                'regex': "$$%s" % field_singular
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -166,7 +174,9 @@ class MongoStorage(Storage):
                 for el in doc[field]:
                     if policy.start_tag in el and policy.end_tag in el:
                         compiled = compile_regex(el, policy.start_tag, policy.end_tag).pattern
-                        compiled_regexes.append(compiled)
+                    else:
+                        compiled = el
+                    compiled_regexes.append(compiled)
                 doc[self.condition_field_compiled_name(field)] = compiled_regexes
         doc['_id'] = policy.uid
         return doc
