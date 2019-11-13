@@ -17,6 +17,7 @@ from ..policy import Policy
 from ..rules.base import Rule
 from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
 from ..policy import TYPE_STRING_BASED, TYPE_RULE_BASED
+from ..parser import compile_regex
 
 
 DEFAULT_COLLECTION = 'vakt_policies'
@@ -37,6 +38,7 @@ class MongoStorage(Storage):
             'subjects',
             'resources',
         ]
+        self.condition_field_compiled_name = lambda x: '%s_compiled_regex' % x
 
     def add(self, policy):
         try:
@@ -127,7 +129,7 @@ class MongoStorage(Storage):
 
         conditions = [
             {
-                '$eq': {'$type': TYPE_STRING_BASED}
+                '$eq': ['$type', TYPE_STRING_BASED]
             }
         ]
         for field in self.condition_fields:
@@ -152,23 +154,31 @@ class MongoStorage(Storage):
             )
         return [{'$match': {'$expr': {'$and': conditions}}}]
 
-    @staticmethod
-    def __prepare_doc(policy):
+    def __prepare_doc(self, policy):
         """
         Prepare Policy object as a document for insertion.
         """
         # todo - add dict inheritance
         doc = b_json.loads(policy.to_json())
+        for field in self.condition_fields:
+            compiled_regexes = []
+            for el in doc[field]:
+                if policy.start_tag in el and policy.end_tag in el:
+                    compiled = compile_regex(el, policy.start_tag, policy.end_tag).pattern
+                    compiled_regexes.append(compiled)
+            doc[self.condition_field_compiled_name(field)] = compiled_regexes
         doc['_id'] = policy.uid
         return doc
 
-    @staticmethod
-    def __prepare_from_doc(doc):
+    def __prepare_from_doc(self, doc):
         """
         Prepare Policy object as a return from MongoDB.
         """
         # todo - add dict inheritance
         del doc['_id']
+        # todo - filter out on db-side
+        for field in self.condition_fields:
+            del doc[self.condition_field_compiled_name(field)]
         return Policy.from_json(b_json.dumps(doc))
 
     def __feed_policies(self, cursor):
