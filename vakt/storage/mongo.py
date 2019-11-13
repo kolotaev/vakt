@@ -139,7 +139,7 @@ class MongoStorage(Storage):
                     '$anyElementTrue': [
                         {
                             '$map': {
-                                'input': "$%s" % field,
+                                'input': "$%s" % self.condition_field_compiled_name(field),
                                 'as': field_singular,
                                 'in': {
                                     '$regexMatch': {
@@ -160,13 +160,14 @@ class MongoStorage(Storage):
         """
         # todo - add dict inheritance
         doc = b_json.loads(policy.to_json())
-        for field in self.condition_fields:
-            compiled_regexes = []
-            for el in doc[field]:
-                if policy.start_tag in el and policy.end_tag in el:
-                    compiled = compile_regex(el, policy.start_tag, policy.end_tag).pattern
-                    compiled_regexes.append(compiled)
-            doc[self.condition_field_compiled_name(field)] = compiled_regexes
+        if policy.type == TYPE_STRING_BASED:
+            for field in self.condition_fields:
+                compiled_regexes = []
+                for el in doc[field]:
+                    if policy.start_tag in el and policy.end_tag in el:
+                        compiled = compile_regex(el, policy.start_tag, policy.end_tag).pattern
+                        compiled_regexes.append(compiled)
+                doc[self.condition_field_compiled_name(field)] = compiled_regexes
         doc['_id'] = policy.uid
         return doc
 
@@ -178,7 +179,8 @@ class MongoStorage(Storage):
         del doc['_id']
         # todo - filter out on db-side
         for field in self.condition_fields:
-            del doc[self.condition_field_compiled_name(field)]
+            if self.condition_field_compiled_name(field) in doc:
+                del doc[self.condition_field_compiled_name(field)]
         return Policy.from_json(b_json.dumps(doc))
 
     def __feed_policies(self, cursor):
