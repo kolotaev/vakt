@@ -317,6 +317,7 @@ class TestMigration1x1x0To1x1x1:
 
 
 @pytest.mark.integration
+@pytest.mark.skipif(version_info() >= (1, 3, 0), reason='migration is for versions prior to 1.3.0')
 class TestMigration1x1x1To1x2x0:
 
     class MockLoggingHandler(logging.Handler):
