@@ -415,3 +415,57 @@ class Migration1x1x1To1x2x0(MongoMigration):
             return doc
         self.storage.collection.drop_index(self.type_index)
         self._each_doc(processor=process)
+
+
+class Migration1x2x0To1x4x0(MongoMigration):
+    """
+    Migration between versions 1.2.0 and 1.4.0.
+    What it does:
+    .......
+
+
+
+    """
+
+    def __init__(self, storage):
+        self.storage = storage
+
+    @property
+    def order(self):
+        return 4
+
+    def up(self):
+        def process(doc):
+            """Processor for up"""
+            if doc['type'] == TYPE_STRING_BASED:
+                for fields in self.storage.condition_fields:
+                    for field in fields:
+                        pass
+        # self.storage.collection.create_index(self.type_field, name=self.type_index)
+        self._each_doc(processor=process)
+
+    def down(self):
+        def process(doc):
+            """Processor for down"""
+            pass
+            # if doc['type'] != TYPE_STRING_BASED:
+            #     raise Irreversible('Policy is not of a string-based type, so not supported in < v1.2.0')
+            # for rule in doc['context'].values():
+            #     rule_type = rule[jsonpickle.tags.OBJECT]
+            #     for old, new in self.rules_rename.items():
+            #         if rule_type == new:
+            #             rule[jsonpickle.tags.OBJECT] = old
+            #             break
+            #     if rule_type.startswith('vakt.rules.list') or \
+            #             rule_type.startswith('vakt.rules.logic') or \
+            #             rule_type.startswith('vakt.rules.operator') or \
+            #             rule_type in ['vakt.rules.string.StartsWith',
+            #                           'vakt.rules.string.EndsWith',
+            #                           'vakt.rules.string.Contains']:
+            #         raise Irreversible('Context contains rule that exist only in >= v1.2.0: %s' % rule)
+            # doc['rules'] = doc['context']
+            # del doc['context']
+            # del doc['type']
+            # return doc
+        # self.storage.collection.drop_index(self.type_index)
+        self._each_doc(processor=process)
