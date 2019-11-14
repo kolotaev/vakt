@@ -126,10 +126,6 @@ class MongoStorage(Storage):
         """
         Construct MongoDB query for RegexChecker.
         """
-        #  # db.vakt_policies_test.aggregate([ {$addFields: { actionsAll: "$actions"}}, {$unwind: "$actions"}, {$addFields: { result: {$regexMatch: {input: "hkh45", regex: "$actions"}}}}, {$match: {"result": true}}, {$group: {_id: "$_id", "init": {$first: "$$ROOT" }}}, { $replaceRoot: { newRoot: "$init" }}, {$set: {"actions": "$actionsAll"} }, {$unset: ["actionsAll", "result"]}  ]).pretty()
-        # db.vakt_policies_test.aggregate([ {$match: {"$expr": { $anyElementTrue: [ {$map: { input: "$actions", as: "action", in: { $regexMatch: {input: "hkh", regex: "$$action"}} } }  ] }  } } ]).pretty()
-        # db.vakt_policies_test.aggregate([ {$match: {"$expr": {$and: [{$eq: ["$uid", "4000"]}, { $anyElementTrue: [ {$map: { input: "$actions", as: "action", in: { $regexMatch: {input: "hkh", regex: "$$action"}} } }  ] }  ]}  } } ]).pretty()
-
         conditions = [
             {
                 '$eq': ['$type', TYPE_STRING_BASED]
@@ -190,7 +186,6 @@ class MongoStorage(Storage):
         """
         # todo - add dict inheritance
         del doc['_id']
-        # todo - filter out on db-side
         for field in self.condition_fields:
             if self.condition_field_compiled_name(field) in doc:
                 del doc[self.condition_field_compiled_name(field)]
