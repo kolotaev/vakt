@@ -157,8 +157,8 @@ class TestMongoStorage:
         assert 2 == len(l)
 
     @pytest.mark.parametrize('checker, expect_number', [
-        (None, 5),
-        (RegexChecker(), 3),
+        (None, 6),
+        (RegexChecker(), 2),
         (RulesChecker(), 2),
         (StringExactChecker(), 1),
         (StringFuzzyChecker(), 1),
@@ -166,8 +166,9 @@ class TestMongoStorage:
     def test_find_for_inquiry_returns_existing_policies(self, st, checker, expect_number):
         st.add(Policy('1', subjects=['<[mM]ax>', '<.*>']))
         st.add(Policy('2', subjects=['sam<.*>', 'foo']))
-        st.add(Policy('3', subjects=[{'stars': Eq(90)}, Eq('Max')]))
-        st.add(Policy('4', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('3', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('3.1', subjects=['Jim'], actions=[r'del<\w+>'], resources=['server']))
+        st.add(Policy('4', subjects=[{'stars': Eq(90)}, Eq('Max')]))
         st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
         inquiry = Inquiry(subject='Jim', action='delete', resource='server')
         found = st.find_for_inquiry(inquiry, checker)
@@ -254,6 +255,52 @@ class TestMongoStorage:
                 ),
             ],
             Inquiry(action='12', resource='Pie', subject='Jo-1'),
+            True,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['parse'],
+                    effect=ALLOW_ACCESS,
+                    resources=['library:books'],
+                    subjects=['Max']
+                ),
+            ],
+            Inquiry(action='parse', resource='library:books', subject='Max'),
+            True,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['parse'],
+                    effect=ALLOW_ACCESS,
+                    resources=['library:manu<(al|scripts)>'],
+                    subjects=['Max']
+                ),
+            ],
+            Inquiry(action='parse', resource='library:books', subject='Max'),
+            False,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['parse'],
+                    effect=ALLOW_ACCESS,
+                    resources=['library:books'],
+                    subjects=['Max']
+                ),
+                Policy(
+                    uid=2,
+                    actions=['parse'],
+                    effect=ALLOW_ACCESS,
+                    resources=['library:manu<(al|scripts)>'],
+                    subjects=['Max']
+                ),
+            ],
+            Inquiry(action='parse', resource='library:manuscripts', subject='Max'),
             True,
         ),
     ])
