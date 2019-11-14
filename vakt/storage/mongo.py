@@ -33,6 +33,7 @@ class MongoStorage(Storage):
         self.client = client
         self.database = self.client[db_name]
         self.collection = self.database[collection]
+        self.db_server_version = tuple(map(int, client.server_info()['version'].split('.')))
         self.condition_fields = [
             'actions',
             'subjects',
@@ -91,6 +92,8 @@ class MongoStorage(Storage):
         elif isinstance(checker, StringExactChecker):
             return self.__string_query_on_conditions('$eq', inquiry), False
         elif isinstance(checker, RegexChecker):
+            if self.db_server_version < (4, 2, 0):
+                return {'type': TYPE_STRING_BASED}, False
             return self.__regex_query_on_conditions(inquiry), True
         elif isinstance(checker, RulesChecker):
             return {'type': TYPE_RULE_BASED}, False
