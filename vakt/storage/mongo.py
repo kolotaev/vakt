@@ -111,15 +111,13 @@ class MongoStorage(Storage):
             {'type': TYPE_STRING_BASED}
         ]
         for field in self.condition_fields:
-            conditions.append(
-                {
-                    field: {
-                        '$elemMatch': {
-                            operator: getattr(inquiry, field.rstrip('s'))
-                        }
+            conditions.append({
+                field: {
+                    '$elemMatch': {
+                        operator: getattr(inquiry, field.rstrip('s'))
                     }
                 }
-            )
+            })
         return {"$and": conditions}
 
     def __regex_query_on_conditions(self, inquiry):
@@ -134,31 +132,29 @@ class MongoStorage(Storage):
         for field in self.condition_fields:
             field_singular = field.rstrip('s')
             inquiry_value = getattr(inquiry, field_singular)
-            conditions.append(
-                {
-                    '$anyElementTrue': [
-                        {
-                            '$map': {
-                                'input': "$%s" % self.condition_field_compiled_name(field),
-                                'as': field_singular,
-                                'in': {
-                                    '$or': [
-                                        {
-                                            '$eq': ["$$%s" % field_singular, inquiry_value]
-                                        },
-                                        {
-                                            '$regexMatch': {
-                                                'input':  inquiry_value,
-                                                'regex': "$$%s" % field_singular
-                                            }
+            conditions.append({
+                '$anyElementTrue': [
+                    {
+                        '$map': {
+                            'input': "$%s" % self.condition_field_compiled_name(field),
+                            'as': field_singular,
+                            'in': {
+                                '$or': [
+                                    {
+                                        '$eq': ["$$%s" % field_singular, inquiry_value]
+                                    },
+                                    {
+                                        '$regexMatch': {
+                                            'input':  inquiry_value,
+                                            'regex': "$$%s" % field_singular
                                         }
-                                    ]
-                                }
+                                    }
+                                ]
                             }
                         }
-                    ]
-                }
-            )
+                    }
+                ]
+            })
         return [{'$match': {'$expr': {'$and': conditions}}}]
 
     def __prepare_doc(self, policy):
@@ -218,6 +214,7 @@ class MongoMigrationSet(MigrationSet):
             Migration0To1x1x0(self.storage),
             Migration1x1x0To1x1x1(self.storage),
             Migration1x1x1To1x2x0(self.storage),
+            Migration1x2x0To1x4x0(self.storage),
         ]
 
     def save_applied_number(self, number):

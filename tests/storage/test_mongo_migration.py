@@ -550,3 +550,238 @@ class TestMigration1x1x1To1x2x0:
         assert 'Migration was unable to convert some Policies, but' in log_handler.messages['error'][0]
         assert 'Mongo IDs of failed Policies are:' in log_handler.messages['error'][0]
         assert "[20, 30, 40]" in log_handler.messages['error'][0]
+
+
+@pytest.mark.integration
+class TestMigration1x2x0To1x4x0:
+
+    class MockLoggingHandler(logging.Handler):
+        def __init__(self, *args, **kwargs):
+            self.messages = {}
+            super().__init__(*args, **kwargs)
+
+        def emit(self, record):
+            level = record.levelname.lower()
+            if level not in self.messages:
+                self.messages[level] = []
+            self.messages[level].append(record.getMessage())
+
+    @pytest.fixture()
+    def storage(self):
+        client = create_client()
+        storage = MongoStorage(client, DB_NAME, collection=COLLECTION)
+        yield storage
+        client[DB_NAME][COLLECTION].delete_many({})
+        client.close()
+
+    def test_order(self, storage):
+        migration = Migration1x1x1To1x2x0(storage)
+        assert 4 == migration.order
+
+    def test_up(self, storage):
+        migration = Migration1x2x0To1x4x0(storage)
+        # prepare docs that might have been saved by users in v 1.2.0
+        docs = [
+            (
+                """
+                { "_id" : 10, "actions" : [ ], "description" : null, "effect" : "allow", "resources" : [ ], 
+                "rules" : { "name" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "Max" },
+                "secret" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "i-am-a-foo"} }, 
+                "subjects" : [ ], "uid" : 10 }
+                """,
+                """
+                { "_id" : 10, "actions" : [ ], 
+                "context" : { "name" : {"py/object": "vakt.rules.string.Equal", "val": "Max" },
+                "secret" : {"py/object": "vakt.rules.string.Equal", "val": "i-am-a-foo"} }, 
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ ], "type": 1, "uid" : 10 }
+                """
+            ),
+            (
+                """
+                { "_id" : 20, "actions" : [ "<.*>" ], "description" : "foo bar", "effect" : "allow",
+                "resources" : [ "<.*>" ], "rules" : { "secret" :
+                { "py/object": "vakt.rules.string.StringEqualRule", "val": "John"} }, "subjects" : [ "<.*>" ],
+                "uid" : 20 }
+                """,
+                """
+                { "_id" : 20, "actions" : [ "<.*>" ], "context" : { "secret" :
+                { "py/object": "vakt.rules.string.Equal", "val": "John"} },
+                "description" : "foo bar", "effect" : "allow",
+                "resources" : [ "<.*>" ], "subjects" : [ "<.*>" ], "type": 1,
+                "uid" : 20 }
+                """
+            ),
+            (
+                """
+                { "_id" : 30, "actions" : [ "<.*>" ], "description" : "foo bar", "effect" : "allow",
+                "resources" : [ "<.*>" ], "rules" : {  }, "subjects" : [ "<.*>" ], "uid" : 30 }
+                """,
+                """
+                { "_id" : 30, "actions" : [ "<.*>" ], "context" : {  }, "description" : "foo bar", "effect" : "allow",
+                "resources" : [ "<.*>" ], "subjects" : [ "<.*>" ], "type": 1, "uid" : 30 }
+                """
+            ),
+            (
+                """
+                { "_id" : 40, "actions" : [ "<.*>" ], "description" : null, "effect" : "allow",  "resources" : ["<.*>"],
+                "rules" : { "a" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "foo"},
+                "num" : { "py/object": "storage.test_mongo_migration.Simple", "val": "123"} }, "subjects" : ["<.*>"],
+                "uid" : 40 }
+                """,
+                """
+                { "_id" : 40, "actions" : [ "<.*>" ], "context" : { "a" : 
+                {"py/object": "vakt.rules.string.Equal", "val": "foo"},
+                "num" : { "py/object": "storage.test_mongo_migration.Simple", "val": "123"} }, "description" : null, 
+                "effect" : "allow",  "resources" : ["<.*>"],
+                 "subjects" : ["<.*>"], "type": 1,
+                "uid" : 40 }
+                """
+            ),
+            (
+                """
+                { "_id" : 50, "actions" : [ ], "description" : null, "effect" : "allow", "resources" : [ ],
+                "rules" : { "num" : { "py/object": "storage.test_mongo_migration.Simple", "val": "46"} },
+                "subjects" : [ ], "uid" : 50 }
+                """,
+                """
+                { "_id" : 50, "actions" : [ ], 
+                "context" : { "num" : { "py/object": "storage.test_mongo_migration.Simple", "val": "46"} },
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ ], "type": 1, "uid" : 50 }
+                """
+            ),
+        ]
+        for (doc, _) in docs:
+            d = b_json.loads(doc)
+            storage.collection.insert_one(d)
+
+        # set logger for capturing output
+        l = logging.getLogger('vakt.storage.mongo')
+        log_handler = self.MockLoggingHandler()
+        l.setLevel(logging.INFO)
+        l.addHandler(log_handler)
+
+        migration.up()
+
+        # test indices exist
+        created_indices = [i['name'] for i in storage.collection.list_indexes()]
+        assert created_indices == ['_id_', 'type_idx']
+
+        # test no new docs were added and no docs deleted
+        assert len(docs) == len(list(storage.collection.find({})))
+        # test Policy.from_json() is called without errors for each doc (implicitly)
+        assert len(docs) == len(list(storage.get_all(1000, 0)))
+        # test string contents of each doc
+        for (doc, result_doc) in docs:
+            new_doc = storage.collection.find_one({'uid': json.loads(doc)['uid']})
+            expected = result_doc.replace("\n", '').replace(' ', '')
+            actual = json.dumps(new_doc, sort_keys=True).replace("\n", '').replace(' ', '')
+            assert expected == actual
+        # test we can retrieve policy for inquiry
+        inq = Inquiry(action='foo', resource='bar', subject='Max', context={'val': 'foo', 'num': '123'})
+        assert len(docs) == len(list(storage.find_for_inquiry(inq, RegexChecker())))
+        # test failed policies report
+        assert 10 == len(log_handler.messages.get('info', []))
+        assert 0 == len(log_handler.messages.get('warning', []))
+        assert 0 == len(log_handler.messages.get('error', []))
+
+    def test_down(self, storage):
+        assertions = unittest.TestCase('__init__')
+        migration = Migration1x1x1To1x2x0(storage)
+        # prepare docs that might have been saved by users in v 1.2.0
+        docs = [
+            (
+                """
+                { "_id" : 10, "actions" : [ ], 
+                "context" : { "name" : {"py/object": "vakt.rules.string.Equal", "val": "Max" },
+                "secret" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "i-am-a-foo"} }, 
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ ], "type": 1, "uid" : 10 }
+                """,
+                """
+                { "_id" : 10, "actions" : [ ], "description" : null, "effect" : "allow", "resources" : [ ], 
+                "rules" : { "name" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "Max" },
+                "secret" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "i-am-a-foo"} }, 
+                "subjects" : [ ], "uid" : 10 }
+                """,
+            ),
+            (
+                """
+                { "_id" : 20, "actions" : [ ], 
+                "context" : { },
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ ], "type": 2, "uid" : 20 }
+                """,
+                None,
+            ),
+            (
+                """
+                { "_id" : 30, "actions" : [ ], 
+                "context" : { "name" : {"py/object": "vakt.rules.operator.Eq", "val": "Max" },
+                "secret" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "i-am-a-foo"} }, 
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ ], "type": 1, "uid" : 30 }
+                """,
+                None,
+            ),
+            (
+                """
+                { "_id" : 40, "actions" : [ ], 
+                "context" : { "name" : {"py/object": "vakt.rules.string.StartsWith", "val": "Max" } }, 
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ ], "type": 1, "uid" : 40 }
+                """,
+                None,
+            ),
+        ]
+        for (doc, _) in docs:
+            d = b_json.loads(doc)
+            migration.storage.collection.insert_one(d)
+
+        # set logger for capturing output
+        l = logging.getLogger('vakt.storage.mongo')
+        log_handler = self.MockLoggingHandler()
+        l.setLevel(logging.INFO)
+        l.addHandler(log_handler)
+
+        migration.down()
+
+        # test index on 'type' was deleted
+        assert ['_id_'] == [i['name'] for i in storage.collection.list_indexes()]
+
+        # test no new docs were added and no docs deleted
+        assert len(docs) == len(list(storage.collection.find({})))
+        # test Policy.from_json() is called without errors for each doc (implicitly)
+        assert len(docs) == len(list(storage.get_all(1000, 0)))
+        # test string contents of each doc
+        for (doc, expected_doc) in docs:
+            if not expected_doc:  # some policies should be left as-is if not converted
+                expected_doc = doc
+            new_doc = storage.collection.find_one({'uid': json.loads(doc)['uid']})
+            assertions.assertDictEqual(json.loads(expected_doc), new_doc)
+        # test failed policies report
+        # info
+        assert 'info' in log_handler.messages
+        assert 5 == len(log_handler.messages.get('info', []))
+        assert 'Trying to migrate Policy with UID: 10' in log_handler.messages['info']
+        assert 'Trying to migrate Policy with UID: 40' in log_handler.messages['info']
+        assert 'Policy with UID: 10 was migrated' in log_handler.messages['info']
+        # warn
+        assert 'warning' in log_handler.messages
+        assert 3 == len(log_handler.messages['warning'])
+        assert "Policy is not of a string-based type, so not supported in < v1.2.0. Mongo doc:" in \
+               log_handler.messages['warning'][0]
+        assert "'_id': 20" in log_handler.messages['warning'][0]
+        assert "Irreversible Policy. Context contains rule that exist only in >= v1.2.0: {'" in \
+               log_handler.messages['warning'][1]
+        assert "'uid': 30" in log_handler.messages['warning'][1]
+        assert "Irreversible Policy. Context contains rule that exist only in >= v1.2.0: {'" in \
+               log_handler.messages['warning'][1]
+        assert "'uid': 40" in log_handler.messages['warning'][2]
+        # error
+        assert 'error' in log_handler.messages
+        assert 1 == len(log_handler.messages['error'])
+        assert 'Migration was unable to convert some Policies, but' in log_handler.messages['error'][0]
+        assert 'Mongo IDs of failed Policies are:' in log_handler.messages['error'][0]
+        assert "[20, 30, 40]" in log_handler.messages['error'][0]
