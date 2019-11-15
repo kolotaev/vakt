@@ -22,11 +22,14 @@ python:
   - "pypy3.5"  # Pypy3 3.5.3
 
 before_script:
-  - sleep 15
+  - sleep 5
   - wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-latest.tgz
   - tar zxf mongodb-linux-x86_64-latest.tgz
   - export PATH=${PWD}/mongodb-linux-x86_64-latest/bin/:${PATH}
   - mongod --version
+  - mkdir -p data/db
+  - mongod --dbpath=data/db &
+  - sleep 5
   - mongo vakt_db --eval 'db.createUser({user:"test_user",pwd:"test_password",roles:["readWrite"]});'
   - mysql -e 'CREATE DATABASE vakt_db CHARACTER SET utf8 COLLATE utf8_bin;'
   - psql -c "CREATE DATABASE vakt_db ENCODING='UTF8';" -U postgres
