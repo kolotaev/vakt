@@ -23,9 +23,9 @@ python:
 
 before_script:
   - sleep 5
-  - wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-latest.tgz
-  - tar zxf mongodb-linux-x86_64-latest.tgz
-  - export PATH=${PWD}/mongodb-linux-x86_64-latest/bin/:${PATH}
+  - wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-4.2.1.tgz
+  - tar zxf mongodb-linux-x86_64-ubuntu1604-4.2.1.tgz
+  - export PATH=${PWD}/mongodb-linux-x86_64-ubuntu1604-4.2.1/bin/:${PATH}
   - mongod --version
   - mkdir -p data/db
   - mongod --dbpath=data/db &
