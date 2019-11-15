@@ -5,7 +5,7 @@ sudo: false
 language: python
 
 services:
-  - mongodb
+#  - mongodb
   - mysql
   - postgresql
 
