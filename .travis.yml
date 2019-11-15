@@ -27,8 +27,7 @@ before_script:
   - tar zxf mongodb-linux-x86_64-ubuntu1604-4.2.1.tgz
   - export PATH=${PWD}/mongodb-linux-x86_64-ubuntu1604-4.2.1/bin/:${PATH}
   - mongod --version
-  - mkdir -p data/db
-  - mongod --dbpath=data/db &
+  - mongod --quiet &
   - sleep 5
   - mongo vakt_db --eval 'db.createUser({user:"test_user",pwd:"test_password",roles:["readWrite"]});'
   - mysql -e 'CREATE DATABASE vakt_db CHARACTER SET utf8 COLLATE utf8_bin;'
