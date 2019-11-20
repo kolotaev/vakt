@@ -33,9 +33,9 @@ class TestMongoMigrationSet:
     def test_up_and_down(self, migration_set):
         migration_set.save_applied_number(0)
         migration_set.up()
-        assert 3 == migration_set.last_applied()
+        assert 4 == migration_set.last_applied()
         migration_set.up()
-        assert 3 == migration_set.last_applied()
+        assert 4 == migration_set.last_applied()
         migration_set.down()
         assert 0 == migration_set.last_applied()
         migration_set.down()
@@ -575,7 +575,7 @@ class TestMigration1x2x0To1x4x0:
         client.close()
 
     def test_order(self, storage):
-        migration = Migration1x1x1To1x2x0(storage)
+        migration = Migration1x2x0To1x4x0(storage)
         assert 4 == migration.order
 
     def test_up(self, storage):
