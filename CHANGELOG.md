@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.4.0] - TBD
+### Added
+- [Storage] Generic `retrieve_all` method that retrieves all the existing Policies from the storage.
+Compared to `get_all` you don't need to iterate now with shifting the fetch window manually.
+Concrete storages don't need to implement it manually.
+
+### Changed
+- [MongoStorage] `find_for_inquiry` now uses regex match on DB-server side for string-based policies
+which increases performance drastically. Works only for MongoDB v >=4.2. For older MongoDB versions the 
+behaviour hasn't changed.
+
+
 ## [1.3.0] - 2019-11-11
 ### Added
 - [Storage] SQLStorage implementation with support for all RDBMS backed by SQL Alchemy.
