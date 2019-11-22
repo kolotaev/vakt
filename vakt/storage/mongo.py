@@ -432,14 +432,8 @@ class Migration1x2x0To1x4x0(MongoMigration):
         return 4
 
     def up(self):
-        limit, offset = 1000, 0
-        while True:
-            polices = self.storage.get_all(limit, offset)
-            if not polices:
-                break
-            for p in polices:
-                self.storage.update(p)
-                offset = offset + limit
+        for p in self.storage.retrieve_all():
+            self.storage.update(p)
         # self.storage.collection.create_index(self.type_field, name=self.type_index)
 
     def down(self):
