@@ -3,7 +3,6 @@ Contains interfaces that all Storages should implement.
 """
 
 from abc import ABCMeta, abstractmethod
-import inspect
 
 
 class Storage(metaclass=ABCMeta):
@@ -63,7 +62,7 @@ class Storage(metaclass=ABCMeta):
         This internal checker is responsible for generating the correct type of query to the Storage:
         e.g. RegexChecker, StringExactChecker will result in different queries.
 
-        Returns Iterable
+        Returns generator
         """
         pass
 
