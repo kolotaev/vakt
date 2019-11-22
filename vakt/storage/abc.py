@@ -39,7 +39,7 @@ class Storage(metaclass=ABCMeta):
         Stops when all the existing policies from a storage where returned.
         You can specify a size of a batch of policies for each iteration.
 
-        Returns Iterable
+        Returns generator
         """
         limit, offset = batch, 0
         while True:
@@ -62,7 +62,7 @@ class Storage(metaclass=ABCMeta):
         This internal checker is responsible for generating the correct type of query to the Storage:
         e.g. RegexChecker, StringExactChecker will result in different queries.
 
-        Returns generator
+        Returns Iterable
         """
         pass
 
