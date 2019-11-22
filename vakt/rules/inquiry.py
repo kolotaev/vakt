@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 
-class InquiryMatch(Rule, metaclass=ABCMeta):
+class InquiryMatchAbstract(Rule, metaclass=ABCMeta):
     def __init__(self, attribute=None, rule_class=Eq):
         self.attribute = attribute
         self.rule_class = rule_class.__class__.__name__
@@ -42,20 +42,17 @@ class InquiryMatch(Rule, metaclass=ABCMeta):
         pass
 
 
-class InquirySubjectMatch:
-    @abstractmethod
+class InquirySubjectMatch(InquiryMatchAbstract):
     def _field_name(self):
         return 'subject'
 
 
-class InquiryActionMatch:
-    @abstractmethod
+class InquiryActionMatch(InquiryMatchAbstract):
     def _field_name(self):
         return 'action'
 
 
-class InquiryResourceMatch:
-    @abstractmethod
+class InquiryResourceMatch(InquiryMatchAbstract):
     def _field_name(self):
         return 'resource'
 
