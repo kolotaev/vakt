@@ -3,6 +3,7 @@ import random
 import types
 import operator
 import unittest
+from operator import attrgetter
 
 import pytest
 from pymongo import MongoClient
@@ -313,6 +314,21 @@ class TestMongoStorage:
         assert expected_reference == reference_answer, 'Check reference answer'
         assert reference_answer == Guard(st, RegexChecker()).is_allowed(inquiry), \
             'Mongo storage should give the same answers as reference'
+
+    def test_find_for_inquiry_with_regex_checker_for_mongodb_prior_to_4_2(self, st):
+        st.db_server_version = (3, 4, 0)
+        st.add(Policy('1', subjects=['<[mM]ax>', '<.*>']))
+        st.add(Policy('2', subjects=['sam<.*>', 'foo']))
+        st.add(Policy('3', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('3.1', subjects=['Jim'], actions=[r'del<\w+>'], resources=['server']))
+        st.add(Policy('4', subjects=[{'stars': Eq(90)}, Eq('Max')]))
+        st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
+        inquiry = Inquiry(subject='Jim', action='delete', resource='server')
+        found = st.find_for_inquiry(inquiry, RegexChecker())
+        found = list(found)
+        # should return all string-based polices, but not only matched ones
+        assert 4 == len(found)
+        assert ['1', '2', '3', '3.1'] == sorted(map(attrgetter('uid'), found))
 
     def test_find_for_inquiry_with_rules_checker(self, st):
         assertions = unittest.TestCase('__init__')
