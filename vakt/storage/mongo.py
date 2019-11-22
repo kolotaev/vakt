@@ -183,8 +183,9 @@ class MongoStorage(Storage):
         # todo - add dict inheritance
         del doc['_id']
         for field in self.condition_fields:
-            if self.condition_field_compiled_name(field) in doc:
-                del doc[self.condition_field_compiled_name(field)]
+            compiled_field_name = self.condition_field_compiled_name(field)
+            if compiled_field_name in doc:
+                del doc[compiled_field_name]
         return Policy.from_json(b_json.dumps(doc))
 
     def __feed_policies(self, cursor):

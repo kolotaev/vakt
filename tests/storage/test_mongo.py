@@ -316,6 +316,7 @@ class TestMongoStorage:
             'Mongo storage should give the same answers as reference'
 
     def test_find_for_inquiry_with_regex_checker_for_mongodb_prior_to_4_2(self, st):
+        # mock db server version for this test
         st.db_server_version = (3, 4, 0)
         st.add(Policy('1', subjects=['<[mM]ax>', '<.*>']))
         st.add(Policy('2', subjects=['sam<.*>', 'foo']))
