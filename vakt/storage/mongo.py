@@ -419,19 +419,32 @@ class Migration1x2x0To1x4x0(MongoMigration):
     Migration between versions 1.2.0 and 1.4.0.
     What it does:
     - Adds special fields for each string-based policy that are needed for regex DB-side checks.
+    - Adds indices for *_compiled_regex fields in string-based polices
     """
 
     def __init__(self, storage):
         self.storage = storage
+        self.index_name = lambda i: i + '_idx'
+        self.multi_key_indices = map(
+            self.storage.condition_field_compiled_name,
+            [
+                'actions',
+                'subjects',
+                'resources',
+            ]
+        )
 
     @property
     def order(self):
         return 4
 
     def up(self):
+        # create indices
+        for field in self.multi_key_indices:
+            self.storage.collection.create_index(field, name=self.index_name(field))
+        # re-save policies to add compiled_regex fields
         for p in self.storage.retrieve_all():
             self.storage.update(p)
-        # self.storage.collection.create_index(self.type_field, name=self.type_index)
 
     def down(self):
         def process(doc):
@@ -440,5 +453,8 @@ class Migration1x2x0To1x4x0(MongoMigration):
                 if field in doc:
                     del doc[field]
             return doc
-        # self.storage.collection.drop_index(self.type_index)
+        # delete indices
+        for field_name in self.multi_key_indices:
+            self.storage.collection.drop_index(self.index_name(field_name))
+        # return policies to their previous state
         self._each_doc(processor=process)

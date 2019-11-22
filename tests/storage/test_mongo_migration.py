@@ -642,6 +642,15 @@ class TestMigration1x2x0To1x4x0:
 
         migration.up()
 
+        # test indices exist
+        created_indices = [i['name'] for i in storage.collection.list_indexes()]
+        assert created_indices == [
+            '_id_',
+            'actions_compiled_regex_idx',
+            'subjects_compiled_regex_idx',
+            'resources_compiled_regex_idx'
+        ]
+
         # test no new docs were added and no docs deleted
         assert len(docs) == len(list(storage.collection.find({})))
         # test Policy.from_json() is called without errors for each doc (implicitly)
@@ -732,6 +741,9 @@ class TestMigration1x2x0To1x4x0:
             migration.storage.collection.insert_one(d)
 
         migration.down()
+
+        # test indices on *_compiled_regex were deleted
+        assert ['_id_'] == [i['name'] for i in storage.collection.list_indexes()]
 
         # test no new docs were added and no docs deleted
         assert len(docs) == len(list(storage.collection.find({})))
