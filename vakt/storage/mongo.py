@@ -418,10 +418,7 @@ class Migration1x2x0To1x4x0(MongoMigration):
     """
     Migration between versions 1.2.0 and 1.4.0.
     What it does:
-    .......
-
-
-
+    - Adds special fields for each string-based policy that are needed for regex DB-side checks.
     """
 
     def __init__(self, storage):
@@ -442,6 +439,6 @@ class Migration1x2x0To1x4x0(MongoMigration):
             for field in [self.storage.condition_field_compiled_name(x) for x in self.storage.condition_fields]:
                 if field in doc:
                     del doc[field]
-                return doc
+            return doc
         # self.storage.collection.drop_index(self.type_index)
         self._each_doc(processor=process)

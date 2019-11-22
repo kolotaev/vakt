@@ -658,51 +658,73 @@ class TestMigration1x2x0To1x4x0:
 
     def test_down(self, storage):
         assertions = unittest.TestCase('__init__')
-        migration = Migration1x1x1To1x2x0(storage)
+        migration = Migration1x2x0To1x4x0(storage)
         # prepare docs that might have been saved by users in v 1.4.0
         docs = [
             (
                 """
+                { "_id" : 10, "actions" : [ ], "actions_compiled_regex" : [ ],
+                "context" : { "name" : {"py/object": "vakt.rules.string.Equal", "val": "Max" },
+                "secret" : {"py/object": "vakt.rules.string.Equal", "val": "i-am-a-foo"} }, 
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "resources_compiled_regex" : [ ],
+                "subjects" : [ ], "subjects_compiled_regex" : [ ], "type": 1, "uid" : 10 }
+                """,
+                """
                 { "_id" : 10, "actions" : [ ], 
                 "context" : { "name" : {"py/object": "vakt.rules.string.Equal", "val": "Max" },
-                "secret" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "i-am-a-foo"} }, 
+                "secret" : {"py/object": "vakt.rules.string.Equal", "val": "i-am-a-foo"} }, 
                 "description" : null, "effect" : "allow", "resources" : [ ],
                 "subjects" : [ ], "type": 1, "uid" : 10 }
-                """,
                 """
-                { "_id" : 10, "actions" : [ ], "description" : null, "effect" : "allow", "resources" : [ ], 
-                "rules" : { "name" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "Max" },
-                "secret" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "i-am-a-foo"} }, 
-                "subjects" : [ ], "uid" : 10 }
-                """,
             ),
             (
                 """
-                { "_id" : 20, "actions" : [ ], 
-                "context" : { },
-                "description" : null, "effect" : "allow", "resources" : [ ],
-                "subjects" : [ ], "type": 2, "uid" : 20 }
+                { "_id" : 20,
+                "actions" : [ "<.*>" ], "actions_compiled_regex" : [ "^(.*)$" ],
+                "context" : { "secret" : { "py/object": "vakt.rules.string.Equal", "val": "John"} },
+                "description" : "foo bar", "effect" : "allow",
+                "resources" : [ "<.*>" ], "resources_compiled_regex" : [ "^(.*)$" ],
+                "subjects" : [ "<.*>" ], "subjects_compiled_regex" : [ "^(.*)$" ],
+                "type": 1, "uid" : 20 }
                 """,
-                None,
+                """
+                { "_id" : 20, "actions" : [ "<.*>" ], "context" : { "secret" :
+                { "py/object": "vakt.rules.string.Equal", "val": "John"} },
+                "description" : "foo bar", "effect" : "allow",
+                "resources" : [ "<.*>" ], "subjects" : [ "<.*>" ], "type": 1,
+                "uid" : 20 }
+                """
             ),
             (
                 """
-                { "_id" : 30, "actions" : [ ], 
-                "context" : { "name" : {"py/object": "vakt.rules.operator.Eq", "val": "Max" },
-                "secret" : {"py/object": "vakt.rules.string.StringEqualRule", "val": "i-am-a-foo"} }, 
-                "description" : null, "effect" : "allow", "resources" : [ ],
-                "subjects" : [ ], "type": 1, "uid" : 30 }
+                { "_id" : 30, "actions" : [ "get", "list" ], "actions_compiled_regex" : [ "get", "list" ],
+                "context" : {  }, "description" : "foo bar",
+                "effect" : "allow",
+                "resources" : [ "fax", "<[pP]rinter>" ], "resources_compiled_regex" : [ "fax", "^([pP]rinter)$" ],
+                "subjects" : [ "<.*>" ], "subjects_compiled_regex" : [ "^(.*)$" ],
+                "type": 1, "uid" : 30 }
                 """,
-                None,
+                """
+                { "_id" : 30, "actions" : [ "get", "list" ],
+                "context" : {  }, "description" : "foo bar",
+                "effect" : "allow",
+                "resources" : [ "fax", "<[pP]rinter>" ], "subjects" : [ "<.*>" ], "type": 1, "uid" : 30 }
+                """
             ),
             (
                 """
-                { "_id" : 40, "actions" : [ ], 
-                "context" : { "name" : {"py/object": "vakt.rules.string.StartsWith", "val": "Max" } }, 
+                { "_id" : 40, "actions" : [ ], "context" : { },
                 "description" : null, "effect" : "allow", "resources" : [ ],
-                "subjects" : [ ], "type": 1, "uid" : 40 }
+                "subjects" : [ { "name" : {"py/object": "vakt.rules.string.StartsWith", "val": "Max" } } ],
+                "type": 2, "uid" : 40 }
                 """,
-                None,
+                """
+                { "_id" : 40, "actions" : [ ], "context" : { },
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ { "name" : {"py/object": "vakt.rules.string.StartsWith", "val": "Max" } } ],
+                "type": 2, "uid" : 40 }
+                """
             ),
         ]
         for (doc, _) in docs:
@@ -710,9 +732,6 @@ class TestMigration1x2x0To1x4x0:
             migration.storage.collection.insert_one(d)
 
         migration.down()
-
-        # test index on 'type' was deleted
-        assert ['_id_'] == [i['name'] for i in storage.collection.list_indexes()]
 
         # test no new docs were added and no docs deleted
         assert len(docs) == len(list(storage.collection.find({})))
