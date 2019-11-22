@@ -453,6 +453,7 @@ It provides the following methods:
 add(policy)                 # Store a Policy
 get(uid)                    # Retrieve a Policy by its ID
 get_all(limit, offset)      # Retrieve all stored Policies (with pagination)
+retrieve_all(batch)         # Retrieve all existing stored Policies (without pagination)
 update(policy)              # Store an updated Policy
 delete(uid)                 # Delete Policy from storage by its ID
 find_for_inquiry(inquiry)   # Retrieve Policies that match the given Inquiry
