@@ -739,7 +739,5 @@ class TestMigration1x2x0To1x4x0:
         assert len(docs) == len(list(storage.get_all(1000, 0)))
         # test string contents of each doc
         for (doc, expected_doc) in docs:
-            if not expected_doc:  # some policies should be left as-is if not converted
-                expected_doc = doc
             new_doc = storage.collection.find_one({'uid': json.loads(doc)['uid']})
             assertions.assertDictEqual(json.loads(expected_doc), new_doc)
