@@ -5,7 +5,9 @@ import warnings
 from abc import ABCMeta, abstractmethod
 
 from ..rules.base import Rule
-from ..rules import Eq
+from ..rules.operator import Eq, NotEq
+from ..rules.list import In, NotIn
+from ..exceptions import RuleCreationError
 
 __all__ = [
     'SubjectEqual',
@@ -18,9 +20,11 @@ __all__ = [
 
 
 class InquiryMatchAbstract(Rule, metaclass=ABCMeta):
-    def __init__(self, attribute=None, rule_class=Eq):
+    def __init__(self, attribute=None, comparison='eq'):
         self.attribute = attribute
-        self.rule_class = rule_class.__class__.__name__
+        self.comparison = comparison
+        if not self._create_comparison_rule('test-value'):
+            raise RuleCreationError('')
 
     def satisfied(self, what, inquiry=None):
         if not inquiry:
@@ -31,11 +35,18 @@ class InquiryMatchAbstract(Rule, metaclass=ABCMeta):
                 inquiry_value = inquiry_value[self.attribute]
             else:
                 return False
-        try:
-            rule = self.rule_class.__new__(*inquiry_value)
-            return rule.satisfied(what)
-        except:
-            return False
+        return self._create_comparison_rule(inquiry_value).satisfied(what, inquiry)
+
+    def _create_comparison_rule(self, values):
+        if self.comparison == 'eq':
+            return Eq(*values)
+        elif self.comparison == 'neq':
+            return NotEq(*values)
+        elif self.comparison == 'in':
+            return In(*values)
+        elif self.comparison == 'nin':
+            return NotIn(*values)
+        return None
 
     @abstractmethod
     def _field_name(self):
