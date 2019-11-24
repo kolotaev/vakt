@@ -5,17 +5,17 @@ import warnings
 from abc import ABCMeta, abstractmethod
 
 from ..rules.base import Rule
-from ..rules.operator import Eq, NotEq
-from ..rules.list import In, NotIn
+from ..rules.operator import Eq
+from ..rules.list import In
 from ..exceptions import RuleCreationError
 
 __all__ = [
     'SubjectEqual',
     'ActionEqual',
     'ResourceIn',
-    'InquirySubjectMatch',
-    'InquiryActionMatch',
-    'InquiryResourceMatch',
+    'SubjectMatch',
+    'ActionMatch',
+    'ResourceMatch',
 ]
 
 
@@ -40,12 +40,8 @@ class InquiryMatchAbstract(Rule, metaclass=ABCMeta):
     def _create_comparison_rule(self, values):
         if self.comparison == 'eq':
             return Eq(*values)
-        elif self.comparison == 'neq':
-            return NotEq(*values)
         elif self.comparison == 'in':
             return In(*values)
-        elif self.comparison == 'nin':
-            return NotIn(*values)
         return None
 
     @abstractmethod
@@ -53,17 +49,17 @@ class InquiryMatchAbstract(Rule, metaclass=ABCMeta):
         pass
 
 
-class InquirySubjectMatch(InquiryMatchAbstract):
+class SubjectMatch(InquiryMatchAbstract):
     def _field_name(self):
         return 'subject'
 
 
-class InquiryActionMatch(InquiryMatchAbstract):
+class ActionMatch(InquiryMatchAbstract):
     def _field_name(self):
         return 'action'
 
 
-class InquiryResourceMatch(InquiryMatchAbstract):
+class ResourceMatch(InquiryMatchAbstract):
     def _field_name(self):
         return 'resource'
 
