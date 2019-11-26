@@ -1,7 +1,6 @@
 """
-All Rules relevant to Inquiry context
+All Rules for defining Inquiry elements relations
 """
-import warnings
 from abc import ABCMeta, abstractmethod
 
 from ..rules.base import Rule
@@ -43,6 +42,7 @@ class InquiryMatchAbstract(Rule, metaclass=ABCMeta):
 class SubjectMatch(InquiryMatchAbstract):
     """
     Rule that is satisfied if the value equals the Inquiry's Subject or it's attribute.
+    For example: resources=[SubjectMatch('nick')]
     """
     def _field_name(self):
         return 'subject'
@@ -51,6 +51,7 @@ class SubjectMatch(InquiryMatchAbstract):
 class ActionMatch(InquiryMatchAbstract):
     """
     Rule that is satisfied if the value equals the Inquiry's Action or it's attribute.
+    For example: resources=[{'ref': ActionMatch('ref_method')}]
     """
     def _field_name(self):
         return 'action'
@@ -59,6 +60,7 @@ class ActionMatch(InquiryMatchAbstract):
 class ResourceMatch(InquiryMatchAbstract):
     """
     Rule that is satisfied if the value equals the Inquiry's Resource or it's attribute.
+    For example: resources=[ResourceMatch('sub-category')]
     """
     def _field_name(self):
         return 'resource'
