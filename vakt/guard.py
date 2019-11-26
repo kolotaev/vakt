@@ -64,9 +64,9 @@ class Guard:
 
         # Filter policies that fit Inquiry by its attributes.
         filtered = [p for p in policies if
-                    self.checker.fits(p, 'actions', inquiry.action) and
-                    self.checker.fits(p, 'subjects', inquiry.subject) and
-                    self.checker.fits(p, 'resources', inquiry.resource) and
+                    self.checker.fits(p, 'actions', inquiry.action, inquiry) and
+                    self.checker.fits(p, 'subjects', inquiry.subject, inquiry) and
+                    self.checker.fits(p, 'resources', inquiry.resource, inquiry) and
                     self.check_context_restriction(p, inquiry)]
 
         # no policies -> deny access!

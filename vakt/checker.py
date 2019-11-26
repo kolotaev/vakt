@@ -136,7 +136,7 @@ class RulesChecker(Checker):
                     if not item_result:
                         break
             elif callable(getattr(i, 'satisfied', '')):
-                item_result = self._check_satisfied(i, what_value=what)
+                item_result = self._check_satisfied(i, what, inquiry)
             # If at least one item fits -> policy fits for this field
             if item_result:
                 return True

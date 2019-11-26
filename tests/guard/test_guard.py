@@ -3,12 +3,13 @@ import pytest
 from vakt.checker import RegexChecker, RulesChecker
 from vakt.storage.memory import MemoryStorage
 from vakt.rules.net import CIDR
-from vakt.rules.inquiry import SubjectEqual
+from vakt.rules.inquiry import SubjectEqual, SubjectMatch
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import Policy
 from vakt.guard import Guard, Inquiry
 from vakt.rules.operator import Eq
 from vakt.rules.string import RegexMatch
+from vakt.rules.logic import Not
 
 
 # Create all required test policies
@@ -334,3 +335,48 @@ def test_guard_if_unexpected_exception_raised():
             raise Exception('This is test class that raises errors')
     g = Guard(BadMemoryStorage(), RegexChecker())
     assert not g.is_allowed(Inquiry(subject='foo', action='bar', resource='baz'))
+
+
+@pytest.mark.parametrize('desc, policy, inquiry, result', [
+    (
+        'match for non-attribute',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Eq('b')],
+            actions=[SubjectMatch()],
+            resources=[Eq('a')],
+        ),
+        Inquiry(subject='b', action='b', resource='a'),
+        True,
+    ),
+    (
+        'not match for non-attribute',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Eq('b')],
+            actions=[SubjectMatch()],
+            resources=[Eq('a')],
+        ),
+        Inquiry(subject='b', action='c', resource='a'),
+        False,
+    ),
+    (
+        'match for non-attribute composition of rules (negate SubjectMatch)',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Eq('b')],
+            actions=[Not(SubjectMatch())],
+            resources=[Eq('a')],
+        ),
+        Inquiry(subject='b', action='c', resource='a'),
+        True,
+    ),
+])
+def test_is_allowed_for_inquiry_match_rules(desc, policy, inquiry, result):
+    storage = MemoryStorage()
+    storage.add(policy)
+    g = Guard(storage, RulesChecker())
+    assert result == g.is_allowed(inquiry), 'Failed for case: ' + desc
