@@ -545,6 +545,45 @@ def test_guard_if_unexpected_exception_raised():
                 resource={'ref_method': 'get'}),
         True,
     ),
+    (
+        'match for value in context',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[Any()],
+            resources=[Any()],
+            context={'section': SubjectMatch()}
+        ),
+        Inquiry(subject='a', action='b', resource='c', context={'section': 'a'}),
+        True,
+    ),
+    (
+        'match for attribute in context',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[Any()],
+            resources=[Any()],
+            context={'section': SubjectMatch('letter')}
+        ),
+        Inquiry(subject={'letter': 'a'}, action='b', resource='c', context={'section': 'a'}),
+        True,
+    ),
+    (
+        'not match for attribute in context',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[Any()],
+            resources=[Any()],
+            context={'section': SubjectMatch('letter')}
+        ),
+        Inquiry(subject={'letter': 'a'}, action='b', resource='c', context={'section': 'X'}),
+        False,
+    ),
 ])
 def test_is_allowed_for_inquiry_match_rules(desc, policy, inquiry, result):
     storage = MemoryStorage()
