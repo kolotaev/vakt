@@ -3,13 +3,14 @@ import pytest
 from vakt.checker import RegexChecker, RulesChecker
 from vakt.storage.memory import MemoryStorage
 from vakt.rules.net import CIDR
-from vakt.rules.inquiry import SubjectEqual, SubjectMatch
+from vakt.rules.inquiry import SubjectEqual, SubjectMatch, ResourceMatch
 from vakt.effects import DENY_ACCESS, ALLOW_ACCESS
 from vakt.policy import Policy
 from vakt.guard import Guard, Inquiry
 from vakt.rules.operator import Eq
 from vakt.rules.string import RegexMatch
-from vakt.rules.logic import Not
+from vakt.rules.logic import Not, And, Any
+from vakt.rules.list import In
 
 
 # Create all required test policies
@@ -343,9 +344,9 @@ def test_guard_if_unexpected_exception_raised():
         Policy(
             uid=1,
             effect=ALLOW_ACCESS,
-            subjects=[Eq('b')],
+            subjects=[Any()],
             actions=[SubjectMatch()],
-            resources=[Eq('a')],
+            resources=[Any()],
         ),
         Inquiry(subject='b', action='b', resource='a'),
         True,
@@ -355,9 +356,9 @@ def test_guard_if_unexpected_exception_raised():
         Policy(
             uid=1,
             effect=ALLOW_ACCESS,
-            subjects=[Eq('b')],
+            subjects=[Any()],
             actions=[SubjectMatch()],
-            resources=[Eq('a')],
+            resources=[Any()],
         ),
         Inquiry(subject='b', action='c', resource='a'),
         False,
@@ -367,11 +368,181 @@ def test_guard_if_unexpected_exception_raised():
         Policy(
             uid=1,
             effect=ALLOW_ACCESS,
-            subjects=[Eq('b')],
+            subjects=[Any()],
             actions=[Not(SubjectMatch())],
-            resources=[Eq('a')],
+            resources=[Any()],
         ),
         Inquiry(subject='b', action='c', resource='a'),
+        True,
+    ),
+    (
+        'match for non-attribute composition of rules (and SubjectMatch)',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[And(In('b', 'd'), SubjectMatch())],
+            resources=[Any()],
+        ),
+        Inquiry(subject='b', action='b', resource='a'),
+        True,
+    ),
+    (
+        'match for attribute; itself is not an attribute',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[SubjectMatch('letter')],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'letter': 'b'}, action='b', resource='d'),
+        True,
+    ),
+    (
+        'not match for attribute; itself is not an attribute. wrong attribute - case sensitive',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[SubjectMatch('Letter')],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'letter': 'b'}, action='b', resource='d'),
+        False,
+    ),
+    (
+        'not match for attribute; itself is not an attribute. wrong attribute',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[SubjectMatch('sign')],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'letter': 'b'}, action='b', resource='d'),
+        False,
+    ),
+    (
+        'not match for attribute; itself is not an attribute. attribute contains not expected value',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[SubjectMatch('letter')],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'letter': 'a'}, action='b', resource='d'),
+        False,
+    ),
+    (
+        'not match for attribute; itself is not an attribute; itself contains not expected value in attribute',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[SubjectMatch('letter')],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'letter': 'b'}, action='bbb', resource='d'),
+        False,
+    ),
+    (
+        'match for attribute; itself is not an attribute; several attributes',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[SubjectMatch('letter')],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'sign': '+', 'letter': 'b', 'digit': 90}, action='b', resource='d'),
+        True,
+    ),
+    (
+        'match for attribute; itself is an attribute',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[{'section': SubjectMatch('letter')}],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'letter': 'b'}, action={'section': 'b'}, resource='d'),
+        True,
+    ),
+    (
+        'not match for attribute; itself is an attribute; wrong value in action',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[{'section': SubjectMatch('letter')}],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'letter': 'b'}, action={'section': 'bbb'}, resource='d'),
+        False,
+    ),
+    (
+        'not match for attribute; itself is an attribute; wrong value in subject',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[{'section': SubjectMatch('letter')}],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'letter': 'a'}, action={'section': 'b'}, resource='d'),
+        False,
+    ),
+    (
+        'not match for attribute; itself is an attribute; wrong attribute in action',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[{'section': SubjectMatch('letter')}],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'letter': 'a'}, action={'sub-section': 'a'}, resource='d'),
+        False,
+    ),
+    (
+        'not match for attribute; itself is an attribute; missing attribute in subject',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[{'section': SubjectMatch('letter')}],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'digit': 'a'}, action={'section': 'a'}, resource='d'),
+        False,
+    ),
+    (
+        'not match for attribute; itself is an attribute; action is not a dict',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[{'section': SubjectMatch('letter')}],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'letter': 'b'}, action='b', resource='d'),
+        False,
+    ),
+    (
+        'match for attribute; itself is an attribute. several attrs and rules',
+        Policy(
+            uid=1,
+            effect=ALLOW_ACCESS,
+            subjects=[Any()],
+            actions=[{'section': SubjectMatch('letter'), 'method': ResourceMatch('ref_method')}],
+            resources=[Any()],
+        ),
+        Inquiry(subject={'digit': 7, 'letter': 'a'},
+                action={'section': 'a', 'method': 'get'},
+                resource={'ref_method': 'get'}),
         True,
     ),
 ])
