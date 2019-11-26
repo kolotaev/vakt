@@ -18,6 +18,9 @@ __all__ = [
 
 
 class InquiryMatchAbstract(Rule, metaclass=ABCMeta):
+    """
+    Base rule for concrete InquiryMatch rule implementations.
+    """
     def __init__(self, attribute=None):
         self.attribute = attribute
 
@@ -38,16 +41,25 @@ class InquiryMatchAbstract(Rule, metaclass=ABCMeta):
 
 
 class SubjectMatch(InquiryMatchAbstract):
+    """
+    Rule that is satisfied if the value equals the Inquiry's Subject or it's attribute.
+    """
     def _field_name(self):
         return 'subject'
 
 
 class ActionMatch(InquiryMatchAbstract):
+    """
+    Rule that is satisfied if the value equals the Inquiry's Action or it's attribute.
+    """
     def _field_name(self):
         return 'action'
 
 
 class ResourceMatch(InquiryMatchAbstract):
+    """
+    Rule that is satisfied if the value equals the Inquiry's Resource or it's attribute.
+    """
     def _field_name(self):
         return 'resource'
 
