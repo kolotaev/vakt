@@ -124,7 +124,7 @@ def test_subject_match_satisfied(attribute, what, inquiry, result):
                              resource={'name': 'book', 'user_id': '123'},
                              subject={'name': 'Max', 'user_id': '123'}), False),
 ])
-def test_subject_match_satisfied(attribute, what, inquiry, result):
+def test_resource_match_satisfied(attribute, what, inquiry, result):
     c = ResourceMatch(attribute)
     assert result == c.satisfied(what, inquiry)
     # test after (de)serialization
