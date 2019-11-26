@@ -337,14 +337,16 @@ If the existing Rules are not enough for you, feel free to define your [own](./e
 
 ##### Inquiry-related
 
-Inquiry-related rules are not usable since v1.2, so you very likely won't need them.
-Partially they served as attributes workaround for inquiry elements when placed in `context`.
+Inquiry-related rules are useful if you want to express equality relation between inquiry elements or their attributes.
 
 | Rule          | Example in Policy  |  Example in Inquiry  | Notes |
 | ------------- |-------------|-------------|-------------|
-| SubjectEqual  | `'data': SubjectEqual()` | `Inquiry(subject='Max')`| Works only for strings |
-| ActionEqual  | `'data': ActionEqual()` | `Inquiry(action='get')`| Works only for strings |
-| ResourceIn  | `'data': ResourceIn()` | `Inquiry(resource='/books/')`| Works only for strings |
+| SubjectMatch | `resources=[{'id': SubjectMatch()}]` | `Inquiry(subject='Max', resource={'id': 'Max'})`| |
+| ActionMatch  | `subjects=[ActionMatch('id')]` | `Inquiry(subject='Max', action={'method': 'get', id': 'Max'})`| |
+| ResourceMatch  | `subjects=[ResourceMatch('id')]` | `Inquiry(subject='Max', resource={'res': 'book', id': 'Max'})`| |
+| SubjectEqual  | `'data': SubjectEqual()` | `Inquiry(subject='Max')`| Works only for strings. Favor SubjectMatch |
+| ActionEqual  | `'data': ActionEqual()` | `Inquiry(action='get')`| Works only for strings. Favor ActionMatch |
+| ResourceIn  | `'data': ResourceIn()` | `Inquiry(resource='/books/')`| Works only for strings. Favor ResourceMatch |
 
 
 *[Back to top](#documentation)*
