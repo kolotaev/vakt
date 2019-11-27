@@ -19,7 +19,7 @@ class Checker(metaclass=ABCMeta):
     Abstract class for Checker typing.
     """
     @abstractmethod
-    def fits(self, policy, field, what):
+    def fits(self, policy, field, what, inquiry=None):
         """
         Check if fields from Inquiry fit some Policies
         """
@@ -37,7 +37,7 @@ class RegexChecker(Checker):
         """Set up LRU-cache size for compiled regular expressions."""
         self.compile = lru_cache(maxsize=cache_size)(compile_regex)
 
-    def fits(self, policy, field, what):
+    def fits(self, policy, field, what, inquiry=None):
         """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
         for i in where:
@@ -66,7 +66,7 @@ class StringChecker(Checker):
     You have to redefine `compare` method.
     """
 
-    def fits(self, policy, field, what):
+    def fits(self, policy, field, what, inquiry=None):
         """Does Policy fit the given 'what' value by its 'field' property"""
         where = getattr(policy, field, [])
         for item in where:
@@ -112,7 +112,7 @@ class RulesChecker(Checker):
     """
     Checker that uses Rules defined inside dictionaries to determine match.
     """
-    def fits(self, policy, field, what):
+    def fits(self, policy, field, what, inquiry=None):
         """Does Policy fit the given 'what' value by its 'field' property"""
         where_list = getattr(policy, field, [])
         is_what_dict = isinstance(what, dict)
@@ -131,21 +131,21 @@ class RulesChecker(Checker):
                         item_result = False
                     else:
                         what_value = what[key]
-                        item_result = self._check_satisfied(rule, what_value=what_value)
+                        item_result = self._check_satisfied(rule, what_value, inquiry)
                     # at least one item's key didn't satisfy -> fail fast: policy doesn't fit anyway
                     if not item_result:
                         break
             elif callable(getattr(i, 'satisfied', '')):
-                item_result = self._check_satisfied(i, what_value=what)
+                item_result = self._check_satisfied(i, what, inquiry)
             # If at least one item fits -> policy fits for this field
             if item_result:
                 return True
         return False
 
     @staticmethod
-    def _check_satisfied(rule, what_value):
+    def _check_satisfied(rule, what_value, inquiry=None):
         try:
-            return rule.satisfied(what_value)
+            return rule.satisfied(what_value, inquiry)
         # broad exception for possible custom exceptions. Any exception -> no match
         # todo - decide on granular handler
         except Exception:

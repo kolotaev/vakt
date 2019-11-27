@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.rules.inquiry import ActionEqual, ActionEqualRule
+from vakt.rules.inquiry import ActionEqual
 from vakt.guard import Inquiry
 
 
@@ -21,9 +21,3 @@ def test_action_equal_satisfied(what, action, result):
     jsn = ActionEqual().to_json()
     c1 = ActionEqual.from_json(jsn)
     assert result == c1.satisfied(what, i)
-    # test deprecated class
-    with pytest.deprecated_call():
-        i = Inquiry(action=action, resource=None, subject=None)
-        c = ActionEqualRule()
-        assert result == c.satisfied(what, i)
-        assert result == ActionEqualRule.from_json(c.to_json()).satisfied(what, i)
