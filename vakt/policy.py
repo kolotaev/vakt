@@ -137,15 +137,17 @@ class PolicyAllow(Policy):
     """
     Policy that has effect ALLOW_ACCESS by default.
     """
-    def __init__(self, uid, **kwargs):
-        super().__init__(uid, **kwargs)
-        self.effect = ALLOW_ACCESS
+    def __init__(self, uid, subjects=(), resources=(), actions=(), context=None, description=None):
+        super().__init__(uid, effect=ALLOW_ACCESS,
+                         subjects=subjects, resources=resources,
+                         actions=actions, context=context, description=description)
 
 
 class PolicyDeny(Policy):
     """
     Policy that has effect DENY_ACCESS by default.
     """
-    def __init__(self, uid, **kwargs):
-        super().__init__(uid, **kwargs)
-        self.effect = DENY_ACCESS
+    def __init__(self, uid, subjects=(), resources=(), actions=(), context=None, description=None):
+        super().__init__(uid, effect=DENY_ACCESS,
+                         subjects=subjects, resources=resources,
+                         actions=actions, context=context, description=description)

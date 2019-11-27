@@ -301,3 +301,8 @@ def test_PolicyAllow_and_PolicyDeny(klass, is_allowed, effect):
     p2 = klass(2, context={'a': Eq(100)})
     assert isinstance(p2.context.get('a'), Eq)
     assert 100 == p2.context.get('a').val
+    # check positional arguments
+    p3 = Policy(1, actions=['<foo.bar>'], resources=['asdf'],
+                subjects=['<qwerty>'], description='test', effect=ALLOW_ACCESS if is_allowed else DENY_ACCESS)
+    p4 = klass(1, ['<qwerty>'], ['asdf'], ['<foo.bar>'], {}, 'test')
+    assert p3.to_json(sort=True) == p4.to_json(sort=True)
