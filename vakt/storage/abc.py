@@ -27,9 +27,28 @@ class Storage(metaclass=ABCMeta):
         """
         Retrieve all the policies within a window.
 
+        All storages must have the same behaviour when using limit=0: return empty list.
+
         Returns Iterable
         """
         pass
+
+    def retrieve_all(self, batch=50):
+        """
+        Retrieve all the policies from the storage in batches of a specified size.
+        Stops when all the existing policies from a storage where returned.
+        You can specify a size of a batch of policies for each iteration.
+
+        Returns generator
+        """
+        limit, offset = batch, 0
+        while True:
+            policies = list(self.get_all(limit, offset))
+            if len(policies) == 0:
+                return
+            for policy in policies:
+                yield policy
+            offset = offset + limit
 
     @abstractmethod
     def find_for_inquiry(self, inquiry, checker=None):

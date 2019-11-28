@@ -17,6 +17,7 @@ from ..policy import Policy
 from ..rules.base import Rule
 from ..checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
 from ..policy import TYPE_STRING_BASED, TYPE_RULE_BASED
+from ..parser import compile_regex
 
 
 DEFAULT_COLLECTION = 'vakt_policies'
@@ -32,11 +33,13 @@ class MongoStorage(Storage):
         self.client = client
         self.database = self.client[db_name]
         self.collection = self.database[collection]
+        self.db_server_version = tuple(map(int, client.server_info()['version'].split('.')))
         self.condition_fields = [
             'actions',
             'subjects',
             'resources',
         ]
+        self.condition_field_compiled_name = lambda x: '%s_compiled_regex' % x
 
     def add(self, policy):
         try:
@@ -54,12 +57,18 @@ class MongoStorage(Storage):
 
     def get_all(self, limit, offset):
         self._check_limit_and_offset(limit, offset)
+        # Special check for: https://docs.mongodb.com/manual/reference/method/cursor.limit/#zero-value
+        if limit == 0:
+            return []
         cur = self.collection.find(limit=limit, skip=offset)
         return self.__feed_policies(cur)
 
     def find_for_inquiry(self, inquiry, checker=None):
-        q_filter = self._create_filter(inquiry, checker)
-        cur = self.collection.find(q_filter)
+        q_filter, use_aggregation = self._create_filter(inquiry, checker)
+        if use_aggregation:
+            cur = self.collection.aggregate(q_filter)
+        else:
+            cur = self.collection.find(q_filter)
         return self.__feed_policies(cur)
 
     def update(self, policy):
@@ -76,61 +85,107 @@ class MongoStorage(Storage):
 
     def _create_filter(self, inquiry, checker):
         """
-        Returns proper query-filter based on the checker type.
+        Returns proper query-filter based on the checker type and a flag that marks whether aggregation should be used
         """
         if isinstance(checker, StringFuzzyChecker):
-            return self.__string_query_on_conditions('$regex', lambda field: getattr(inquiry, field))
+            return self.__string_query_on_conditions('$regex', inquiry), False
         elif isinstance(checker, StringExactChecker):
-            return self.__string_query_on_conditions('$eq', lambda field: getattr(inquiry, field))
-            # We do not use Reverse-regexp match since it's not implemented yet in MongoDB.
-            # Doing it via Javascript function gives no benefits over Vakt final Guard check.
-            # See: https://jira.mongodb.org/browse/SERVER-11947
+            return self.__string_query_on_conditions('$eq', inquiry), False
         elif isinstance(checker, RegexChecker):
-            return {'type': TYPE_STRING_BASED}
+            if self.db_server_version < (4, 2, 0):
+                return {'type': TYPE_STRING_BASED}, False
+            return self.__regex_query_on_conditions(inquiry), True
         elif isinstance(checker, RulesChecker):
-            return {'type': TYPE_RULE_BASED}
+            return {'type': TYPE_RULE_BASED}, False
         elif not checker:
-            return {}
+            return {}, False
         else:
             log.error('Provided Checker type is not supported.')
             raise UnknownCheckerType(checker)
 
-    def __string_query_on_conditions(self, operator, get_value):
+    def __string_query_on_conditions(self, operator, inquiry):
         """
-        Construct MongoDB query.
+        Construct MongoDB query for string-based Checkers.
         """
         conditions = [
             {'type': TYPE_STRING_BASED}
         ]
         for field in self.condition_fields:
-            conditions.append(
-                {
-                    field: {
-                        '$elemMatch': {
-                            operator: get_value(field.rstrip('s'))
-                        }
+            conditions.append({
+                field: {
+                    '$elemMatch': {
+                        operator: getattr(inquiry, field.rstrip('s'))
                     }
                 }
-            )
+            })
         return {"$and": conditions}
 
-    @staticmethod
-    def __prepare_doc(policy):
+    def __regex_query_on_conditions(self, inquiry):
+        """
+        Construct MongoDB query for RegexChecker.
+        """
+        conditions = [
+            {
+                '$eq': ['$type', TYPE_STRING_BASED]
+            }
+        ]
+        for field in self.condition_fields:
+            field_singular = field.rstrip('s')
+            inquiry_value = getattr(inquiry, field_singular)
+            conditions.append({
+                '$anyElementTrue': [
+                    {
+                        '$map': {
+                            'input': "$%s" % self.condition_field_compiled_name(field),
+                            'as': field_singular,
+                            'in': {
+                                '$or': [
+                                    {
+                                        '$eq': ["$$%s" % field_singular, inquiry_value]
+                                    },
+                                    {
+                                        '$regexMatch': {
+                                            'input':  inquiry_value,
+                                            'regex': "$$%s" % field_singular
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            })
+        return [{'$match': {'$expr': {'$and': conditions}}}]
+
+    def __prepare_doc(self, policy):
         """
         Prepare Policy object as a document for insertion.
         """
         # todo - add dict inheritance
         doc = b_json.loads(policy.to_json())
+        if policy.type == TYPE_STRING_BASED:
+            for field in self.condition_fields:
+                compiled_regexes = []
+                for el in doc[field]:
+                    if policy.start_tag in el and policy.end_tag in el:
+                        compiled = compile_regex(el, policy.start_tag, policy.end_tag).pattern
+                    else:
+                        compiled = el
+                    compiled_regexes.append(compiled)
+                doc[self.condition_field_compiled_name(field)] = compiled_regexes
         doc['_id'] = policy.uid
         return doc
 
-    @staticmethod
-    def __prepare_from_doc(doc):
+    def __prepare_from_doc(self, doc):
         """
         Prepare Policy object as a return from MongoDB.
         """
         # todo - add dict inheritance
         del doc['_id']
+        for field in self.condition_fields:
+            compiled_field_name = self.condition_field_compiled_name(field)
+            if compiled_field_name in doc:
+                del doc[compiled_field_name]
         return Policy.from_json(b_json.dumps(doc))
 
     def __feed_policies(self, cursor):
@@ -160,6 +215,7 @@ class MongoMigrationSet(MigrationSet):
             Migration0To1x1x0(self.storage),
             Migration1x1x0To1x1x1(self.storage),
             Migration1x1x1To1x2x0(self.storage),
+            Migration1x2x0To1x4x0(self.storage),
         ]
 
     def save_applied_number(self, number):
@@ -356,4 +412,50 @@ class Migration1x1x1To1x2x0(MongoMigration):
             del doc['type']
             return doc
         self.storage.collection.drop_index(self.type_index)
+        self._each_doc(processor=process)
+
+
+class Migration1x2x0To1x4x0(MongoMigration):
+    """
+    Migration between versions 1.2.0 and 1.4.0.
+    What it does:
+    - Adds special fields for each string-based policy that are needed for regex DB-side checks.
+    - Adds indices for *_compiled_regex fields in string-based polices
+    """
+
+    def __init__(self, storage):
+        self.storage = storage
+        self.index_name = lambda i: i + '_idx'
+        self.multi_key_indices = map(
+            self.storage.condition_field_compiled_name,
+            [
+                'actions',
+                'subjects',
+                'resources',
+            ]
+        )
+
+    @property
+    def order(self):
+        return 4
+
+    def up(self):
+        # create indices
+        for field in self.multi_key_indices:
+            self.storage.collection.create_index(field, name=self.index_name(field))
+        # re-save policies to add compiled_regex fields
+        for p in self.storage.retrieve_all():
+            self.storage.update(p)
+
+    def down(self):
+        def process(doc):
+            """Processor for down"""
+            for field in [self.storage.condition_field_compiled_name(x) for x in self.storage.condition_fields]:
+                if field in doc:
+                    del doc[field]
+            return doc
+        # delete indices
+        for field_name in self.multi_key_indices:
+            self.storage.collection.drop_index(self.index_name(field_name))
+        # return policies to their previous state
         self._each_doc(processor=process)

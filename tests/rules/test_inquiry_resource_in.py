@@ -1,6 +1,6 @@
 import pytest
 
-from vakt.rules.inquiry import ResourceIn, ResourceInRule
+from vakt.rules.inquiry import ResourceIn
 from vakt.guard import Inquiry
 
 
@@ -21,9 +21,3 @@ def test_resource_in_satisfied(what, resource, result):
     jsn = ResourceIn().to_json()
     c1 = ResourceIn.from_json(jsn)
     assert result == c1.satisfied(what, i)
-    # test deprecated class
-    with pytest.deprecated_call():
-        i = Inquiry(action='get', resource=resource, subject='Max')
-        c = ResourceInRule()
-        assert result == c.satisfied(what, i)
-        assert result == ResourceInRule.from_json(c.to_json()).satisfied(what, i)

@@ -33,9 +33,9 @@ class TestMongoMigrationSet:
     def test_up_and_down(self, migration_set):
         migration_set.save_applied_number(0)
         migration_set.up()
-        assert 3 == migration_set.last_applied()
+        assert 4 == migration_set.last_applied()
         migration_set.up()
-        assert 3 == migration_set.last_applied()
+        assert 4 == migration_set.last_applied()
         migration_set.down()
         assert 0 == migration_set.last_applied()
         migration_set.down()
@@ -317,6 +317,7 @@ class TestMigration1x1x0To1x1x1:
 
 
 @pytest.mark.integration
+@pytest.mark.skipif(version_info() >= (1, 3, 0), reason='migration is for versions prior to 1.3.0')
 class TestMigration1x1x1To1x2x0:
 
     class MockLoggingHandler(logging.Handler):
@@ -549,3 +550,206 @@ class TestMigration1x1x1To1x2x0:
         assert 'Migration was unable to convert some Policies, but' in log_handler.messages['error'][0]
         assert 'Mongo IDs of failed Policies are:' in log_handler.messages['error'][0]
         assert "[20, 30, 40]" in log_handler.messages['error'][0]
+
+
+@pytest.mark.integration
+class TestMigration1x2x0To1x4x0:
+    @pytest.fixture()
+    def storage(self):
+        client = create_client()
+        storage = MongoStorage(client, DB_NAME, collection=COLLECTION)
+        yield storage
+        client[DB_NAME][COLLECTION].delete_many({})
+        client.close()
+
+    def test_order(self, storage):
+        migration = Migration1x2x0To1x4x0(storage)
+        assert 4 == migration.order
+
+    def test_up(self, storage):
+        migration = Migration1x2x0To1x4x0(storage)
+        # prepare docs that might have been saved by users in v 1.2.0
+        docs = [
+            (
+                """
+                { "_id" : 10, "actions" : [ ], 
+                "context" : { "name" : {"py/object": "vakt.rules.string.Equal", "val": "Max" },
+                "secret" : {"py/object": "vakt.rules.string.Equal", "val": "i-am-a-foo"} }, 
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ ], "type": 1, "uid" : 10 }
+                """,
+                """
+                { "_id" : 10, "actions" : [ ], "actions_compiled_regex" : [ ],
+                "context" : { "name" : {"py/object": "vakt.rules.string.Equal", "val": "Max" },
+                "secret" : {"py/object": "vakt.rules.string.Equal", "val": "i-am-a-foo"} }, 
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "resources_compiled_regex" : [ ],
+                "subjects" : [ ], "subjects_compiled_regex" : [ ], "type": 1, "uid" : 10 }
+                """
+            ),
+            (
+                """
+                { "_id" : 20, "actions" : [ "<.*>" ], "context" : { "secret" :
+                { "py/object": "vakt.rules.string.Equal", "val": "John"} },
+                "description" : "foo bar", "effect" : "allow",
+                "resources" : [ "<.*>" ], "subjects" : [ "<.*>" ], "type": 1,
+                "uid" : 20 }
+                """,
+                """
+                { "_id" : 20,
+                "actions" : [ "<.*>" ], "actions_compiled_regex" : [ "^(.*)$" ],
+                "context" : { "secret" : { "py/object": "vakt.rules.string.Equal", "val": "John"} },
+                "description" : "foo bar", "effect" : "allow",
+                "resources" : [ "<.*>" ], "resources_compiled_regex" : [ "^(.*)$" ],
+                "subjects" : [ "<.*>" ], "subjects_compiled_regex" : [ "^(.*)$" ],
+                "type": 1, "uid" : 20 }
+                """
+            ),
+            (
+                """
+                { "_id" : 30, "actions" : [ "get", "list" ],
+                "context" : {  }, "description" : "foo bar",
+                "effect" : "allow",
+                "resources" : [ "fax", "<[pP]rinter>" ], "subjects" : [ "<.*>" ], "type": 1, "uid" : 30 }
+                """,
+                """
+                { "_id" : 30, "actions" : [ "get", "list" ], "actions_compiled_regex" : [ "get", "list" ],
+                "context" : {  }, "description" : "foo bar",
+                "effect" : "allow",
+                "resources" : [ "fax", "<[pP]rinter>" ], "resources_compiled_regex" : [ "fax", "^([pP]rinter)$" ],
+                "subjects" : [ "<.*>" ], "subjects_compiled_regex" : [ "^(.*)$" ],
+                "type": 1, "uid" : 30 }
+                """
+            ),
+            (
+                """
+                { "_id" : 40, "actions" : [ ], "context" : { },
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ { "name" : {"py/object": "vakt.rules.string.StartsWith", "val": "Max" } } ],
+                "type": 2, "uid" : 40 }
+                """,
+                """
+                { "_id" : 40, "actions" : [ ], "context" : { },
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ { "name" : {"py/object": "vakt.rules.string.StartsWith", "val": "Max" } } ],
+                "type": 2, "uid" : 40 }
+                """
+            ),
+        ]
+        for (doc, _) in docs:
+            d = b_json.loads(doc)
+            storage.collection.insert_one(d)
+
+        migration.up()
+
+        # test indices exist
+        created_indices = [i['name'] for i in storage.collection.list_indexes()]
+        assert created_indices == [
+            '_id_',
+            'actions_compiled_regex_idx',
+            'subjects_compiled_regex_idx',
+            'resources_compiled_regex_idx'
+        ]
+
+        # test no new docs were added and no docs deleted
+        assert len(docs) == len(list(storage.collection.find({})))
+        # test Policy.from_json() is called without errors for each doc (implicitly)
+        assert len(docs) == len(list(storage.get_all(1000, 0)))
+        # test string contents of each doc
+        for (doc, result_doc) in docs:
+            new_doc = storage.collection.find_one({'uid': json.loads(doc)['uid']})
+            expected = result_doc.replace("\n", '').replace(' ', '')
+            actual = json.dumps(new_doc, sort_keys=True).replace("\n", '').replace(' ', '')
+            assert expected == actual
+        # test we can retrieve policy for inquiry: 2 policies fit in our case
+        inq = Inquiry(action='get', resource='printer', subject='Max')
+        assert 2 == len(list(storage.find_for_inquiry(inq, RegexChecker())))
+
+    def test_down(self, storage):
+        assertions = unittest.TestCase('__init__')
+        migration = Migration1x2x0To1x4x0(storage)
+        # prepare docs that might have been saved by users in v 1.4.0
+        docs = [
+            (
+                """
+                { "_id" : 10, "actions" : [ ], "actions_compiled_regex" : [ ],
+                "context" : { "name" : {"py/object": "vakt.rules.string.Equal", "val": "Max" },
+                "secret" : {"py/object": "vakt.rules.string.Equal", "val": "i-am-a-foo"} }, 
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "resources_compiled_regex" : [ ],
+                "subjects" : [ ], "subjects_compiled_regex" : [ ], "type": 1, "uid" : 10 }
+                """,
+                """
+                { "_id" : 10, "actions" : [ ], 
+                "context" : { "name" : {"py/object": "vakt.rules.string.Equal", "val": "Max" },
+                "secret" : {"py/object": "vakt.rules.string.Equal", "val": "i-am-a-foo"} }, 
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ ], "type": 1, "uid" : 10 }
+                """
+            ),
+            (
+                """
+                { "_id" : 20,
+                "actions" : [ "<.*>" ], "actions_compiled_regex" : [ "^(.*)$" ],
+                "context" : { "secret" : { "py/object": "vakt.rules.string.Equal", "val": "John"} },
+                "description" : "foo bar", "effect" : "allow",
+                "resources" : [ "<.*>" ], "resources_compiled_regex" : [ "^(.*)$" ],
+                "subjects" : [ "<.*>" ], "subjects_compiled_regex" : [ "^(.*)$" ],
+                "type": 1, "uid" : 20 }
+                """,
+                """
+                { "_id" : 20, "actions" : [ "<.*>" ], "context" : { "secret" :
+                { "py/object": "vakt.rules.string.Equal", "val": "John"} },
+                "description" : "foo bar", "effect" : "allow",
+                "resources" : [ "<.*>" ], "subjects" : [ "<.*>" ], "type": 1,
+                "uid" : 20 }
+                """
+            ),
+            (
+                """
+                { "_id" : 30, "actions" : [ "get", "list" ], "actions_compiled_regex" : [ "get", "list" ],
+                "context" : {  }, "description" : "foo bar",
+                "effect" : "allow",
+                "resources" : [ "fax", "<[pP]rinter>" ], "resources_compiled_regex" : [ "fax", "^([pP]rinter)$" ],
+                "subjects" : [ "<.*>" ], "subjects_compiled_regex" : [ "^(.*)$" ],
+                "type": 1, "uid" : 30 }
+                """,
+                """
+                { "_id" : 30, "actions" : [ "get", "list" ],
+                "context" : {  }, "description" : "foo bar",
+                "effect" : "allow",
+                "resources" : [ "fax", "<[pP]rinter>" ], "subjects" : [ "<.*>" ], "type": 1, "uid" : 30 }
+                """
+            ),
+            (
+                """
+                { "_id" : 40, "actions" : [ ], "context" : { },
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ { "name" : {"py/object": "vakt.rules.string.StartsWith", "val": "Max" } } ],
+                "type": 2, "uid" : 40 }
+                """,
+                """
+                { "_id" : 40, "actions" : [ ], "context" : { },
+                "description" : null, "effect" : "allow", "resources" : [ ],
+                "subjects" : [ { "name" : {"py/object": "vakt.rules.string.StartsWith", "val": "Max" } } ],
+                "type": 2, "uid" : 40 }
+                """
+            ),
+        ]
+        for (doc, _) in docs:
+            d = b_json.loads(doc)
+            migration.storage.collection.insert_one(d)
+
+        migration.down()
+
+        # test indices on *_compiled_regex were deleted
+        assert ['_id_'] == [i['name'] for i in storage.collection.list_indexes()]
+
+        # test no new docs were added and no docs deleted
+        assert len(docs) == len(list(storage.collection.find({})))
+        # test Policy.from_json() is called without errors for each doc (implicitly)
+        assert len(docs) == len(list(storage.get_all(1000, 0)))
+        # test string contents of each doc
+        for (doc, expected_doc) in docs:
+            new_doc = storage.collection.find_one({'uid': json.loads(doc)['uid']})
+            assertions.assertDictEqual(json.loads(expected_doc), new_doc)

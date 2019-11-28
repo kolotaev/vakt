@@ -33,9 +33,14 @@ if __name__ == '__main__':
                 'pytest~=4.0',
                 'pytest-cov~=2.6',
                 'pylint~=1.0',
+                'PyMySQL~=0.9',
+                'psycopg2cffi~=2.7',
             ],
             'mongo': [
                 'pymongo~=3.5',
+            ],
+            'sql': [
+                'SQLAlchemy~=1.3'
             ],
         },
         packages=find_packages(exclude='tests'),
@@ -55,6 +60,7 @@ if __name__ == '__main__':
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: Implementation :: PyPy',
             'Programming Language :: Python :: Implementation :: CPython',
         ],

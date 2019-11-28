@@ -30,21 +30,23 @@ Attribute-based access control (ABAC) SDK for Python.
 	- [Storage](#storage)
         - [Memory](#memory)
         - [MongoDB](#mongodb)
+        - [SQL](#sql)
     - [Migration](#migration)
 - [Caching](#caching)
 - [JSON](#json)
 - [Logging](#logging)
 - [Examples](./examples)
-- [Acknowledgements](#acknowledgements)
+- [Milestones](#milestones)
 - [Benchmark](#benchmark)
+- [Acknowledgements](#acknowledgements)
 - [Development](#development)
 - [License](#license)
 
 
 ### Description
 
-Vakt is an attribute-based access control ([ABAC](https://en.wikipedia.org/wiki/Attribute-based_access_control))
-toolkit that is based on policies, also sometimes referred as PBAC.
+Vakt is an attribute-based and policy-based access control ([ABAC](https://en.wikipedia.org/wiki/Attribute-based_access_control))
+toolkit that is based on policies.
 ABAC stands aside of RBAC and ACL models, giving you
 a fine-grained control on definition of the rules that restrict an access to resources and is generally considered a
 "next generation" authorization model.
@@ -96,6 +98,11 @@ pip install vakt
 For MongoDB storage:
 ```bash
 pip install vakt[mongo]
+```
+
+For SQL storage:
+```bash
+pip install vakt[sql]
 ```
 
 *[Back to top](#documentation)*
@@ -269,7 +276,7 @@ from vakt import Policy, rules
 
 Policy(
     ...,
-    subjects=[{'name': rules.Eq('.KIMZihH0gsrc')}],
+    subjects=[{'name': rules.Eq('Tommy')}],
 ),
 
 Policy(
@@ -341,14 +348,16 @@ If the existing Rules are not enough for you, feel free to define your [own](./e
 
 ##### Inquiry-related
 
-Inquiry-related rules are not usable since v1.2, so you very likely won't need them.
-Partially they served as attributes workaround for inquiry elements when placed in `context`.
+Inquiry-related rules are useful if you want to express equality relation between inquiry elements or their attributes.
 
 | Rule          | Example in Policy  |  Example in Inquiry  | Notes |
 | ------------- |-------------|-------------|-------------|
-| SubjectEqual  | `'data': SubjectEqual()` | `Inquiry(subject='Max')`| Works only for strings |
-| ActionEqual  | `'data': ActionEqual()` | `Inquiry(action='get')`| Works only for strings |
-| ResourceIn  | `'data': ResourceIn()` | `Inquiry(resource='/books/')`| Works only for strings |
+| SubjectMatch | `resources=[{'id': SubjectMatch()}]` | `Inquiry(subject='Max', resource={'id': 'Max'})`| Works for the whole subject value or one of its attributes |
+| ActionMatch  | `subjects=[ActionMatch('id')]` | `Inquiry(subject='Max', action={'method': 'get', id': 'Max'})`| Works for the whole action value or one of its attributes |
+| ResourceMatch  | `subjects=[ResourceMatch('id')]` | `Inquiry(subject='Max', resource={'res': 'book', id': 'Max'})`| Works for the whole resource value or one of its attributes |
+| SubjectEqual  | `'data': SubjectEqual()` | `Inquiry(subject='Max')`| Works only for strings. Favor SubjectMatch |
+| ActionEqual  | `'data': ActionEqual()` | `Inquiry(action='get')`| Works only for strings. Favor ActionMatch |
+| ResourceIn  | `'data': ResourceIn()` | `Inquiry(resource='/books/')`| Works only for strings. Favor ResourceMatch |
 
 
 *[Back to top](#documentation)*
@@ -394,6 +403,11 @@ Syntax for description of Policy fields is:
 ```
 Where `<>` are delimiters of a regular expression boundaries part. Custom Policy can redefine them by overriding
 `start_tag` and `end_tag` properties. Generally you always want to use the first variant: `<foo.*>`.
+
+**WARNING. Please note, that storages have varying level of regexp support. For example,
+most SQL databases allow to use POSIX metacharacters whereas python `re` module
+and thus MemoryStorage does not. So, while defining policies you're safe and sound
+as long as you understand how storage of your choice handles the regexps you specified.**
 
 * StringExactChecker - the most quick checker:
 ```
@@ -454,6 +468,7 @@ It provides the following methods:
 add(policy)                 # Store a Policy
 get(uid)                    # Retrieve a Policy by its ID
 get_all(limit, offset)      # Retrieve all stored Policies (with pagination)
+retrieve_all(batch)         # Retrieve all existing stored Policies (without pagination)
 update(policy)              # Store an updated Policy
 delete(uid)                 # Delete Policy from storage by its ID
 find_for_inquiry(inquiry)   # Retrieve Policies that match the given Inquiry
@@ -490,9 +505,36 @@ Default collection name is 'vakt_policies'.
 
 Actions are the same as for any Storage that conforms interface of `vakt.storage.abc.Storage` base class.
 
-Beware that currently MongoStorage supports indexed `find_for_inquiry()` only for StringExact and StringFuzzy checkers.
-RegexChecker (see [this issue](https://jira.mongodb.org/browse/SERVER-11947)) and RulesChecker simply
-return all the Policies from the database.
+Beware that currently MongoStorage supports indexed and filtered-out `find_for_inquiry()` only for 
+StringExact, StringFuzzy and Regex (since MongoDB version 4.2 and onwards) checkers.
+RulesChecker simply returns all the Policies from the database. 
+
+
+##### SQL
+SQL storage is backed by SQLAlchemy, thus it should support any RDBMS available for it:
+MySQL, Postgres, Oracle, MSSQL, Sqlite, etc.
+
+Example for MySQL.
+
+```python
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+from vakt.storage.sql import SQLStorage
+
+engine = create_engine('mysql://root:root@localhost/vakt_db')
+storage = SQLStorage(scoped_session=scoped_session(sessionmaker(bind=engine)))
+
+# Don't forget to run migrations here (especially for the first time)
+...
+```
+
+Beware that currently SQLStorage supports indexed and filtered-out `find_for_inquiry()` only for 
+StringExact, StringFuzzy and Regex checkers.
+RulesChecker simply returns all the Policies from the database. 
+
+Note that vakt focuses on testing SQLStorage functionality only for two most popular open-source databases:
+MySQL and Postgres. Other databases support may have worse performance characteristics and/or bugs.
+Feel free to report any issues.
 
 *[Back to top](#documentation)*
 
@@ -718,11 +760,16 @@ Vakt logs can be comprehended in 2 basic levels:
 *[Back to top](#documentation)*
 
 
-### Acknowledgements
+### Milestones
 
-Initial code ideas of Vakt are based on
-[Amazon IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md) and
-[Ladon](https://github.com/ory/ladon) Policies SDK as its reference implementation.
+Most valuable features to be implemented in the order of importance:
+
+- [x] SQL Storage
+- [ ] Rules that reference Inquiry data for Rule-based policies 
+- [ ] Caching mechanisms (for Storage and Guard)
+- [ ] YAML-based language for declarative policy definitions
+- [ ] Enhanced audit logging
+- [ ] Redis Storage
 
 *[Back to top](#documentation)*
 
@@ -756,9 +803,9 @@ Output is:
 
 Script usage:
 ```
-usage: benchmark.py [-h] [-n [POLICIES_NUMBER]] [-d {mongo,memory}]
-                    [-c {regex,rules,exact,fuzzy}] [--regexp] [--same SAME]
-                    [--cache CACHE]
+usage: benchmark.py [-h] [-n [POLICIES_NUMBER]] [-s {mongo,memory,sql}]
+                    [-d [SQL_DSN]] [-c {regex,rules,exact,fuzzy}] [--regexp]
+                    [--same SAME] [--cache CACHE]
 
 Run vakt benchmark.
 
@@ -766,8 +813,11 @@ optional arguments:
   -h, --help            show this help message and exit
   -n [POLICIES_NUMBER], --number [POLICIES_NUMBER]
                         number of policies to create in DB (default: 100000)
-  -d {mongo,memory}, --storage {mongo,memory}
+  -s {mongo,memory,sql}, --storage {mongo,memory,sql}
                         type of storage (default: memory)
+  -d [SQL_DSN], --dsn [SQL_DSN]
+                        DSN connection string for sql storage (default:
+                        sqlite:///:memory:)
   -c {regex,rules,exact,fuzzy}, --checker {regex,rules,exact,fuzzy}
                         type of checker (default: regex)
 
@@ -782,13 +832,22 @@ regex policy related:
 *[Back to top](#documentation)*
 
 
+### Acknowledgements
+
+Initial code ideas of Vakt are based on
+[Amazon IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md) and
+[Ladon](https://github.com/ory/ladon) Policies SDK as its reference implementation.
+
+*[Back to top](#documentation)*
+
+
 ### Development
 
 To hack Vakt locally run:
 
 ```bash
 $ ...                              # activate virtual environment w/ preferred method (optional)
-$ pip install -e .[dev,mongo]      # to install all dependencies
+$ pip install -e .[dev,mongo,sql]  # to install all dependencies
 $ pytest -m "not integration"      # to run non-integration tests with coverage report
 $ pytest --cov=vakt tests/         # to get coverage report
 $ pylint vakt                      # to check code quality with PyLint

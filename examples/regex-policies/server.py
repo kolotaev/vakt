@@ -7,10 +7,16 @@ from vakt import (
     Policy, Guard, Inquiry, RegexChecker,
     rules,
 )
-from vakt.storage.mongo import MongoStorage
 
 from flask import Flask, request, session
+
+from vakt.storage.mongo import MongoStorage
 from pymongo import MongoClient
+
+from vakt.storage.sql import SQLStorage
+from vakt.storage.sql.model import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 # ============================= #
 #    Set up vakt and server     #
@@ -35,7 +41,7 @@ policies = [
         but only when they connect from local library's computer
         """,
         effect=ALLOW_ACCESS,
-        subjects=[r'<[\w]+ M[\w]+>'],
+        subjects=[r'<[a-zA-Z]+ M[a-z]+>'],
         resources=('library:books:<.+>', 'office:magazines:<.+>'),
         actions=['<read|get>'],
         context={
@@ -75,11 +81,22 @@ def init():
     root.addHandler(logging.StreamHandler())
 
     # Here we instantiate the Policy Storage.
-    # In this case it's Memory or MongoDB Storage, but we can opt to SQL Storage, any other third-party storage, etc.
-    if os.environ.get('STORAGE') == 'mongo':
+    # We can opt to SQL, Memory or MongoDB Storage, any other third-party storage, etc.
+    def create_sql_storage(dsn):
+        engine = create_engine(dsn, echo=True)
+        Base.metadata.create_all(engine)
+        session = scoped_session(sessionmaker(bind=engine))
+        return SQLStorage(scoped_session=session)
+    use_storage = os.environ.get('STORAGE')
+    print('storage is ', use_storage)
+    if use_storage == 'mongo':
         user, password, host = 'root', 'example', 'localhost:27017'
         uri = 'mongodb://%s:%s@%s' % (user, password, host)
         st = MongoStorage(MongoClient(host=host), 'vakt_db', collection='vakt_book_library')
+    elif use_storage == 'mysql':
+        st = create_sql_storage('mysql+pymysql://root:root@localhost/vakt_db')
+    elif use_storage == 'pg':
+        st = create_sql_storage('postgresql+psycopg2://postgres:root@localhost/vakt_db')
     else:
         st = MemoryStorage()
 
