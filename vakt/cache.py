@@ -147,7 +147,7 @@ class AllowanceCache(Observer):
     Caches hits of `is_allowed` (technically, its more tiny part: `is_allowed_silent`) for a given Inquiry.
     In case of a cache hit returns the cached boolean result, in case of a cache miss goes to a Storage and
     memorizes its result for future calls with the same Inquiry.
-    If underlying Storage notifies it that policies set was anyhow changed, invalidates all the cached results.
+    If underlying Storage notifies it that policy-set was anyhow changed, invalidates all the cached results.
 
     You need to pass proper options in order to create cache of a desired type.
     Available options are:
