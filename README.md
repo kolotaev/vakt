@@ -657,7 +657,7 @@ guard = Guard(storage, RegexChecker())
 
 `Guard.is_allowed` it the the centerpiece of vakt. Therefore it makes ultimate sense to cache it. 
 And `create_cached_guard()` function allows you to do exactly that. You need to pass it a Storage, a Checker and a 
-maximum size of a cache. It will return you a tuple of: Storage, Guard and AllowanceCache:
+maximum size of a cache. It will return you a tuple of: Guard, Storage and AllowanceCache instance:
 
 - You must do all policies operations with the returned storage 
 (which is a slightly enhanced version of a Storage you provided to the function).
@@ -675,7 +675,7 @@ your needs, you can pass your own implementation of a cache backend that is a su
 `vakt.cache.AllowanceCacheBackend` to `create_cached_guard` as a `cache` keyword argument.
 
 ```python
-storage, guard, cache = create_cached_guard(MongoStorage(...), RulesChecker(), maxsize=256)
+guard, storage, cache = create_cached_guard(MongoStorage(...), RulesChecker(), maxsize=256)
 
 p1 = Policy(1, actions=[Eq('get')], resources=[Eq('book')], subjects=[Eq('Max')], effect=ALLOW_ACCESS)
 storage.add(p1)

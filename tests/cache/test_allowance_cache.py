@@ -7,7 +7,7 @@ from vakt.rules import Eq
 class TestAllowanceCache:
 
     def test_same_inquiries_are_cached(self):
-        storage, guard, cache = create_cached_guard(MemoryStorage(), RulesChecker(), maxsize=256)
+        guard, storage, cache = create_cached_guard(MemoryStorage(), RulesChecker(), maxsize=256)
         p1 = Policy(1, actions=[Eq('get')], resources=[Eq('book')], subjects=[Eq('Max')], effect=ALLOW_ACCESS)
         storage.add(p1)
         inq1 = Inquiry(action='get', resource='book', subject='Max')
@@ -38,7 +38,7 @@ class TestAllowanceCache:
 
         inq1 = Inquiry(action='get', resource='book', subject='Max')
         inq2 = Inquiry(action='get', resource='book', subject='Jim')
-        storage, guard, cache = create_cached_guard(MemoryStorage(), RulesChecker(), maxsize=256)
+        guard, storage, cache = create_cached_guard(MemoryStorage(), RulesChecker(), maxsize=256)
         p1 = Policy(1, actions=[Eq('get')], resources=[Eq('book')], subjects=[Eq('Max')], effect=ALLOW_ACCESS)
         p2 = Policy(2, actions=[Eq('get')], resources=[Eq('magazine')], subjects=[Eq('Max')], effect=ALLOW_ACCESS)
         storage.add(p1)

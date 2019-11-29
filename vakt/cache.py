@@ -36,16 +36,16 @@ def create_cached_guard(storage, checker, cache=None, **kwargs):
     maxsize - argument allows you to specify a maximum size of a default in-memory LRU cache, (preferably a power of 2)
 
     :return (storage, guard, cache)
+    guard - Guard whose `is_allowed` method will be cached
     storage - must be used in the code after the function call - it's an observable wrapper of the initial Storage.
               If you are not interacting with policies through this Storage cache won't behave correctly.
-    guard - Guard whose `is_allowed` method will be cached
     cache - AllowanceCache that can be used to obtain information about a cache state
     """
     st = ObservableMutationStorage(storage)
     guard = Guard(st, checker)
     cache = AllowanceCache(guard, cache_backend=cache, **kwargs)
     st.add_listener(cache)
-    return st, guard, cache
+    return guard, st, cache
 
 
 class EnfoldCache:
