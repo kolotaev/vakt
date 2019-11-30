@@ -69,7 +69,6 @@ class EnfoldCache:
         self.storage = storage
         self.cache = cache
         self.populate_step_size = 1000
-        self._get_all_fetched = False
         if populate:
             self.populate()
 
@@ -107,6 +106,16 @@ class EnfoldCache:
         if result:
             return result
         return self.storage.get_all(limit, offset)
+
+    def retrieve_all(self, **kwargs):
+        """
+        Cache storage `retrieve_all`
+        """
+        # todo - what about generators?
+        result = self.cache.retrieve_all(**kwargs)
+        if result:
+            return result
+        return self.storage.retrieve_all(**kwargs)
 
     def find_for_inquiry(self, inquiry, checker=None):
         """

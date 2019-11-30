@@ -33,5 +33,9 @@ class ObservableMutationStorage(Subject):
     def get_all(self, limit, offset):
         return self.storage.get_all(limit, offset)
 
+    # todo - add retrieve_all tests
+    def retrieve_all(self, **kwargs):
+        return self.storage.retrieve_all(**kwargs)
+
     def find_for_inquiry(self, inquiry, checker=None):
         return self.storage.find_for_inquiry(inquiry, checker)
