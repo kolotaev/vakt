@@ -11,36 +11,32 @@ from vakt.exceptions import PolicyExistsError
 
 class TestEnfoldCache:
 
-    def test_init_with_populate_false(self):
+    def test_init_without_populate(self):
         cache = MemoryStorage()
         policies = [Policy(1), Policy(2), Policy(3)]
-        back = Mock(spec=MongoStorage, **{'get_all.return_value': [policies]})
+        back = Mock(spec=MongoStorage, **{'retrieve_all.return_value': [policies]})
         c = EnfoldCache(back, cache=cache, populate=False)
-        assert not back.get_all.called
+        assert not back.retrieve_all.called
         assert [] == c.cache.get_all(1000, 0)
 
-    def test_init_with_populate_true(self):
+    def test_init_with_populate_and_populate_is_true_by_default(self):
         cache = MemoryStorage()
         policies = [Policy(1), Policy(2), Policy(3)]
-        back = Mock(spec=MongoStorage, **{'get_all.side_effect': [policies, []]})
-        ec = EnfoldCache(back, cache=cache, populate=True)
-        assert policies == ec.cache.get_all(10000, 0)
-
-    def test_populate_is_true_by_default(self):
-        cache = MemoryStorage()
-        policies = [Policy(1), Policy(2), Policy(3)]
-        back = Mock(spec=MongoStorage, **{'get_all.side_effect': [policies, []]})
+        # todo move to retrieve_all
+        back = Mock(spec=MongoStorage, **{'retrieve_all.side_effect': [policies], 'get_all.side_effect': []})
         ec = EnfoldCache(back, cache=cache)
+        assert back.retrieve_all.called
         assert policies == ec.cache.get_all(10000, 0)
 
     def test_init_with_populate_for_dirty_cache_storage(self):
         cache = MemoryStorage()
         cache.add(Policy(1))
         policies = [Policy(1), Policy(2), Policy(3)]
-        back = Mock(spec=MongoStorage, **{'get_all.side_effect': [policies, [policies]]})
+        back = Mock(spec=MongoStorage, **{'retrieve_all.side_effect': [policies]})
         with pytest.raises(Exception) as excinfo:
             EnfoldCache(back, cache=cache, populate=True)
         assert 'Conflicting UID = 1' == str(excinfo.value)
+        assert back.retrieve_all.called
 
     def test_add_return_value(self):
         cache_storage = MemoryStorage()

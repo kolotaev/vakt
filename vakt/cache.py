@@ -68,21 +68,14 @@ class EnfoldCache:
     def __init__(self, storage, cache, populate=True):
         self.storage = storage
         self.cache = cache
-        self.populate_step = 1000
+        self.populate_step_size = 1000
         self._get_all_fetched = False
         if populate:
             self.populate()
 
     def populate(self):
-        limit = self.populate_step
-        offset = 0
-        while True:
-            policies = self.storage.get_all(limit, offset)
-            if not policies:
-                break
-            for p in policies:
-                self.cache.add(p)
-            offset = limit + 1
+        for p in self.storage.retrieve_all(self.populate_step_size):
+            self.cache.add(p)
 
     def add(self, policy):
         """
