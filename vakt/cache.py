@@ -102,27 +102,26 @@ class EnfoldCache:
         """
         Cache storage `get_all`
         """
-        result = self.cache.get_all(limit, offset)
-        if result:
+        result = list(self.cache.get_all(limit, offset))
+        if len(result) > 0:
             return result
         return self.storage.get_all(limit, offset)
 
-    def retrieve_all(self, **kwargs):
+    def retrieve_all(self, *args, **kwargs):
         """
         Cache storage `retrieve_all`
         """
-        # todo - what about generators?
-        result = self.cache.retrieve_all(**kwargs)
-        if result:
+        result = list(self.cache.retrieve_all(*args, **kwargs))
+        if len(result) > 0:
             return result
-        return self.storage.retrieve_all(**kwargs)
+        return self.storage.retrieve_all(*args, **kwargs)
 
     def find_for_inquiry(self, inquiry, checker=None):
         """
         Cache storage `find_for_inquiry`
         """
-        result = self.cache.find_for_inquiry(inquiry, checker)
-        if result:
+        result = list(self.cache.find_for_inquiry(inquiry, checker))
+        if len(result) > 0:
             return result
         log.warning('%s cache miss for find_for_inquiry. Trying it from backend storage', type(self).__name__)
         return self.storage.find_for_inquiry(inquiry, checker)

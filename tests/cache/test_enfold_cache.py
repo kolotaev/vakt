@@ -7,6 +7,7 @@ from vakt.storage.mongo import MongoStorage
 from vakt import Policy, Inquiry, RulesChecker
 from vakt.cache import EnfoldCache
 from vakt.exceptions import PolicyExistsError
+from ..helper import MemoryStorageYieldingExample2
 
 
 class TestEnfoldCache:
@@ -219,8 +220,12 @@ class TestEnfoldCache:
             3
         )
 
-    def test_get_all_return_value(self):
-        cache_storage = MemoryStorage()
+    @pytest.mark.parametrize('storage', [
+        MemoryStorage(),
+        MemoryStorageYieldingExample2(),
+    ])
+    def test_get_all_return_value(self, storage):
+        cache_storage = storage
         back_storage = MemoryStorage()
         ec = EnfoldCache(back_storage, cache=cache_storage)
         p1 = Policy(1)
@@ -233,13 +238,17 @@ class TestEnfoldCache:
         ec_return = back_storage.get_all(100, 0)
         assert backend_return == ec_return
 
-    def test_get_all(self):
+    @pytest.mark.parametrize('storage', [
+        MemoryStorage(),
+        MemoryStorageYieldingExample2(),
+    ])
+    def test_get_all(self, storage):
         p1 = Policy(1)
         p2 = Policy(2)
         p3 = Policy(3)
         p4 = Policy(4)
         p5 = Policy(5)
-        cache_storage = MemoryStorage()
+        cache_storage = storage
         back_storage = Mock(spec=MongoStorage, **{'get_all.return_value': []})
         ec = EnfoldCache(back_storage, cache=cache_storage, populate=False)
         assert [] == ec.get_all(1, 0)
@@ -257,8 +266,12 @@ class TestEnfoldCache:
         assert [p5] == list(ec.get_all(1, 1))
         assert [p4, p5] == list(ec.get_all(2, 0))
 
-    def test_find_for_inquiry_return_value(self):
-        cache_storage = MemoryStorage()
+    @pytest.mark.parametrize('storage', [
+        MemoryStorage(),
+        MemoryStorageYieldingExample2(),
+    ])
+    def test_find_for_inquiry_return_value(self, storage):
+        cache_storage = storage
         back_storage = MemoryStorage()
         ec = EnfoldCache(back_storage, cache=cache_storage)
         inq = Inquiry(action='get')
