@@ -253,8 +253,8 @@ class TestEnfoldCache:
         ec = EnfoldCache(back_storage, cache=cache_storage, populate=False)
         assert [] == ec.get_all(1, 0)
         assert [] == ec.get_all(100, 0)
-        back_storage.get_all = Mock(return_value=[p1, p2, p3])
         # test we return from the backend
+        back_storage.get_all = Mock(return_value=[p1, p2, p3])
         assert [p1, p2, p3] == list(ec.get_all(100, 0))
         back_storage.get_all = Mock(return_value=[])
         assert [] == list(ec.get_all(100, 0))
@@ -265,6 +265,56 @@ class TestEnfoldCache:
         assert [p4] == list(ec.get_all(1, 0))
         assert [p5] == list(ec.get_all(1, 1))
         assert [p4, p5] == list(ec.get_all(2, 0))
+
+    @pytest.mark.parametrize('storage', [
+        MemoryStorage(),
+        MemoryStorageYieldingExample2(),
+    ])
+    def test_retrieve_all_return_value(self, storage):
+        cache_storage = storage
+        back_storage = MemoryStorage()
+        ec = EnfoldCache(back_storage, cache=cache_storage)
+        p1 = Policy(1)
+        p2 = Policy(2)
+        p3 = Policy(3)
+        ec.add(p1)
+        ec.add(p2)
+        ec.add(p3)
+        backend_return = back_storage.retrieve_all()
+        ec_return = back_storage.retrieve_all()
+        assert list(backend_return) == list(ec_return)
+
+    @pytest.mark.parametrize('storage', [
+        MemoryStorage(),
+        MemoryStorageYieldingExample2(),
+    ])
+    def test_retrieve_all(self, storage):
+        p1 = Policy(1)
+        p2 = Policy(2)
+        p3 = Policy(3)
+        p4 = Policy(4)
+        p5 = Policy(5)
+        cache_storage = storage
+        back_storage = Mock(spec=MongoStorage, **{'retrieve_all.return_value': []})
+        ec = EnfoldCache(back_storage, cache=cache_storage, populate=False)
+        assert [] == ec.retrieve_all()
+        back_storage.retrieve_all.assert_called_with()
+        assert [] == ec.retrieve_all(batch=10)
+        back_storage.retrieve_all.assert_called_with(batch=10)
+        assert [] == ec.retrieve_all(10)
+        back_storage.retrieve_all.assert_called_with(10)
+        # test we return from the backend
+        back_storage.retrieve_all = Mock(return_value=[p1, p2, p3])
+        assert [p1, p2, p3] == list(ec.retrieve_all())
+        back_storage.retrieve_all = Mock(return_value=[])
+        assert [] == list(ec.retrieve_all())
+        # test we return from the cache (cache is dirty)
+        cache_storage.add(p4)
+        cache_storage.add(p5)
+        back_storage.retrieve_all = Mock(return_value=[p1, p2, p3])
+        assert [p4, p5] == list(ec.retrieve_all(1))
+        assert [p4, p5] == list(ec.retrieve_all(batch=1))
+        assert [p4, p5] == list(ec.retrieve_all())
 
     @pytest.mark.parametrize('storage', [
         MemoryStorage(),
