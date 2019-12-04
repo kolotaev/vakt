@@ -1,4 +1,5 @@
 from vakt.storage.memory import MemoryStorage
+from vakt.util import Observer
 
 
 # todo - move all helper and unit-test example classes and functions here
@@ -17,3 +18,11 @@ class MemoryStorageYieldingExample2(MemoryStorageYieldingExample):
     def find_for_inquiry(self, inquiry, checker=None):
         for p in super().find_for_inquiry(inquiry, checker):
             yield p
+
+
+class CountObserver(Observer):
+    def __init__(self):
+        self.count = 0
+
+    def update(self):
+        self.count += 1
