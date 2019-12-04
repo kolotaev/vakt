@@ -100,8 +100,10 @@ class TestObservableMutationStorage:
         p2 = Policy('b')
         st.add(p1)
         st.add(p2)
-        assert [p1, p2] == list(mem.find_for_inquiry(inq))
-        assert [p1, p2] == list(st.find_for_inquiry(inq))
+        mem_found = list(mem.find_for_inquiry(inq))
+        assert [p1, p2] == mem_found or [p2, p1] == mem_found
+        st_found = list(st.find_for_inquiry(inq))
+        assert [p1, p2] == st_found or [p2, p1] == st_found
         assert 2 == observer.count
         st.find_for_inquiry(inq)
         st.find_for_inquiry(inq)

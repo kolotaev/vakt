@@ -23,7 +23,6 @@ class TestEnfoldCache:
     def test_init_with_populate_and_populate_is_true_by_default(self):
         cache = MemoryStorage()
         policies = [Policy(1), Policy(2), Policy(3)]
-        # todo move to retrieve_all
         back = Mock(spec=MongoStorage, **{'retrieve_all.side_effect': [policies], 'get_all.side_effect': []})
         ec = EnfoldCache(back, cache=cache)
         assert back.retrieve_all.called
