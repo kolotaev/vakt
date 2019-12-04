@@ -1,4 +1,5 @@
-from vakt.util import JsonSerializer, Subject, Observer
+from vakt.util import JsonSerializer, Subject
+from .helper import CountObserver
 
 
 class AB(JsonSerializer):
@@ -25,23 +26,16 @@ def test_json_serializer_from_json():
 
 
 def test_observables():
-    class MyObserver(Observer):
-        def __init__(self):
-            self.counter = 0
-
-        def update(self):
-            self.counter += 1
-
     subj = Subject()
-    o1 = MyObserver()
-    o2 = MyObserver()
+    o1 = CountObserver()
+    o2 = CountObserver()
     subj.add_listener(o1)
     subj.add_listener(o2)
     subj.notify()
     subj.notify()
-    assert 2 == o1.counter
-    assert 2 == o2.counter
+    assert 2 == o1.count
+    assert 2 == o2.count
     subj.remove_listener(o1)
     subj.notify()
-    assert 2 == o1.counter
-    assert 3 == o2.counter
+    assert 2 == o1.count
+    assert 3 == o2.count
