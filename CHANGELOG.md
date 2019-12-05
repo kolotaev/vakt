@@ -21,7 +21,7 @@ behaviour hasn't changed.
 - [Checker] All checkers now accept optional attribute `inquiry` in their `fits` method in order to support
 InquiryMatch rules. Generally it was needed only for `RulesChecker`, so others just ignore it.
 - [Inquiry] Inquiry objects equality is now based on their contents equality. Same for its hash value.
-- [Storage] `get_all` for MongoStorage and SQLStorage now always return policies sorted by `uid` in ascending order.
+- [Storage] `get_all` for MongoStorage and SQLStorage now always returns policies sorted by `uid` in ascending order.
 
 ### Removed
 - Removed deprecated rules: SubjectEqualRule, ActionEqualRule, ResourceInRule.

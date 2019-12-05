@@ -507,7 +507,7 @@ Actions are the same as for any Storage that conforms interface of `vakt.storage
 
 Beware that currently MongoStorage supports indexed and filtered-out `find_for_inquiry()` only for 
 StringExact, StringFuzzy and Regex (since MongoDB version 4.2 and onwards) checkers.
-RulesChecker simply returns all the Policies from the database. 
+When used with the RulesChecker it simply returns all the Policies from the database. 
 
 
 ##### SQL
@@ -530,7 +530,7 @@ storage = SQLStorage(scoped_session=scoped_session(sessionmaker(bind=engine)))
 
 Beware that currently SQLStorage supports indexed and filtered-out `find_for_inquiry()` only for 
 StringExact, StringFuzzy and Regex checkers.
-RulesChecker simply returns all the Policies from the database. 
+When used with the RulesChecker it simply returns all the Policies from the database. 
 
 Note that vakt focuses on testing SQLStorage functionality only for two most popular open-source databases:
 MySQL and Postgres. Other databases support may have worse performance characteristics and/or bugs.
