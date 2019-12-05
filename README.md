@@ -765,8 +765,8 @@ Vakt logs can be comprehended in 2 basic levels:
 Most valuable features to be implemented in the order of importance:
 
 - [x] SQL Storage
-- [ ] Rules that reference Inquiry data for Rule-based policies 
-- [ ] Caching mechanisms (for Storage and Guard)
+- [x] Rules that reference Inquiry data for Rule-based policies 
+- [x] Caching mechanisms (for Storage and Guard)
 - [ ] YAML-based language for declarative policy definitions
 - [ ] Enhanced audit logging
 - [ ] Redis Storage
