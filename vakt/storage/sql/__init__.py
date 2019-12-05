@@ -55,7 +55,7 @@ class SQLStorage(Storage):
 
     def get_all(self, limit, offset):
         self._check_limit_and_offset(limit, offset)
-        cur = self.session.query(PolicyModel).slice(offset, offset + limit)
+        cur = self.session.query(PolicyModel).order_by(PolicyModel.uid.asc()).slice(offset, offset + limit)
         for policy_model in cur:
             yield policy_model.to_policy()
 

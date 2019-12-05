@@ -27,6 +27,25 @@ class Inquiry(JsonSerializer, PrettyPrint):
         props = cls._parse(data)
         return cls(**props)
 
+    def to_json_sorted(self):
+        """
+        Get JSON representation with all keys sorted.
+        """
+        return super().to_json(sort=True)
+
+    def __eq__(self, other):
+        """
+        If inquiries have the same contents - they are equal
+        """
+        return self.to_json_sorted() == other.to_json_sorted()
+
+    def __hash__(self):
+        """
+        We do not use to_json as contents representation, because strings are not guaranteed
+        to be hashed consistently across different python processes.
+        """
+        return hash(tuple((ord(c) for c in self.to_json_sorted())))
+
 
 class Guard:
     """
@@ -39,7 +58,24 @@ class Guard:
         self.checker = checker
 
     def is_allowed(self, inquiry):
-        """Is given inquiry intent allowed or not?"""
+        """
+        Is given inquiry intent allowed or not?
+        Same as `is_allowed_no_audit`, but also logs policy enforcement decisions to audit-log.
+        Is meant to be used by an end-user.
+        """
+        answer = self.is_allowed_no_audit(inquiry)
+        if answer:
+            log.info('Incoming Inquiry was allowed. Inquiry: %s', inquiry)
+        else:
+            log.info('Incoming Inquiry was rejected. Inquiry: %s', inquiry)
+        return answer
+
+    def is_allowed_no_audit(self, inquiry):
+        """
+        Is given inquiry intent allowed or not?
+        Does not log answers.
+        Is not meant to be called by an end-user. Use it only if you want the core functionality of allowance check.
+        """
         try:
             policies = self.storage.find_for_inquiry(inquiry, self.checker)
             # Storage is not obliged to do the exact policies match. It's up to the storage
@@ -48,25 +84,21 @@ class Guard:
         except Exception:
             log.exception('Unexpected exception occurred while checking Inquiry %s', inquiry)
             answer = False
-
-        if answer:
-            log.info('Incoming Inquiry was allowed. Inquiry: %s', inquiry)
-        else:
-            log.info('Incoming Inquiry was rejected. Inquiry: %s', inquiry)
-
         return answer
 
     def check_policies_allow(self, inquiry, policies):
-        """Check if any of a given policy allows a specified inquiry"""
+        """
+        Check if any of a given policy allows a specified inquiry
+        """
         # If no policies found or None is given -> deny access!
         if not policies:
             return False
 
         # Filter policies that fit Inquiry by its attributes.
         filtered = [p for p in policies if
-                    self.checker.fits(p, 'actions', inquiry.action) and
-                    self.checker.fits(p, 'subjects', inquiry.subject) and
-                    self.checker.fits(p, 'resources', inquiry.resource) and
+                    self.checker.fits(p, 'actions', inquiry.action, inquiry) and
+                    self.checker.fits(p, 'subjects', inquiry.subject, inquiry) and
+                    self.checker.fits(p, 'resources', inquiry.resource, inquiry) and
                     self.check_context_restriction(p, inquiry)]
 
         # no policies -> deny access!

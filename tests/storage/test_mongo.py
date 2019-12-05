@@ -3,6 +3,7 @@ import random
 import types
 import operator
 import unittest
+from operator import attrgetter
 
 import pytest
 from pymongo import MongoClient
@@ -156,9 +157,14 @@ class TestMongoStorage:
             l.append(p.uid)
         assert 2 == len(l)
 
+    def test_get_all_ascending_sorting_order(self, st):
+        for i in range(1, 20):
+            st.add(Policy(i))
+        assert list(range(1, 20)) == list(map(attrgetter('uid'), st.get_all(30, 0)))
+
     @pytest.mark.parametrize('checker, expect_number', [
-        (None, 5),
-        (RegexChecker(), 3),
+        (None, 6),
+        (RegexChecker(), 2),
         (RulesChecker(), 2),
         (StringExactChecker(), 1),
         (StringFuzzyChecker(), 1),
@@ -166,8 +172,9 @@ class TestMongoStorage:
     def test_find_for_inquiry_returns_existing_policies(self, st, checker, expect_number):
         st.add(Policy('1', subjects=['<[mM]ax>', '<.*>']))
         st.add(Policy('2', subjects=['sam<.*>', 'foo']))
-        st.add(Policy('3', subjects=[{'stars': Eq(90)}, Eq('Max')]))
-        st.add(Policy('4', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('3', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('3.1', subjects=['Jim'], actions=[r'del<\w+>'], resources=['server']))
+        st.add(Policy('4', subjects=[{'stars': Eq(90)}, Eq('Max')]))
         st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
         inquiry = Inquiry(subject='Jim', action='delete', resource='server')
         found = st.find_for_inquiry(inquiry, checker)
@@ -256,6 +263,52 @@ class TestMongoStorage:
             Inquiry(action='12', resource='Pie', subject='Jo-1'),
             True,
         ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['parse'],
+                    effect=ALLOW_ACCESS,
+                    resources=['library:books'],
+                    subjects=['Max']
+                ),
+            ],
+            Inquiry(action='parse', resource='library:books', subject='Max'),
+            True,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['parse'],
+                    effect=ALLOW_ACCESS,
+                    resources=['library:manu<(al|scripts)>'],
+                    subjects=['Max']
+                ),
+            ],
+            Inquiry(action='parse', resource='library:books', subject='Max'),
+            False,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=['parse'],
+                    effect=ALLOW_ACCESS,
+                    resources=['library:books'],
+                    subjects=['Max']
+                ),
+                Policy(
+                    uid=2,
+                    actions=['parse'],
+                    effect=ALLOW_ACCESS,
+                    resources=['library:manu<(al|scripts)>'],
+                    subjects=['Max']
+                ),
+            ],
+            Inquiry(action='parse', resource='library:manuscripts', subject='Max'),
+            True,
+        ),
     ])
     def test_find_for_inquiry_with_regex_checker(self, st, policies, inquiry, expected_reference):
         mem_storage = MemoryStorage()  # it returns all stored policies so we consider Guard as a reference
@@ -266,6 +319,22 @@ class TestMongoStorage:
         assert expected_reference == reference_answer, 'Check reference answer'
         assert reference_answer == Guard(st, RegexChecker()).is_allowed(inquiry), \
             'Mongo storage should give the same answers as reference'
+
+    def test_find_for_inquiry_with_regex_checker_for_mongodb_prior_to_4_2(self, st):
+        # mock db server version for this test
+        st.db_server_version = (3, 4, 0)
+        st.add(Policy('1', subjects=['<[mM]ax>', '<.*>']))
+        st.add(Policy('2', subjects=['sam<.*>', 'foo']))
+        st.add(Policy('3', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('3.1', subjects=['Jim'], actions=[r'del<\w+>'], resources=['server']))
+        st.add(Policy('4', subjects=[{'stars': Eq(90)}, Eq('Max')]))
+        st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
+        inquiry = Inquiry(subject='Jim', action='delete', resource='server')
+        found = st.find_for_inquiry(inquiry, RegexChecker())
+        found = list(found)
+        # should return all string-based polices, but not only matched ones
+        assert 4 == len(found)
+        assert ['1', '2', '3', '3.1'] == sorted(map(attrgetter('uid'), found))
 
     def test_find_for_inquiry_with_rules_checker(self, st):
         assertions = unittest.TestCase('__init__')

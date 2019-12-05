@@ -2,6 +2,31 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.4.0] - TBD
+### Added
+- [Storage] Generic `retrieve_all` method that retrieves all the existing Policies from the storage.
+Compared to `get_all` you don't need to iterate now with shifting the fetch window manually.
+Concrete storages don't need to implement it manually.
+- [Storage] Added `storage.observable.ObservableMutationStorage` as a Storage whose modify interface is observable.
+- [Rules] `SubjectMatch`, `ActionMatch`, `ResourceMatch` rules for matching value against the whole value or specific
+attribute in Inquiry's subject, action or resource respectively.
+- [Cache] Added various cache mechanisms inside `cache` module: `EnfoldCache`. `AllowanceCache`.
+- [Policy] Added `PolicyAllow` and `PolicyDeny` for more convenient Policy effects declaration.
+- [Guard] Added method `is_allowed_no_audit` that is the same as `is_allowed`, but doesn't perform audit log.
+
+### Changed
+- [MongoStorage] `find_for_inquiry` now uses regex match on DB-server side for string-based policies
+which increases performance drastically. Works only for MongoDB v >=4.2. For older MongoDB versions the 
+behaviour hasn't changed.
+- [Checker] All checkers now accept optional attribute `inquiry` in their `fits` method in order to support
+InquiryMatch rules. Generally it was needed only for `RulesChecker`, so others just ignore it.
+- [Inquiry] Inquiry objects equality is now based on their contents equality. Same for its hash value.
+- [Storage] `get_all` for MongoStorage and SQLStorage now always returns policies sorted by `uid` in ascending order.
+
+### Removed
+- Removed deprecated rules: SubjectEqualRule, ActionEqualRule, ResourceInRule.
+
+
 ## [1.3.0] - 2019-11-11
 ### Added
 - [Storage] SQLStorage implementation with support for all RDBMS backed by SQL Alchemy.
