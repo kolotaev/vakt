@@ -7,6 +7,7 @@ import copy
 from abc import ABCMeta
 
 import bson.json_util as b_json
+import pymongo
 from pymongo.errors import DuplicateKeyError
 import jsonpickle.tags
 
@@ -60,7 +61,7 @@ class MongoStorage(Storage):
         # Special check for: https://docs.mongodb.com/manual/reference/method/cursor.limit/#zero-value
         if limit == 0:
             return []
-        cur = self.collection.find(limit=limit, skip=offset)
+        cur = self.collection.find(limit=limit, skip=offset, sort=[('_id', pymongo.ASCENDING)])
         return self.__feed_policies(cur)
 
     def find_for_inquiry(self, inquiry, checker=None):

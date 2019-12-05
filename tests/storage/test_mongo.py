@@ -157,6 +157,11 @@ class TestMongoStorage:
             l.append(p.uid)
         assert 2 == len(l)
 
+    def test_get_all_ascending_sorting_order(self, st):
+        for i in range(1, 20):
+            st.add(Policy(i))
+        assert list(range(1, 20)) == list(map(attrgetter('uid'), st.get_all(30, 0)))
+
     @pytest.mark.parametrize('checker, expect_number', [
         (None, 6),
         (RegexChecker(), 2),

@@ -3,6 +3,7 @@ import random
 import types
 import unittest
 import uuid
+from operator import attrgetter
 
 import pytest
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -145,6 +146,12 @@ class TestSQLStorage:
         for p in found:
             l.append(p.uid)
         assert 2 == len(l)
+
+    def test_get_all_ascending_sorting_order(self, st):
+        for i in range(1, 20):
+            st.add(Policy(i))
+        expected_uids = sorted(list(map(str, range(1, 20))))
+        assert expected_uids == list(map(attrgetter('uid'), st.get_all(30, 0)))
 
     @pytest.mark.parametrize('checker, expect_number', [
         (None, 6),
