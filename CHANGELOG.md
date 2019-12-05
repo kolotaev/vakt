@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## [1.4.0] - TBD
+## [1.4.0] - 2019-12-05
 ### Added
 - [Storage] Generic `retrieve_all` method that retrieves all the existing Policies from the storage.
 Compared to `get_all` you don't need to iterate now with shifting the fetch window manually.
