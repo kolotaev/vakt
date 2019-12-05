@@ -10,8 +10,6 @@ Concrete storages don't need to implement it manually.
 - [Storage] Added `storage.observable.ObservableMutationStorage` as a Storage whose modify interface is observable.
 - [Rules] `SubjectMatch`, `ActionMatch`, `ResourceMatch` rules for matching value against the whole value or specific
 attribute in Inquiry's subject, action or resource respectively.
-- [Exceptions] PolicyUpdateError, PolicyDeletionError that should be used for corresponding storage actions in case of
-exceptional situation.
 - [Cache] Added various cache mechanisms inside `cache` module: `EnfoldCache`. `AllowanceCache`.
 - [Policy] Added `PolicyAllow` and `PolicyDeny` for more convenient Policy effects declaration.
 - [Guard] Added method `is_allowed_no_audit` that is the same as `is_allowed`, but doesn't perform audit log.

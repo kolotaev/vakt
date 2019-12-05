@@ -13,16 +13,6 @@ class PolicyCreationError(Exception):
     pass
 
 
-class PolicyUpdateError(Exception):
-    """Error during Policy update occurred."""
-    pass
-
-
-class PolicyDeletionError(Exception):
-    """Error during Policy deletion occurred."""
-    pass
-
-
 class RuleCreationError(Exception):
     """Error during Rule creation occurred."""
     pass
