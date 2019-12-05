@@ -3,6 +3,7 @@ Utility functions and classes for Vakt.
 """
 
 import logging
+from abc import ABCMeta, abstractmethod
 
 import jsonpickle
 
@@ -52,3 +53,42 @@ class PrettyPrint:
     """
     def __str__(self):
         return "%s <Object ID %s>: %s" % (self.__class__, id(self), vars(self))
+
+
+class Subject:
+    """
+    Publisher of events in the pub-sub objects relation
+    """
+    def __init__(self):
+        self._listeners = []
+
+    def add_listener(self, listener):
+        """
+        Attach listener to this subject
+        """
+        self._listeners.append(listener)
+
+    def remove_listener(self, listener):
+        """
+        Detach listener from this subject
+        """
+        self._listeners.remove(listener)
+
+    def notify(self):
+        """
+        Notify all attached listeners about event
+        """
+        for listener in self._listeners:
+            listener.update()
+
+
+class Observer(metaclass=ABCMeta):
+    """
+    Observer of the events in the pub-sub objects relation
+    """
+    @abstractmethod
+    def update(self):
+        """
+        Update observer on notify event
+        """
+        pass

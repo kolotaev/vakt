@@ -32,6 +32,7 @@ Attribute-based access control (ABAC) SDK for Python.
         - [MongoDB](#mongodb)
         - [SQL](#sql)
     - [Migration](#migration)
+- [Caching](#caching)
 - [JSON](#json)
 - [Logging](#logging)
 - [Examples](./examples)
@@ -112,13 +113,11 @@ pip install vakt[sql]
 A quick dive-in:
 
 ```python
-import uuid
-
 import vakt
 from vakt.rules import Eq, Any, StartsWith, And, Greater, Less
 
 policy = vakt.Policy(
-    str(uuid.uuid4()),
+    123456,
     actions=[Eq('fork'), Eq('clone')],
     resources=[StartsWith('repos/Google', ci=True)],
     subjects=[{'name': Any(), 'stars': And(Greater(50), Less(999))}],
@@ -209,6 +208,18 @@ for p in policies:
     st.add(p)
 ```
 
+Additionally you can create Policies with predefined effect classes:
+```python
+from vakt import PolicyAllow, PolicyDeny, ALLOW_ACCESS, DENY_ACCESS
+    
+p = PolicyAllow(1, actions=['<read|get>'], resources=['library:books:<.+>'], subjects=['<[\w]+ M[\w]+>'])
+assert ALLOW_ACCESS == p.effect
+
+
+p = PolicyDeny(2, actions=['<read|get>'], resources=['library:books:<.+>'], subjects=['<[\w]+ M[\w]+>'])
+assert DENY_ACCESS == p.effect
+```
+
 *[Back to top](#documentation)*
 
 
@@ -292,8 +303,8 @@ If the existing Rules are not enough for you, feel free to define your [own](./e
 | ------------- |-------------|-------------|-------------|
 | Eq      | `'age': Eq(40)` | `'age': 40`| |
 | NotEq      | `'age': NotEq(40)` | `'age': 40`| |
-| Greater      | `'height': Greater(6,2)` | `'height': 5.8`| |
-| Less      | `'height': Less(6,2)` | `'height': 5.8`| |
+| Greater      | `'height': Greater(6.2)` | `'height': 5.8`| |
+| Less      | `'height': Less(6.2)` | `'height': 5.8`| |
 | GreaterOrEqual      | `'stars': GreaterOrEqual(300)` | `'stars': 77`| |
 | LessOrEqual      | `'stars': LessOrEqual(300)` | `'stars': 300`| |
 
@@ -444,6 +455,8 @@ else:
     return "Go away, you violator!", 401
 ```
 
+To gain best performance read [Caching](#caching) section.
+
 *[Back to top](#documentation)*
 
 
@@ -461,8 +474,10 @@ delete(uid)                 # Delete Policy from storage by its ID
 find_for_inquiry(inquiry)   # Retrieve Policies that match the given Inquiry
 ```
 
-Storage may have various backend implementations (RDBMS, NoSQL databases, etc.). Vakt ships some Storage implementations
-out of the box. See below.
+Storage may have various backend implementations (RDBMS, NoSQL databases, etc.), they also may vary in performance
+characteristics, so see [Caching](#caching) and [Benchmark](#benchmark) sections.
+
+Vakt ships some Storage implementations out of the box. See below:
 
 ##### Memory
 Implementation that stores Policies in memory. It's not backed by any file or something, so every restart of your
@@ -572,6 +587,114 @@ migrator.down()
 migrator.up(number=2)
 ...
 migrator.down(number=2)
+```
+
+*[Back to top](#documentation)*
+
+
+### Caching
+
+Vakt has several layers of caching, that serve a single purpose: speed up policy enforcement decisions.
+In most situations and use-cases you might want to use them all, thus they are designed not to
+interact with each other, but rather work in tandem
+(nonetheless you are free to use any single layer alone or any combination of them).
+That said let's look at all those layers.
+
+ 
+##### Caching [`RegexChecker`](#checker)
+
+It's relevant only for `RegexChecker` and allows to cache parsing and execution of regex-defined Policies,
+which can be very expensive
+due to inherently slow computational performance of regular expressions and vakt's parsing. When creating a `RegexChecker`
+you can specify a cache size for an in-memory 
+[LRU (least recently used)](https://docs.python.org/3/library/functools.html#functools.lru_cache) cache. Currently
+only python's native LRU cache is supported.  
+
+```python
+# preferably size is a power of 2
+chk = RegexChecker(cache_size=2048)
+
+# or simply
+chk = RegexChecker(2048)
+
+# or 512 by default
+chk = RegexChecker()
+```
+
+##### Caching the entire Storage backend
+
+Some vakt's Storages may be not very clever at filtering Policies at `find_for_inquiry` especially when dealing with
+Rule-based policies. In this case they return the whole set of the existing policies stored in the external storage.
+Needless to say that it makes your application very heavy IO-bound and decreases performance for large policy sets
+drastically. See [benchmark](#benchmark) for more details and exact numbers.
+
+In such a case you can use `EnfoldCache` that wraps your main storage (e.g. MongoStorage) into another one 
+(it's meant to be some in-memory Storage). It returns you a Storage that behind the scene routes all the read-calls 
+(get, get_all, find_for_inquiry, ...) to an in-memory one and all modify-calls (add, update, delete) to your main Storage (
+don't worry, in-memory Storage is kept up-to date with the main Storage). In case a requested policy is not found in in-memory Storage
+it's considered a cache miss and a request is routed to a main Storage.
+
+Also, in order to keep Storages in sync, 
+when you initialize `EnfoldCache` the in-memory Storage will fetch all the existing Policies from a main one - 
+therefore be forewarned that it might take some amount of time depending on the size of a policy-set.  
+Optionally you can call `populate` method after initialization, but in this case __do not ever call any modify-related methods of 
+EnfoldCache'd storage before `populate()`, otherwise Storages will be in an unsynchronized state and it'll 
+result in broken `Guard` functionality.__
+
+```python
+from vakt import EnfoldCache, MemoryStorage, Policy, Guard, RegexChecker
+from vakt.storage.mongo import MongoStorage
+
+storage = EnfoldCache(MongoStorage(...), cache=MemoryStorage())
+storage.add(Policy(1, actions=['get']))
+
+...
+
+guard = Guard(storage, RegexChecker())
+```
+
+##### Caching the Guard
+
+`Guard.is_allowed` it the the centerpiece of vakt. Therefore it makes ultimate sense to cache it. 
+And `create_cached_guard()` function allows you to do exactly that. You need to pass it a Storage, a Checker and a 
+maximum size of a cache. It will return you a tuple of: Guard, Storage and AllowanceCache instance:
+
+- You must do all policies operations with the returned storage 
+(which is a slightly enhanced version of a Storage you provided to the function).
+- The returned Guard is a normal vakt's `Guard`, but its `is_allowed` is cached with `AllowaceCache`.
+- The returned cache is an instance of `AllowaceCache` and has a handy method `info` that provides current state of the cache.
+
+How it works?
+
+Only the first Inquiry will be passed to `is_allowed`, all the subsequent answers for similar Inquiries will be taken 
+from cache. `AllowanceCache` is rather coarse-grained and if you call Storage's `add`, `update` or `delete` the whole
+cache will be invalided because the policy-set has changed. However for stable policy-sets it is a good performance boost.
+
+By default `AllowanceCache` uses in-memory LRU cache and `maxsize` param is it's size. If for some reason it does not satisfy
+your needs, you can pass your own implementation of a cache backend that is a subclass of 
+`vakt.cache.AllowanceCacheBackend` to `create_cached_guard` as a `cache` keyword argument.
+
+```python
+guard, storage, cache = create_cached_guard(MongoStorage(...), RulesChecker(), maxsize=256)
+
+p1 = Policy(1, actions=[Eq('get')], resources=[Eq('book')], subjects=[Eq('Max')], effect=ALLOW_ACCESS)
+storage.add(p1)
+
+# Given we have some inquiries that tend to repeat
+inq1 = Inquiry(action='get', resource='book', subject='Max')
+inq2 = Inquiry(action='get', resource='book', subject='Jamey')
+
+assert guard.is_allowed(inq1)
+assert guard.is_allowed(inq1)
+assert guard.is_allowed(inq1)
+assert not guard.is_allowed(inq2)
+assert guard.is_allowed(inq1)
+assert guard.is_allowed(inq1)
+
+# You can check cache state
+assert 4 == cache.info().hits
+assert 2 == cache.info().misses
+assert 2 == cache.info().currsize
 ```
 
 *[Back to top](#documentation)*

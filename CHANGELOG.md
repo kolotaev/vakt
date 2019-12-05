@@ -9,6 +9,11 @@ Compared to `get_all` you don't need to iterate now with shifting the fetch wind
 Concrete storages don't need to implement it manually.
 - [Rules] `SubjectMatch`, `ActionMatch`, `ResourceMatch` rules for matching value against the whole value or specific
 attribute in Inquiry's subject, action or resource respectively.
+- [Exceptions] PolicyUpdateError, PolicyDeletionError that should be used for corresponding storage actions in case of
+exceptional situation.
+- [Cache] Added various cache mechanisms inside `cache` module: `EnfoldCache`. `AllowanceCache`.
+- [Policy] Added `PolicyAllow` and `PolicyDeny` for more convenient Policy effects declaration.
+- [Storage] Added `storage.observable.ObservableMutationStorage` as a Storage whose modify interface is observable.
 
 ### Changed
 - [MongoStorage] `find_for_inquiry` now uses regex match on DB-server side for string-based policies
@@ -16,6 +21,8 @@ which increases performance drastically. Works only for MongoDB v >=4.2. For old
 behaviour hasn't changed.
 - [Checker] All checkers now accept optional attribute `inquiry` in their `fits` method in order to support
 InquiryMatch rules. Generally it was needed only for `RulesChecker`, so others just ignore it.
+- [Inquiry] Inquiry objects equality is now based on their contents equality. Same for its hash value.
+
 
 ### Removed
 - Removed deprecated rules: SubjectEqualRule, ActionEqualRule, ResourceInRule.
