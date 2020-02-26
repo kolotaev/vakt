@@ -57,20 +57,20 @@ class Guard:
         self.storage = storage
         self.checker = checker
 
-    def is_allowed(self, inquiry):
+    def is_allowed(self, inquiry, get_matching_policies=False):
         """
         Is given inquiry intent allowed or not?
         Same as `is_allowed_no_audit`, but also logs policy enforcement decisions to audit-log.
         Is meant to be used by an end-user.
         """
-        answer = self.is_allowed_no_audit(inquiry)
+        answer = self.is_allowed_no_audit(inquiry, get_matching_policies)
         if answer:
             log.info('Incoming Inquiry was allowed. Inquiry: %s', inquiry)
         else:
             log.info('Incoming Inquiry was rejected. Inquiry: %s', inquiry)
         return answer
 
-    def is_allowed_no_audit(self, inquiry):
+    def is_allowed_no_audit(self, inquiry, get_matching_policies=False):
         """
         Is given inquiry intent allowed or not?
         Does not log answers.
@@ -103,7 +103,9 @@ class Guard:
 
         # no policies -> deny access!
         # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
-        return len(filtered) > 0 and all(p.allow_access() for p in filtered)
+        if len(filtered) > 0 and all(p.allow_access() for p in filtered):
+            return filtered if get_matching_policies else True
+        return False
 
     @staticmethod
     def check_context_restriction(policy, inquiry):
