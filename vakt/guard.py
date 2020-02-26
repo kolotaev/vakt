@@ -86,7 +86,7 @@ class Guard:
             answer = False
         return answer
 
-    def check_policies_allow(self, inquiry, policies):
+    def check_policies_allow(self, inquiry, policies, get_matching_policies=False):
         """
         Check if any of a given policy allows a specified inquiry
         """
