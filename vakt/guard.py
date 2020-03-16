@@ -65,11 +65,11 @@ class Guard:
         Same as `is_allowed_no_audit`, but also logs policy enforcement decisions to audit-log.
         Is meant to be used by an end-user.
         """
-        answer = self.is_allowed_no_audit(inquiry)
+        answer, decision_policies = self.is_allowed_no_audit(inquiry)
         if answer:
-            log.info('Incoming Inquiry was allowed. Inquiry: %s', inquiry)
+            audit_log.info('Incoming Inquiry was allowed', inquiry, decision_policies)
         else:
-            log.info('Incoming Inquiry was rejected. Inquiry: %s', inquiry)
+            audit_log.info('Incoming Inquiry was rejected', inquiry, decision_policies)
         return answer
 
     def is_allowed_no_audit(self, inquiry):
@@ -85,14 +85,8 @@ class Guard:
             answer = self.check_policies_allow(inquiry, policies)
         except Exception:
             log.exception('Unexpected exception occurred while checking Inquiry %s', inquiry)
-            answer = False
-
-        if answer:
-            audit_log.info('Incoming Inquiry was allowed. Inquiry: %s', inquiry)
-        else:
-            audit_log.info('Incoming Inquiry was rejected. Inquiry: %s', inquiry)
-
-        return answer
+            answer = False, policies
+        return answer, policies
 
     def check_policies_allow(self, inquiry, policies):
         """
