@@ -55,9 +55,10 @@ class Guard:
     Given a storage and a checker it can decide via `is_allowed` method if a given inquiry allowed or not.
     """
 
-    def __init__(self, storage, checker):
+    def __init__(self, storage, checker, audit_logger):
         self.storage = storage
         self.checker = checker
+        self.audit_log = audit_logger
 
     def is_allowed(self, inquiry):
         """
@@ -78,6 +79,7 @@ class Guard:
         Does not log answers.
         Is not meant to be called by an end-user. Use it only if you want the core functionality of allowance check.
         """
+        policies = []
         try:
             policies = self.storage.find_for_inquiry(inquiry, self.checker)
             # Storage is not obliged to do the exact policies match. It's up to the storage
@@ -85,7 +87,7 @@ class Guard:
             answer = self.check_policies_allow(inquiry, policies)
         except Exception:
             log.exception('Unexpected exception occurred while checking Inquiry %s', inquiry)
-            answer = False, policies
+            answer = False
         return answer, policies
 
     def check_policies_allow(self, inquiry, policies):

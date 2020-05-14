@@ -8,6 +8,17 @@ import logging
 LOG_NAME = 'VaktAuditLog'
 
 
+class AuditLogger(logging.getLoggerClass()):
+    def __init__(self, enabled=True):
+        self._enabled = enabled
+
+    def enable(self):
+        self._enabled = True
+
+    def disable(self):
+        self._enabled = False
+
+
 def get_logger():
     """Get logger for audit"""
     log = logging.getLogger(LOG_NAME)
