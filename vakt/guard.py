@@ -6,11 +6,11 @@ Also contains Inquiry class.
 import logging
 
 from .util import JsonSerializer, PrettyPrint
-from .audit import get_logger as audit_logger
+from .audit import get_logger
 
 
 log = logging.getLogger(__name__)
-audit_log = audit_logger()
+audit_log = get_logger()
 
 
 class Inquiry(JsonSerializer, PrettyPrint):
@@ -55,10 +55,9 @@ class Guard:
     Given a storage and a checker it can decide via `is_allowed` method if a given inquiry allowed or not.
     """
 
-    def __init__(self, storage, checker, audit_logger):
+    def __init__(self, storage, checker):
         self.storage = storage
         self.checker = checker
-        self.audit_log = audit_logger
 
     def is_allowed(self, inquiry):
         """
