@@ -62,23 +62,7 @@ class Guard:
     def is_allowed(self, inquiry):
         """
         Is given inquiry intent allowed or not?
-        Same as `is_allowed_no_audit`, but also logs policy enforcement decisions to audit-log.
-        Is meant to be used by an end-user.
         """
-        answer, decision_policies = self.is_allowed_no_audit(inquiry)
-        if answer:
-            audit_log.info('Incoming Inquiry was allowed', inquiry, decision_policies)
-        else:
-            audit_log.info('Incoming Inquiry was rejected', inquiry, decision_policies)
-        return answer
-
-    def is_allowed_no_audit(self, inquiry):
-        """
-        Is given inquiry intent allowed or not?
-        Does not log answers.
-        Is not meant to be called by an end-user. Use it only if you want the core functionality of allowance check.
-        """
-        policies = []
         try:
             policies = self.storage.find_for_inquiry(inquiry, self.checker)
             # Storage is not obliged to do the exact policies match. It's up to the storage
@@ -87,16 +71,16 @@ class Guard:
         except Exception:
             log.exception('Unexpected exception occurred while checking Inquiry %s', inquiry)
             answer = False
-        return answer, policies
+        return answer
 
     def check_policies_allow(self, inquiry, policies):
         """
         Check if any of a given policy allows a specified inquiry
         """
-        audit_log.info("Potential Policies for Inquiry '%s' are: %s", inquiry, policies)
 
         # If no policies found or None is given -> deny access!
         if not policies:
+            audit_log.info('Denied', inquiry, policies, [])
             return False
 
         # Filter policies that fit Inquiry by its attributes.
@@ -106,11 +90,16 @@ class Guard:
                     self.checker.fits(p, 'resources', inquiry.resource, inquiry) and
                     self.check_context_restriction(p, inquiry)]
 
-        audit_log.info("Policies filtered by checker '%s' for Inquiry '%s' are: %s", self.checker, inquiry, policies)
-
         # no policies -> deny access!
         # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
-        return len(filtered) > 0 and all(p.allow_access() for p in filtered)
+        # return len(filtered) > 0 and all(p.allow_access() for p in filtered)
+        for p in filtered:
+            if not p.allow_access():
+                audit_log.info('Denied', inquiry, policies, [p])
+                return False
+
+        audit_log.info('Allowed', inquiry, policies, filtered)
+        return True
 
     @staticmethod
     def check_context_restriction(policy, inquiry):

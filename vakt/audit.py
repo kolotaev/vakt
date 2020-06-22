@@ -25,7 +25,7 @@ def get_logger(record_class):
 
 class NopLogRecord(logging.LogRecord):
     def getMessage(self):
-        return None
+        return ''
 
 
 class InquiryLogRecord(logging.LogRecord):

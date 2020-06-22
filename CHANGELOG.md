@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.5.0] - TBD
+### Removed
+- Method `is_allowed_no_audit` that is the same as `is_allowed`, but doesn't perform audit log. We don't do an audit-log
+for cached hits.
+
+
 ## [1.4.0] - 2019-12-05
 ### Added
 - [Storage] Generic `retrieve_all` method that retrieves all the existing Policies from the storage.
