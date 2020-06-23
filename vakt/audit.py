@@ -8,7 +8,7 @@ import logging
 LOGGER_NAME = 'VaktAuditLog'
 
 
-def get_logger(record_class):
+def get_logger(record_class=None):
     """
     Get logger for audit
     """
@@ -17,7 +17,7 @@ def get_logger(record_class):
         return record_class(*args, **kwargs)
 
     log = logging.getLogger(LOGGER_NAME)
-    log.setLogRecordFactory(record_factory)
+    # log.setLogRecordFactory(record_factory)
     # log.addFilter(LogFilter())
     # log.setLevel(logging.INFO)
     return log
