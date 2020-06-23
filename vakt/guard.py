@@ -93,13 +93,16 @@ class Guard:
         # no policies -> deny access!
         # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
         # return len(filtered) > 0 and all(p.allow_access() for p in filtered)
+        result = False
         for p in filtered:
             if not p.allow_access():
                 audit_log.info('Denied', inquiry, policies, [p])
                 return False
+            else:
+                result = True
 
         audit_log.info('Allowed', inquiry, policies, filtered)
-        return True
+        return result
 
     @staticmethod
     def check_context_restriction(policy, inquiry):
