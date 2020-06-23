@@ -6,7 +6,8 @@ Also contains Inquiry class.
 import logging
 
 from .util import JsonSerializer, PrettyPrint
-from .audit import get_logger
+from .audit import get_logger, message as AuditMessage
+from .effects import ALLOW_ACCESS, DENY_ACCESS
 
 
 log = logging.getLogger(__name__)
@@ -80,7 +81,7 @@ class Guard:
 
         # If no policies found or None is given -> deny access!
         if not policies:
-            audit_log.info('Denied', inquiry, policies, [])
+            audit_log.info(AuditMessage()(DENY_ACCESS, inquiry, [], []))
             return False
 
         # Filter policies that fit Inquiry by its attributes.
@@ -92,16 +93,18 @@ class Guard:
 
         # no policies -> deny access!
         # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
+
+
         # return len(filtered) > 0 and all(p.allow_access() for p in filtered)
         result = False
         for p in filtered:
             if not p.allow_access():
-                audit_log.info('Denied', inquiry, policies, [p])
+                audit_log.info(AuditMessage()(DENY_ACCESS, inquiry, policies, [p]))
                 return False
             else:
                 result = True
 
-        audit_log.info('Allowed', inquiry, policies, filtered)
+        audit_log.info(AuditMessage()(ALLOW_ACCESS, inquiry, policies, filtered))
         return result
 
     @staticmethod

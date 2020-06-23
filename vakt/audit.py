@@ -3,18 +3,22 @@ Audit logging for Vakt decisions.
 """
 
 import logging
+from operator import attrgetter
+
+
+from .effects import ALLOW_ACCESS
 
 
 LOGGER_NAME = 'VaktAuditLog'
 
 
-def get_logger(record_class=None):
+def get_logger():
     """
     Get logger for audit
     """
 
-    def record_factory(*args, **kwargs):
-        return record_class(*args, **kwargs)
+    # def record_factory(*args, **kwargs):
+    #     return record_class(*args, **kwargs)
 
     log = logging.getLogger(LOGGER_NAME)
     # log.setLogRecordFactory(record_factory)
@@ -23,28 +27,48 @@ def get_logger(record_class=None):
     return log
 
 
-class NopLogRecord(logging.LogRecord):
-    def getMessage(self):
+def set_message_class(cl):
+    global _MESSAGE_CLASS
+    _MESSAGE_CLASS = cl
+
+
+def message():
+    return _MESSAGE_CLASS
+
+
+class NopMsg:
+    def __str__(self):
         return ''
 
 
-class InquiryLogRecord(logging.LogRecord):
-    def getMessage(self):
-        return '%s inquiry %s' % (self.msg, self.args['inquiry'])
+class EffectMsg:
+    def __init__(self, effect, inquiry, policies, deciders):
+        self.effect = effect
+        self.inquiry = inquiry
+        self.policies = policies
+        self.deciders = deciders
+
+    def __str__(self):
+        if self.effect == ALLOW_ACCESS:
+            return 'Allowed'
+        return 'Denied'
+
+    __repr__ = __str__
 
 
-class DecidersLogRecord(logging.LogRecord):
-    def getMessage(self):
-        deciders = list(map(lambda x: x.uid, self.args['deciders']))
-        return '%s inquiry %s by deciding policies %s' % (self.msg, self.args['inquiry'], deciders)
+class InquiryMsg(EffectMsg):
+    def __str__(self):
+        return '%s inquiry %s' % (self, self.inquiry)
 
 
-class FullLogRecord(logging.LogRecord):
-    def getMessage(self):
-        policies = list(map(lambda x: x.uid, self.args['policies']))
-        deciders = list(map(lambda x: x.uid, self.args['deciders']))
-        return '%s inquiry %s by deciding policies %s using all filtered policies %s' % \
-               (self.msg, self.args['inquiry'], deciders, policies)
+class DecidersMsg(InquiryMsg):
+    def __str__(self):
+        return '%s by deciding policies %s' % (self, list(map(attrgetter('uid'), self.deciders)))
+
+
+class FullMsg(DecidersMsg):
+    def __str__(self):
+        return '%s using all candidate policies %s' % (self, list(map(attrgetter('uid'), self.policies)))
 
 
 # class LogFilter(logging.Filter):
@@ -82,3 +106,5 @@ class FullLogRecord(logging.LogRecord):
 #     """Disables audit logging"""
 #     LogFilter._do_log = False
 #
+
+_MESSAGE_CLASS = DecidersMsg
