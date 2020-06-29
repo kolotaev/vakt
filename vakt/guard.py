@@ -6,14 +6,12 @@ Also contains Inquiry class.
 import logging
 
 from .util import JsonSerializer, PrettyPrint
-# from .audit import log as audit_log
-from .audit import policies_msg as audit_policies_msg
+from .audit import policies_message_class as audit_policies_msg_class
 from .effects import ALLOW_ACCESS, DENY_ACCESS
 
 
 log = logging.getLogger(__name__)
 audit_log = logging.getLogger('vakt.audit')
-AuditPoliciesClass = audit_policies_msg()
 
 
 class Inquiry(JsonSerializer, PrettyPrint):
@@ -95,10 +93,13 @@ class Guard:
         """
         Check if any of a given policy allows a specified inquiry
         """
-
+        apc = audit_policies_msg_class()
         # If no policies found or None is given -> deny access!
         if not policies:
-            audit_log.info(DENY_ACCESS, inquiry, AuditPoliciesClass([]), AuditPoliciesClass([]))
+            audit_log.info('Denied: no potential policies for inquiry were found', extra={
+                'effect': DENY_ACCESS, 'inquiry': inquiry,
+                'policies': apc([]), 'deciders': apc([]),
+            })
             return False
 
         # Filter policies that fit Inquiry by its attributes.
@@ -111,17 +112,22 @@ class Guard:
         # no policies -> deny access!
         # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
 
-
         # return len(filtered) > 0 and all(p.allow_access() for p in filtered)
         result = False
         for p in filtered:
             if not p.allow_access():
-                audit_log.info(DENY_ACCESS, inquiry, policies, AuditPoliciesClass([p]))
+                audit_log.info('Denied: one of matching policies has deny effect', extra={
+                    'effect': DENY_ACCESS, 'inquiry': inquiry,
+                    'policies': apc(policies), 'deciders': apc([p]),
+                })
                 return False
             else:
                 result = True
 
-        audit_log.info(ALLOW_ACCESS, inquiry, AuditPoliciesClass(policies), AuditPoliciesClass(filtered))
+        audit_log.info('Allowed: all matching policies have allow effect', extra={
+            'effect': ALLOW_ACCESS, 'inquiry': inquiry,
+            'policies': apc(policies), 'deciders': apc(filtered),
+        })
         return result
 
     @staticmethod
