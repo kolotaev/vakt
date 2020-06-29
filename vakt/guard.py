@@ -116,6 +116,7 @@ class Guard:
         result = False
         for p in filtered:
             if not p.allow_access():
+                # todo - pass filtered?
                 audit_log.info('Denied: one of matching policies has deny effect', extra={
                     'effect': DENY_ACCESS, 'inquiry': inquiry,
                     'policies': apc(policies), 'deciders': apc([p]),

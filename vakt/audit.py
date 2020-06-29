@@ -9,17 +9,6 @@ from operator import attrgetter
 
 log = logging.getLogger(__name__)
 
-POLICIES_MSG_CLASS = None
-
-
-def policies_message_class():
-    """
-    Get class responsible for printing policies collection.
-    """
-    if POLICIES_MSG_CLASS is None:
-        return PoliciesUidMsg
-    return POLICIES_MSG_CLASS
-
 
 class PoliciesNopMsg:
     def __init__(self, policies=()):
@@ -47,6 +36,24 @@ class PoliciesDescriptionMsg(PoliciesUidMsg):
 class PoliciesCountMsg(PoliciesUidMsg):
     def __str__(self):
         return 'count = %d' % len(self.policies)
+
+
+def policies_message_class():
+    """
+    Get class responsible for printing policies collection.
+    """
+    return _POLICIES_MSG_CLASS
+
+
+def set_policies_message_class(cls):
+    """
+    Set class responsible for printing policies collection.
+    """
+    global _POLICIES_MSG_CLASS
+    _POLICIES_MSG_CLASS = cls
+
+
+_POLICIES_MSG_CLASS = PoliciesUidMsg
 
 
 # class AuditContextFilter(logging.Filter):
