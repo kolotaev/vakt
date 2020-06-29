@@ -30,11 +30,11 @@ if __name__ == '__main__':
         ],
         extras_require={
             'dev': [
-                'pytest~=4.0',
+                'pytest~=4.6',
                 'pytest-cov~=2.6',
                 'pylint~=1.0',
                 'PyMySQL~=0.9',
-                'psycopg2cffi~=2.7',
+                'psycopg2cffi~=2.8',
             ],
             'mongo': [
                 'pymongo~=3.5',
