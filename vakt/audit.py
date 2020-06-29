@@ -21,6 +21,14 @@ def policies_message_class():
     return POLICIES_MSG_CLASS
 
 
+class PoliciesNopMsg:
+    def __init__(self, policies=()):
+        pass
+
+    def __str__(self):
+        return ''
+
+
 class PoliciesUidMsg:
     def __init__(self, policies=()):
         self.policies = policies
@@ -29,20 +37,16 @@ class PoliciesUidMsg:
         uids = list(map(attrgetter('uid'), self.policies))
         return '[%s]' % ','.join(map(str, uids))
 
-    def __repr__(self):
-        return self.__str__()
-
-
-class PoliciesCountMsg(PoliciesUidMsg):
-    def __str__(self):
-        return 'count = %d' % len(self.policies)
-
 
 class PoliciesDescriptionMsg(PoliciesUidMsg):
     def __str__(self):
         descriptions = list(map(attrgetter('description'), self.policies))
         return '[%s]' % ','.join(map(lambda x: "'%s'" % x, descriptions))
 
+
+class PoliciesCountMsg(PoliciesUidMsg):
+    def __str__(self):
+        return 'count = %d' % len(self.policies)
 
 
 # class AuditContextFilter(logging.Filter):
