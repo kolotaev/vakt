@@ -6,12 +6,14 @@ Also contains Inquiry class.
 import logging
 
 from .util import JsonSerializer, PrettyPrint
-from .audit import get_logger, message as AuditMessage
+# from .audit import log as audit_log
+from .audit import policies_msg as audit_policies_msg
 from .effects import ALLOW_ACCESS, DENY_ACCESS
 
 
 log = logging.getLogger(__name__)
-audit_log = get_logger()
+audit_log = logging.getLogger('vakt.audit')
+AuditPoliciesClass = audit_policies_msg()
 
 
 class Inquiry(JsonSerializer, PrettyPrint):
@@ -63,6 +65,21 @@ class Guard:
     def is_allowed(self, inquiry):
         """
         Is given inquiry intent allowed or not?
+        Same as `is_allowed_no_audit`, but also logs policy enforcement decisions to audit-log.
+        Is meant to be used by an end-user.
+        """
+        answer = self.is_allowed_no_audit(inquiry)
+        if answer:
+            log.info('Incoming Inquiry was allowed', inquiry)
+        else:
+            log.info('Incoming Inquiry was rejected', inquiry)
+        return answer
+
+    def is_allowed_no_audit(self, inquiry):
+        """
+        Is given inquiry intent allowed or not?
+        Does not log answers.
+        Is not meant to be called by an end-user. Use it only if you want the core functionality of allowance check.
         """
         try:
             policies = self.storage.find_for_inquiry(inquiry, self.checker)
@@ -81,7 +98,7 @@ class Guard:
 
         # If no policies found or None is given -> deny access!
         if not policies:
-            audit_log.info(AuditMessage()(DENY_ACCESS, inquiry, [], []))
+            audit_log.info(DENY_ACCESS, inquiry, AuditPoliciesClass([]), AuditPoliciesClass([]))
             return False
 
         # Filter policies that fit Inquiry by its attributes.
@@ -99,12 +116,12 @@ class Guard:
         result = False
         for p in filtered:
             if not p.allow_access():
-                audit_log.info(AuditMessage()(DENY_ACCESS, inquiry, policies, [p]))
+                audit_log.info(DENY_ACCESS, inquiry, policies, AuditPoliciesClass([p]))
                 return False
             else:
                 result = True
 
-        audit_log.info(AuditMessage()(ALLOW_ACCESS, inquiry, policies, filtered))
+        audit_log.info(ALLOW_ACCESS, inquiry, AuditPoliciesClass(policies), AuditPoliciesClass(filtered))
         return result
 
     @staticmethod
