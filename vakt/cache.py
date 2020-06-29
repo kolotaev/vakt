@@ -145,7 +145,7 @@ class EnfoldCache:
 
 class AllowanceCache(Observer):
     """
-    Caches hits of `is_allowed` (technically, its more tiny part: `is_allowed_no_audit`) for a given Inquiry.
+    Caches hits of `is_allowed` (technically, its more tiny part: `is_allowed_check`) for a given Inquiry.
     In case of a cache hit returns the cached boolean result, in case of a cache miss goes to a Storage and
     memorizes its result for future calls with the same Inquiry.
     If underlying Storage notifies it that policy-set was anyhow changed, invalidates all the cached results.
@@ -160,7 +160,7 @@ class AllowanceCache(Observer):
         self.options = kwargs
         if cache_backend is None:
             self.cache = LRUCache(maxsize=self.options['maxsize'])
-        guard.is_allowed_no_audit = self.cache.wrap(guard.is_allowed_no_audit)
+        guard.is_allowed_check = self.cache.wrap(guard.is_allowed_check)
 
     def update(self):
         """

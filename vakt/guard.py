@@ -63,17 +63,17 @@ class Guard:
     def is_allowed(self, inquiry):
         """
         Is given inquiry intent allowed or not?
-        Same as `is_allowed_no_audit`, but also logs policy enforcement decisions to audit-log.
+        Same as `is_allowed_check`, but also logs policy enforcement decisions to log for every incoming inquiry.
         Is meant to be used by an end-user.
         """
-        answer = self.is_allowed_no_audit(inquiry)
+        answer = self.is_allowed_check(inquiry)
         if answer:
             log.info('Incoming Inquiry was allowed', inquiry)
         else:
             log.info('Incoming Inquiry was rejected', inquiry)
         return answer
 
-    def is_allowed_no_audit(self, inquiry):
+    def is_allowed_check(self, inquiry):
         """
         Is given inquiry intent allowed or not?
         Does not log answers.

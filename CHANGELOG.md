@@ -3,9 +3,9 @@ All notable changes to this project will be documented in this file.
 
 
 ## [1.5.0] - TBD
-### Removed
-- Method `is_allowed_no_audit` that is the same as `is_allowed`, but doesn't perform audit log. We don't do an audit-log
-for cached hits.
+### Changed
+- [Guard] Method `is_allowed_no_audit` was renamed to `is_allowed_check` because it reveals its purpose better and also
+in order not to confuse it with audit functionality.
 
 
 ## [1.4.0] - 2019-12-05
