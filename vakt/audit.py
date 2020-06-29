@@ -5,6 +5,45 @@ Audit logging for Vakt decisions.
 import logging
 from operator import attrgetter
 
+# LOGGER_NAME = 'VaktAuditLog'
+
+log = logging.getLogger(__name__)
+
+POLICIES_MSG_CLASS = None
+
+
+def policies_message_class():
+    """
+    Get class responsible for printing policies collection.
+    """
+    if POLICIES_MSG_CLASS is None:
+        return PoliciesUidMsg
+    return POLICIES_MSG_CLASS
+
+
+class PoliciesUidMsg:
+    def __init__(self, policies=()):
+        self.policies = policies
+
+    def __str__(self):
+        uids = list(map(attrgetter('uid'), self.policies))
+        return '[%s]' % ','.join(map(str, uids))
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class PoliciesCountMsg(PoliciesUidMsg):
+    def __str__(self):
+        return 'count = %d' % len(self.policies)
+
+
+class PoliciesDescriptionMsg(PoliciesUidMsg):
+    def __str__(self):
+        descriptions = list(map(attrgetter('description'), self.policies))
+        return '[%s]' % ','.join(map(lambda x: "'%s'" % x, descriptions))
+
+
 
 # class AuditContextFilter(logging.Filter):
 #     """
@@ -19,28 +58,6 @@ from operator import attrgetter
 #         return super().filter(record)
 
 
-# from .effects import ALLOW_ACCESS
-
-# LOGGER_NAME = 'VaktAuditLog'
-
-def policies_msg(cls=None):
-    if cls is None:
-        return PoliciesUidMsg
-    return cls
-
-
-class PoliciesUidMsg:
-    def __init__(self, policies=()):
-        self.policies = policies
-
-    def __str__(self):
-        pols = list(map(attrgetter('uid'), self.policies))
-        return '[%s]' % ','.join(map(str, pols))
-
-    __repr__ = __str__
-
-
-log = logging.getLogger(__name__)
 # log.addFilter(AuditContextFilter())
 
 
