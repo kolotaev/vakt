@@ -38,24 +38,6 @@ class PoliciesCountMsg(PoliciesUidMsg):
         return 'count = %d' % len(self.policies)
 
 
-def policies_message_class():
-    """
-    Get class responsible for printing policies collection.
-    """
-    return _POLICIES_MSG_CLASS
-
-
-def set_policies_message_class(cls):
-    """
-    Set class responsible for printing policies collection.
-    """
-    global _POLICIES_MSG_CLASS
-    _POLICIES_MSG_CLASS = cls
-
-
-_POLICIES_MSG_CLASS = PoliciesUidMsg
-
-
 # class AuditContextFilter(logging.Filter):
 #     """
 #     This is a filter which injects audit contextual information into the log.

@@ -6,7 +6,7 @@ Also contains Inquiry class.
 import logging
 
 from .util import JsonSerializer, PrettyPrint
-from .audit import policies_message_class as audit_policies_msg_class
+from .audit import PoliciesUidMsg
 from .effects import ALLOW_ACCESS, DENY_ACCESS
 
 
@@ -54,11 +54,17 @@ class Guard:
     """
     Executor of policy checks.
     Given a storage and a checker it can decide via `is_allowed` method if a given inquiry allowed or not.
+
+    storage - what storage to use
+    checker - what checker to use
+    audit_policies_message_cls - what message class to use for logging Policies in audit
     """
 
-    def __init__(self, storage, checker):
+    def __init__(self, storage, checker, audit_policies_message_cls=None):
         self.storage = storage
         self.checker = checker
+        if audit_policies_message_cls is None:
+            self.apc = PoliciesUidMsg
 
     def is_allowed(self, inquiry):
         """
@@ -93,12 +99,11 @@ class Guard:
         """
         Check if any of a given policy allows a specified inquiry
         """
-        apc = audit_policies_msg_class()
         # If no policies found or None is given -> deny access!
         if not policies:
             audit_log.info('Denied: no potential policies for inquiry were found', extra={
                 'effect': DENY_ACCESS, 'inquiry': inquiry,
-                'policies': apc([]), 'deciders': apc([]),
+                'policies': self.apc([]), 'deciders': self.apc([]),
             })
             return False
 
@@ -119,7 +124,7 @@ class Guard:
                 # todo - pass filtered?
                 audit_log.info('Denied: one of matching policies has deny effect', extra={
                     'effect': DENY_ACCESS, 'inquiry': inquiry,
-                    'policies': apc(policies), 'deciders': apc([p]),
+                    'policies': self.apc(policies), 'deciders': self.apc([p]),
                 })
                 return False
             else:
@@ -127,7 +132,7 @@ class Guard:
 
         audit_log.info('Allowed: all matching policies have allow effect', extra={
             'effect': ALLOW_ACCESS, 'inquiry': inquiry,
-            'policies': apc(policies), 'deciders': apc(filtered),
+            'policies': self.apc(policies), 'deciders': self.apc(filtered),
         })
         return result
 
