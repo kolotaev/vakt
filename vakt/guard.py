@@ -64,7 +64,7 @@ class Guard:
         self.storage = storage
         self.checker = checker
         if audit_policies_message_cls is None:
-            self.apc = PoliciesUidMsg
+            self.apm = PoliciesUidMsg
 
     def is_allowed(self, inquiry):
         """
@@ -103,7 +103,7 @@ class Guard:
         if not policies:
             audit_log.info('Denied: no potential policies for inquiry were found', extra={
                 'effect': DENY_ACCESS, 'inquiry': inquiry,
-                'policies': self.apc([]), 'deciders': self.apc([]),
+                'policies': self.apm([]), 'deciders': self.apm([]),
             })
             return False
 
@@ -124,7 +124,7 @@ class Guard:
                 # todo - pass filtered?
                 audit_log.info('Denied: one of matching policies has deny effect', extra={
                     'effect': DENY_ACCESS, 'inquiry': inquiry,
-                    'policies': self.apc(policies), 'deciders': self.apc([p]),
+                    'policies': self.apm(policies), 'deciders': self.apm([p]),
                 })
                 return False
             else:
@@ -132,7 +132,7 @@ class Guard:
 
         audit_log.info('Allowed: all matching policies have allow effect', extra={
             'effect': ALLOW_ACCESS, 'inquiry': inquiry,
-            'policies': self.apc(policies), 'deciders': self.apc(filtered),
+            'policies': self.apm(policies), 'deciders': self.apm(filtered),
         })
         return result
 
