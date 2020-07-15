@@ -6,12 +6,12 @@ Also contains Inquiry class.
 import logging
 
 from .util import JsonSerializer, PrettyPrint
-from .audit import PoliciesUidMsg
+from .audit import PoliciesUidMsg, __name__ as audit_module_name
 from .effects import ALLOW_ACCESS, DENY_ACCESS
 
 
 log = logging.getLogger(__name__)
-audit_log = logging.getLogger('vakt.audit')
+audit_log = logging.getLogger(audit_module_name)
 
 
 class Inquiry(JsonSerializer, PrettyPrint):
