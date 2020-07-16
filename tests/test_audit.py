@@ -12,6 +12,16 @@ from vakt.checker import RegexChecker
 from vakt.storage.memory import MemoryStorage
 
 
+@pytest.fixture()
+def audit_log():
+    al = logging.getLogger('vakt.audit')
+    initial_handlers = al.handlers[:]
+    initial_level = al.getEffectiveLevel()
+    yield al
+    al.handlers = initial_handlers
+    al.setLevel(initial_level)
+
+
 def test_policies_nop_msg():
     p1 = Policy(123, description='foo', actions=['books:<foo.bar>'],
                 resources=['bb'], subjects=['<qwerty>'], context={})
@@ -64,64 +74,49 @@ def test_policies_count_msg():
     assert 'count = 0' == str(m)
 
 
-def test_formatter_usage():
+def test_formatter_usage(audit_log):
     log_capture_str = io.StringIO()
     h = logging.StreamHandler(log_capture_str)
     h.setLevel(logging.DEBUG)
     h.setFormatter(logging.Formatter(
         '%(name)s - level: %(levelname)s - msg: %(message)s - effect: %(effect)s - pols: %(policies)s'
     ))
-    audit_log = logging.getLogger('vakt.audit')
-    initial_level = audit_log.getEffectiveLevel()
     audit_log.setLevel(logging.DEBUG)
     audit_log.addHandler(h)
     pmc = PoliciesUidMsg
-    try:
-        audit_log.info('Test', extra={'effect': ALLOW_ACCESS, 'policies': pmc([Policy(123), Policy('asdf')])})
-        assert 'vakt.audit - level: INFO - msg: Test - effect: allow - pols: [123, asdf]' == \
-               log_capture_str.getvalue().strip()
-    finally:
-        audit_log.removeHandler(h)
-        audit_log.setLevel(initial_level)
+    audit_log.info('Test', extra={'effect': ALLOW_ACCESS, 'policies': pmc([Policy(123), Policy('asdf')])})
+    assert 'vakt.audit - level: INFO - msg: Test - effect: allow - pols: [123, asdf]' == \
+           log_capture_str.getvalue().strip()
 
 
-def test_audit_logs_messages_at_info_level():
+def test_guard_logs_messages_at_info_level(audit_log):
     log_capture_str = io.StringIO()
     h = logging.StreamHandler(log_capture_str)
     h.setLevel(logging.INFO)
-    audit_log = logging.getLogger('vakt.audit')
-    initial_level = audit_log.getEffectiveLevel()
     audit_log.setLevel(logging.INFO)
     audit_log.addHandler(h)
-    try:
-        audit_log.info('Test')
-        assert 'Test\n' == log_capture_str.getvalue()
-    finally:
-        audit_log.removeHandler(h)
-        audit_log.setLevel(initial_level)
-    # Let's decrease verbosity
+    g = Guard(MemoryStorage(), RegexChecker())
+    g.is_allowed(Inquiry())
+    assert 'Denied' in log_capture_str.getvalue().strip()
+
+
+def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
     log_capture_str = io.StringIO()
     h = logging.StreamHandler(log_capture_str)
     h.setLevel(logging.WARN)
-    audit_log = logging.getLogger('vakt.audit')
     audit_log.setLevel(logging.WARN)
     audit_log.addHandler(h)
-    try:
-        audit_log.info('Test')
-        assert '' == log_capture_str.getvalue().strip()
-    finally:
-        audit_log.removeHandler(h)
-        audit_log.setLevel(initial_level)
+    g = Guard(MemoryStorage(), RegexChecker())
+    g.is_allowed(Inquiry())
+    assert '' == log_capture_str.getvalue().strip()
 
 
 @pytest.mark.xfail(reason='todo')
-def test_guard_uses_audit_correctly():
+def test_guard_uses_audit_correctly(audit_log):
     # setup logger consumer
     log_capture_str = io.StringIO()
     h = logging.StreamHandler(log_capture_str)
     h.setLevel(logging.INFO)
-    audit_log = logging.getLogger('vakt.audit')
-    initial_logger_level = audit_log.getEffectiveLevel()
     audit_log.setLevel(logging.INFO)
     audit_log.addHandler(h)
     # setup guard
@@ -147,12 +142,8 @@ def test_guard_uses_audit_correctly():
         st.add(p)
     g = Guard(st, RegexChecker())
     # Run tests
-    try:
-        assert g.is_allowed(Inquiry(action='get', subject='Max', resource='book'))
-        assert 'Allowed: all matching policies have allow effect' == log_capture_str.getvalue().strip()
-    finally:
-        audit_log.removeHandler(h)
-        audit_log.setLevel(initial_logger_level)
+    assert g.is_allowed(Inquiry(action='get', subject='Max', resource='book'))
+    assert 'Allowed: all matching policies have allow effect' == log_capture_str.getvalue().strip()
 
 
 @pytest.mark.xfail(reason='todo')
