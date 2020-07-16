@@ -16,7 +16,9 @@ python:
   - "3.6"
   - "3.7"
   - "3.8"
-  - "nightly"  # nightly build
+  - "3.9-dev"
+# Disable for now due to psycopg build failures
+#  - "nightly"  # nightly build
   - "pypy3.5"  # Pypy3 3.5.3
 
 before_script:
