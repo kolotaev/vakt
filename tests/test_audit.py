@@ -1,10 +1,15 @@
 import logging
 import io
 
+import pytest
+
 from vakt.audit import (PoliciesUidMsg, PoliciesNopMsg,
                         PoliciesDescriptionMsg, PoliciesCountMsg)
-from vakt.policy import Policy
+from vakt.policy import Policy, PolicyAllow
 from vakt.effects import ALLOW_ACCESS
+from vakt.guard import Guard, Inquiry
+from vakt.checker import RegexChecker
+from vakt.storage.memory import MemoryStorage
 
 
 def test_policies_nop_msg():
@@ -73,8 +78,8 @@ def test_formatter_usage():
     pmc = PoliciesUidMsg
     try:
         audit_log.info('Test', extra={'effect': ALLOW_ACCESS, 'policies': pmc([Policy(123), Policy('asdf')])})
-        assert 'vakt.audit - level: INFO - msg: Test - effect: allow - pols: [123, asdf]\n' == \
-               log_capture_str.getvalue()
+        assert 'vakt.audit - level: INFO - msg: Test - effect: allow - pols: [123, asdf]' == \
+               log_capture_str.getvalue().strip()
     finally:
         audit_log.removeHandler(h)
         audit_log.setLevel(initial_level)
@@ -103,7 +108,53 @@ def test_audit_logs_messages_at_info_level():
     audit_log.addHandler(h)
     try:
         audit_log.info('Test')
-        assert '' == log_capture_str.getvalue()
+        assert '' == log_capture_str.getvalue().strip()
     finally:
         audit_log.removeHandler(h)
         audit_log.setLevel(initial_level)
+
+
+@pytest.mark.xfail(reason='todo')
+def test_guard_uses_audit_correctly():
+    # setup logger consumer
+    log_capture_str = io.StringIO()
+    h = logging.StreamHandler(log_capture_str)
+    h.setLevel(logging.INFO)
+    audit_log = logging.getLogger('vakt.audit')
+    initial_logger_level = audit_log.getEffectiveLevel()
+    audit_log.setLevel(logging.INFO)
+    audit_log.addHandler(h)
+    # setup guard
+    st = MemoryStorage()
+    policies = [
+        PolicyAllow(
+            uid='55',
+            subjects=['Max'],
+            actions=['update'],
+            resources=['<.*>'],
+        ),
+        PolicyAllow(
+            uid='56',
+            subjects=['Max'],
+            actions=['get'],
+            resources=['<.*>'],
+        ),
+        PolicyAllow(
+            uid='57'
+        ),
+    ]
+    for p in policies:
+        st.add(p)
+    g = Guard(st, RegexChecker())
+    # Run tests
+    try:
+        assert g.is_allowed(Inquiry(action='get', subject='Max', resource='book'))
+        assert 'Allowed: all matching policies have allow effect' == log_capture_str.getvalue().strip()
+    finally:
+        audit_log.removeHandler(h)
+        audit_log.setLevel(initial_logger_level)
+
+
+@pytest.mark.xfail(reason='todo')
+def test_guard_can_use_specific_policies_message_class():
+    pass
