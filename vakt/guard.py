@@ -9,7 +9,6 @@ from .util import JsonSerializer, PrettyPrint
 from .audit import PoliciesUidMsg, __name__ as audit_module_name
 from .effects import ALLOW_ACCESS, DENY_ACCESS
 
-
 log = logging.getLogger(__name__)
 audit_log = logging.getLogger(audit_module_name)
 
@@ -63,7 +62,8 @@ class Guard:
     def __init__(self, storage, checker, audit_policies_message_cls=None):
         self.storage = storage
         self.checker = checker
-        if audit_policies_message_cls is None:
+        self.apm = audit_policies_message_cls
+        if self.apm is None:
             self.apm = PoliciesUidMsg
 
     def is_allowed(self, inquiry):
@@ -99,14 +99,6 @@ class Guard:
         """
         Check if any of a given policy allows a specified inquiry
         """
-        # If no policies found or None is given -> deny access!
-        if not policies:
-            audit_log.info('Denied: no potential policies for inquiry were found', extra={
-                'effect': DENY_ACCESS, 'inquiry': inquiry,
-                'policies': self.apm([]), 'deciders': self.apm([]),
-            })
-            return False
-
         # Filter policies that fit Inquiry by its attributes.
         filtered = [p for p in policies if
                     self.checker.fits(p, 'actions', inquiry.action, inquiry) and
@@ -116,9 +108,16 @@ class Guard:
 
         # no policies -> deny access!
         # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
-
         # return len(filtered) > 0 and all(p.allow_access() for p in filtered)
-        result = False
+
+
+        # no policies -> deny access!
+        if len(filtered) == 0:
+            audit_log.info('Denied: no potential policies for inquiry were found', extra={
+                'effect': DENY_ACCESS, 'inquiry': inquiry,
+                'policies': self.apm(policies), 'deciders': self.apm([]),
+            })
+            return False
         for p in filtered:
             if not p.allow_access():
                 # todo - pass filtered?
@@ -127,14 +126,12 @@ class Guard:
                     'policies': self.apm(policies), 'deciders': self.apm([p]),
                 })
                 return False
-            else:
-                result = True
 
         audit_log.info('Allowed: all matching policies have allow effect', extra={
             'effect': ALLOW_ACCESS, 'inquiry': inquiry,
             'policies': self.apm(policies), 'deciders': self.apm(filtered),
         })
-        return result
+        return True
 
     @staticmethod
     def check_context_restriction(policy, inquiry):

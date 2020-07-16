@@ -5,7 +5,7 @@ import pytest
 
 from vakt.audit import (PoliciesUidMsg, PoliciesNopMsg,
                         PoliciesDescriptionMsg, PoliciesCountMsg)
-from vakt.policy import Policy, PolicyAllow
+from vakt.policy import Policy, PolicyAllow, PolicyDeny
 from vakt.effects import ALLOW_ACCESS
 from vakt.guard import Guard, Inquiry
 from vakt.checker import RegexChecker
@@ -111,11 +111,31 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
     assert '' == log_capture_str.getvalue().strip()
 
 
-@pytest.mark.xfail(reason='todo')
-def test_guard_uses_audit_correctly(audit_log):
+@pytest.mark.parametrize('inquiry, is_allowed, expect_msg', [
+    (
+        Inquiry(action='get', subject='Max', resource='book'),
+        True,
+        'msg: Allowed: all matching policies have allow effect | ' +
+        'effect: allow | ' +
+        'deciders: [56] | ' +
+        'policies: [55, 56, 57]'
+    ),
+    (
+        Inquiry(action='watch', subject='Max', resource='book'),
+        False,
+        'msg: Denied: no potential policies for inquiry were found | ' +
+        'effect: deny | ' +
+        'deciders: [] | ' +
+        'policies: [55, 56, 57]'
+    ),
+])
+def test_guard_uses_audit_correctly(audit_log, inquiry, is_allowed, expect_msg):
     # setup logger consumer
     log_capture_str = io.StringIO()
     h = logging.StreamHandler(log_capture_str)
+    h.setFormatter(logging.Formatter(
+        'msg: %(message)s | effect: %(effect)s | deciders: %(deciders)s | policies: %(policies)s'
+    ))
     h.setLevel(logging.INFO)
     audit_log.setLevel(logging.INFO)
     audit_log.addHandler(h)
@@ -134,7 +154,7 @@ def test_guard_uses_audit_correctly(audit_log):
             actions=['get'],
             resources=['<.*>'],
         ),
-        PolicyAllow(
+        PolicyDeny(
             uid='57'
         ),
     ]
@@ -142,10 +162,22 @@ def test_guard_uses_audit_correctly(audit_log):
         st.add(p)
     g = Guard(st, RegexChecker())
     # Run tests
-    assert g.is_allowed(Inquiry(action='get', subject='Max', resource='book'))
-    assert 'Allowed: all matching policies have allow effect' == log_capture_str.getvalue().strip()
+    assert is_allowed == g.is_allowed(inquiry)
+    assert expect_msg == log_capture_str.getvalue().strip()
 
 
-@pytest.mark.xfail(reason='todo')
-def test_guard_can_use_specific_policies_message_class():
-    pass
+def test_guard_can_use_specific_policies_message_class(audit_log):
+    # setup logger consumer
+    log_capture_str = io.StringIO()
+    h = logging.StreamHandler(log_capture_str)
+    h.setFormatter(logging.Formatter('decs: %(deciders)s, pols: %(policies)s'))
+    h.setLevel(logging.INFO)
+    audit_log.setLevel(logging.INFO)
+    audit_log.addHandler(h)
+    # setup guard
+    st = MemoryStorage()
+    st.add(PolicyAllow('123'))
+    g = Guard(st, RegexChecker(), audit_policies_message_cls=PoliciesCountMsg)
+    # Run tests
+    g.is_allowed(Inquiry())
+    assert 'decs: count = 0, pols: count = 1' == log_capture_str.getvalue().strip()
