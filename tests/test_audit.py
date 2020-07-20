@@ -81,12 +81,12 @@ def test_formatter_usage(audit_log):
     h = logging.StreamHandler(log_capture_str)
     h.setLevel(logging.DEBUG)
     h.setFormatter(logging.Formatter(
-        '%(name)s - level: %(levelname)s - msg: %(message)s - effect: %(effect)s - pols: %(policies)s'
+        '%(name)s - level: %(levelname)s - msg: %(message)s - effect: %(effect)s - pols: %(candidates)s'
     ))
     audit_log.setLevel(logging.DEBUG)
     audit_log.addHandler(h)
     pmc = PoliciesUidMsg
-    audit_log.info('Test', extra={'effect': ALLOW_ACCESS, 'policies': pmc([Policy(123), Policy('asdf')])})
+    audit_log.info('Test', extra={'effect': ALLOW_ACCESS, 'candidates': pmc([Policy(123), Policy('asdf')])})
     assert 'vakt.audit - level: INFO - msg: Test - effect: allow - pols: [123, asdf]' == \
            log_capture_str.getvalue().strip()
 
@@ -113,17 +113,26 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
     assert '' == log_capture_str.getvalue().strip()
 
 
-@pytest.mark.skipif(sys.version_info <= (3, 4), reason='unpredictable sorting order for policies uids on python3.4')
 @pytest.mark.parametrize('inquiry, is_allowed, expect_msg', [
     (
         Inquiry(action='get', subject='Max', resource='book'),
         True,
         'msg: Allowed: all matching policies have allow effect | ' +
         'effect: allow | ' +
-        'deciders: [56] | ' +
-        'policies: [55, 56, 57, 58] | ' +
+        'deciders: [a, b] | ' +
+        'candidates: [a, b] | ' +
         "inquiry: <class 'vakt.guard.Inquiry'> <Object ID some_ID>: " +
         "{'resource': 'book', 'action': 'get', 'subject': 'Max', 'context': {}}",
+    ),
+    (
+        Inquiry(action='update', subject='Max', resource='book'),
+        True,
+        'msg: Allowed: all matching policies have allow effect | ' +
+        'effect: allow | ' +
+        'deciders: [a] | ' +
+        'candidates: [a] | ' +
+        "inquiry: <class 'vakt.guard.Inquiry'> <Object ID some_ID>: " +
+        "{'resource': 'book', 'action': 'update', 'subject': 'Max', 'context': {}}",
     ),
     (
         Inquiry(),
@@ -131,7 +140,7 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
         'msg: Denied: no potential policies for inquiry were found | ' +
         'effect: deny | ' +
         'deciders: [] | ' +
-        'policies: [55, 56, 57, 58] | ' +
+        'candidates: [] | ' +
         "inquiry: <class 'vakt.guard.Inquiry'> <Object ID some_ID>: " +
         "{'resource': '', 'action': '', 'subject': '', 'context': {}}",
     ),
@@ -140,8 +149,8 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
         False,
         'msg: Denied: one of matching policies has deny effect | ' +
         'effect: deny | ' +
-        'deciders: [57] | ' +
-        'policies: [55, 56, 57, 58] | ' +
+        'deciders: [d] | ' +
+        'candidates: [c, d] | ' +
         "inquiry: <class 'vakt.guard.Inquiry'> <Object ID some_ID>: " +
         "{'resource': 'book', 'action': 'watch', 'subject': 'Jim', 'context': {'stars': 129}}",
     ),
@@ -151,38 +160,19 @@ def test_guard_uses_audit_correctly(audit_log, inquiry, is_allowed, expect_msg):
     log_capture_str = io.StringIO()
     h = logging.StreamHandler(log_capture_str)
     h.setFormatter(logging.Formatter(
-        'msg: %(message)s | effect: %(effect)s | deciders: %(deciders)s | policies: %(policies)s | inquiry: %(inquiry)s'
+        'msg: %(message)s | effect: %(effect)s | deciders: %(deciders)s | candidates: %(candidates)s | ' +
+        'inquiry: %(inquiry)s'
     ))
     h.setLevel(logging.INFO)
     audit_log.setLevel(logging.INFO)
     audit_log.addHandler(h)
     # setup guard
     st = MemoryStorage()
-    policies = [
-        PolicyAllow(
-            uid='55',
-            subjects=['Max'],
-            actions=['update'],
-            resources=['<.*>'],
-        ),
-        PolicyAllow(
-            uid='56',
-            subjects=['Max'],
-            actions=['get'],
-            resources=['<.*>'],
-        ),
-        PolicyDeny(
-            uid='57',
-            subjects=['Jim'],
-            actions=['<.*>'],
-            resources=['<.*>'],
-        ),
-        PolicyAllow(
-            uid='58',
-        ),
-    ]
-    for p in policies:
-        st.add(p)
+    st.add(PolicyAllow(uid='a', subjects=['Max'], actions=['<.*>'], resources=['<.*>']))
+    st.add(PolicyAllow(uid='b', subjects=['Max'], actions=['get'], resources=['<.*>']))
+    st.add(PolicyAllow(uid='c', subjects=['Jim'], actions=['<.*>'], resources=['<.*>']))
+    st.add(PolicyDeny(uid='d', subjects=['Jim'], actions=['<.*>'], resources=['<.*>']))
+    st.add(PolicyAllow(uid='e'))
     g = Guard(st, RegexChecker())
     # Run tests
     assert is_allowed == g.is_allowed(inquiry)
@@ -196,14 +186,17 @@ def test_guard_can_use_specific_policies_message_class(audit_log):
     # setup logger consumer
     log_capture_str = io.StringIO()
     h = logging.StreamHandler(log_capture_str)
-    h.setFormatter(logging.Formatter('decs: %(deciders)s, pols: %(policies)s'))
+    h.setFormatter(logging.Formatter('decs: %(deciders)s, candidates: %(candidates)s'))
     h.setLevel(logging.INFO)
     audit_log.setLevel(logging.INFO)
     audit_log.addHandler(h)
     # setup guard
     st = MemoryStorage()
-    st.add(PolicyAllow('123'))
+    st.add(PolicyAllow('122'))
+    st.add(PolicyAllow('123', actions=['<.*>'], resources=['<.*>'], subjects=['<.*>']))
+    st.add(PolicyDeny('124', actions=['<.*>'], resources=['<.*>'], subjects=['<.*>']))
+    st.add(PolicyDeny('125', actions=['<.*>'], resources=['<.*>'], subjects=['<.*>']))
     g = Guard(st, RegexChecker(), audit_policies_message_cls=PoliciesCountMsg)
     # Run tests
-    g.is_allowed(Inquiry())
-    assert 'decs: count = 0, pols: count = 1' == log_capture_str.getvalue().strip()
+    g.is_allowed(Inquiry(action='get', subject='Kim', resource='TV'))
+    assert 'decs: count = 1, candidates: count = 3' == log_capture_str.getvalue().strip()
