@@ -1,5 +1,7 @@
 import logging
 import io
+import sys
+import re
 
 import pytest
 
@@ -111,6 +113,7 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
     assert '' == log_capture_str.getvalue().strip()
 
 
+@pytest.mark.skipif(sys.version_info <= (3, 4), reason='unpredictable sorting order for policies uids on python3.4')
 @pytest.mark.parametrize('inquiry, is_allowed, expect_msg', [
     (
         Inquiry(action='get', subject='Max', resource='book'),
@@ -118,15 +121,29 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
         'msg: Allowed: all matching policies have allow effect | ' +
         'effect: allow | ' +
         'deciders: [56] | ' +
-        'policies: [55, 56, 57]'
+        'policies: [55, 56, 57, 58] | ' +
+        "inquiry: <class 'vakt.guard.Inquiry'> <Object ID some_ID>: " +
+        "{'resource': 'book', 'action': 'get', 'subject': 'Max', 'context': {}}",
     ),
     (
-        Inquiry(action='watch', subject='Max', resource='book'),
+        Inquiry(),
         False,
         'msg: Denied: no potential policies for inquiry were found | ' +
         'effect: deny | ' +
         'deciders: [] | ' +
-        'policies: [55, 56, 57]'
+        'policies: [55, 56, 57, 58] | ' +
+        "inquiry: <class 'vakt.guard.Inquiry'> <Object ID some_ID>: " +
+        "{'resource': '', 'action': '', 'subject': '', 'context': {}}",
+    ),
+    (
+        Inquiry(action='watch', subject='Jim', resource='book', context={'stars': 129}),
+        False,
+        'msg: Denied: one of matching policies has deny effect | ' +
+        'effect: deny | ' +
+        'deciders: [57] | ' +
+        'policies: [55, 56, 57, 58] | ' +
+        "inquiry: <class 'vakt.guard.Inquiry'> <Object ID some_ID>: " +
+        "{'resource': 'book', 'action': 'watch', 'subject': 'Jim', 'context': {'stars': 129}}",
     ),
 ])
 def test_guard_uses_audit_correctly(audit_log, inquiry, is_allowed, expect_msg):
@@ -134,7 +151,7 @@ def test_guard_uses_audit_correctly(audit_log, inquiry, is_allowed, expect_msg):
     log_capture_str = io.StringIO()
     h = logging.StreamHandler(log_capture_str)
     h.setFormatter(logging.Formatter(
-        'msg: %(message)s | effect: %(effect)s | deciders: %(deciders)s | policies: %(policies)s'
+        'msg: %(message)s | effect: %(effect)s | deciders: %(deciders)s | policies: %(policies)s | inquiry: %(inquiry)s'
     ))
     h.setLevel(logging.INFO)
     audit_log.setLevel(logging.INFO)
@@ -155,7 +172,13 @@ def test_guard_uses_audit_correctly(audit_log, inquiry, is_allowed, expect_msg):
             resources=['<.*>'],
         ),
         PolicyDeny(
-            uid='57'
+            uid='57',
+            subjects=['Jim'],
+            actions=['<.*>'],
+            resources=['<.*>'],
+        ),
+        PolicyAllow(
+            uid='58',
         ),
     ]
     for p in policies:
@@ -163,7 +186,10 @@ def test_guard_uses_audit_correctly(audit_log, inquiry, is_allowed, expect_msg):
     g = Guard(st, RegexChecker())
     # Run tests
     assert is_allowed == g.is_allowed(inquiry)
-    assert expect_msg == log_capture_str.getvalue().strip()
+    result = log_capture_str.getvalue().strip()
+    # a little hack to get rid of <Object ID 4502567760> in inquiry output
+    result = re.sub(r'<Object ID \d+>', '<Object ID some_ID>', result)
+    assert expect_msg == result
 
 
 def test_guard_can_use_specific_policies_message_class(audit_log):

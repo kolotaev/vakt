@@ -15,7 +15,6 @@ class JsonSerializer:
     """
     Mixin for dumping object to JSON
     """
-
     @classmethod
     def from_json(cls, data):
         """
@@ -51,7 +50,6 @@ class PrettyPrint:
     """
     Allows to log objects with all the fields
     """
-
     def __str__(self):
         return "%s <Object ID %s>: %s" % (self.__class__, id(self), vars(self))
 

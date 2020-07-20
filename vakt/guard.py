@@ -118,6 +118,7 @@ class Guard:
                 'policies': self.apm(policies), 'deciders': self.apm([]),
             })
             return False
+
         for p in filtered:
             if not p.allow_access():
                 # todo - pass filtered?
