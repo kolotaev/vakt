@@ -99,7 +99,7 @@ def test_guard_logs_messages_at_info_level(audit_log):
     audit_log.addHandler(h)
     g = Guard(MemoryStorage(), RegexChecker())
     g.is_allowed(Inquiry())
-    assert 'Denied' in log_capture_str.getvalue().strip()
+    assert 'No potential' in log_capture_str.getvalue().strip()
 
 
 def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
@@ -117,7 +117,7 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
     (
         Inquiry(action='get', subject='Max', resource='book'),
         True,
-        'msg: Allowed: all matching policies have allow effect | ' +
+        'msg: All matching policies have allow effect | ' +
         'effect: allow | ' +
         'deciders: [a, b] | ' +
         'candidates: [a, b] | ' +
@@ -127,7 +127,7 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
     (
         Inquiry(action='update', subject='Max', resource='book'),
         True,
-        'msg: Allowed: all matching policies have allow effect | ' +
+        'msg: All matching policies have allow effect | ' +
         'effect: allow | ' +
         'deciders: [a] | ' +
         'candidates: [a] | ' +
@@ -137,7 +137,7 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
     (
         Inquiry(),
         False,
-        'msg: Denied: no potential policies for inquiry were found | ' +
+        'msg: No potential policies for inquiry were found | ' +
         'effect: deny | ' +
         'deciders: [] | ' +
         'candidates: [] | ' +
@@ -147,7 +147,7 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
     (
         Inquiry(action='watch', subject='Jim', resource='book', context={'stars': 129}),
         False,
-        'msg: Denied: one of matching policies has deny effect | ' +
+        'msg: One of matching policies has deny effect | ' +
         'effect: deny | ' +
         'deciders: [d] | ' +
         'candidates: [c, d] | ' +

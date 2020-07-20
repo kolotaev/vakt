@@ -113,7 +113,7 @@ class Guard:
 
         # no policies -> deny access!
         if len(filtered) == 0:
-            audit_log.info('Denied: no potential policies for inquiry were found', extra={
+            audit_log.info('No potential policies for inquiry were found', extra={
                 'effect': DENY_ACCESS, 'inquiry': inquiry,
                 'candidates': self.apm(filtered), 'deciders': self.apm([]),
             })
@@ -121,13 +121,13 @@ class Guard:
 
         for p in filtered:
             if not p.allow_access():
-                audit_log.info('Denied: one of matching policies has deny effect', extra={
+                audit_log.info('One of matching policies has deny effect', extra={
                     'effect': DENY_ACCESS, 'inquiry': inquiry,
                     'candidates': self.apm(filtered), 'deciders': self.apm([p]),
                 })
                 return False
 
-        audit_log.info('Allowed: all matching policies have allow effect', extra={
+        audit_log.info('All matching policies have allow effect', extra={
             'effect': ALLOW_ACCESS, 'inquiry': inquiry,
             'candidates': self.apm(filtered), 'deciders': self.apm(filtered),
         })
