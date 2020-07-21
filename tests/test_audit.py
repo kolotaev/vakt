@@ -138,7 +138,7 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
     (
         Inquiry(),
         False,
-        'msg: No potential policies for inquiry were found | ' +
+        'msg: No potential policies were found | ' +
         'effect: deny | ' +
         'deciders: [] | ' +
         'candidates: [] | ' +

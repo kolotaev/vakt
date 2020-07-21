@@ -107,18 +107,14 @@ class Guard:
                     self.check_context_restriction(p, inquiry)]
 
         # no policies -> deny access!
-        # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
-        # return len(filtered) > 0 and all(p.allow_access() for p in filtered)
-
-
-        # no policies -> deny access!
         if len(filtered) == 0:
-            audit_log.info('No potential policies for inquiry were found', extra={
+            audit_log.info('No potential policies were found', extra={
                 'effect': DENY_ACCESS, 'inquiry': inquiry,
                 'candidates': self.apm(filtered), 'deciders': self.apm([]),
             })
             return False
 
+        # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
         for p in filtered:
             if not p.allow_access():
                 audit_log.info('One of matching policies has deny effect', extra={
