@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 
 
 ## [1.5.0] - TBD
+### Added
+- [vakt] Audit log functionality.
+
 ### Changed
 - [Guard] Method `is_allowed_no_audit` was renamed to `is_allowed_check` because it reveals its purpose better and also
 in order not to confuse it with audit functionality.
