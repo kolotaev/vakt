@@ -7,9 +7,10 @@ from vakt import (
     Policy, Guard, Inquiry, RegexChecker,
     rules,
 )
-from vakt.storage.mongo import MongoStorage
 
 from flask import Flask, request, session
+
+from vakt.storage.mongo import MongoStorage
 from pymongo import MongoClient
 
 from vakt.storage.sql import SQLStorage
