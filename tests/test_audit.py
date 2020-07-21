@@ -113,6 +113,7 @@ def test_guard_does_not_log_messages_at_more_than_info_level(audit_log):
     assert '' == log_capture_str.getvalue().strip()
 
 
+@pytest.mark.skipif(sys.version_info <= (3, 5, 99), reason='unpredictable sorting order for policies uids on python3.5')
 @pytest.mark.parametrize('inquiry, is_allowed, expect_msg', [
     (
         Inquiry(action='get', subject='Max', resource='book'),
