@@ -74,9 +74,9 @@ class Guard:
         """
         answer = self.is_allowed_check(inquiry)
         if answer:
-            log.info('Incoming Inquiry was allowed', inquiry)
+            log.info('Incoming Inquiry was allowed. Inquiry: %s', inquiry)
         else:
-            log.info('Incoming Inquiry was rejected', inquiry)
+            log.info('Incoming Inquiry was rejected. Inquiry: %s', inquiry)
         return answer
 
     def is_allowed_check(self, inquiry):

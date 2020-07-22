@@ -1,3 +1,7 @@
+import logging
+import io
+import re
+
 import pytest
 
 from vakt.checker import RegexChecker, RulesChecker
@@ -13,62 +17,14 @@ from vakt.rules.logic import Not, And, Any
 from vakt.rules.list import In
 
 
-# Create all required test policies
-st = MemoryStorage()
-policies = [
-    Policy(
-        uid='1',
-        description="""
-        Max, Nina, Ben, Henry are allowed to create, delete, get the resources
-        only if the client IP matches and the inquiry states that any of them is the resource owner
-        """,
-        effect=ALLOW_ACCESS,
-        subjects=('Max', 'Nina', '<Ben|Henry>'),
-        resources=('myrn:example.com:resource:123', 'myrn:example.com:resource:345', 'myrn:something:foo:<.+>'),
-        actions=('<create|delete>', 'get'),
-        context={
-            'ip': CIDR('127.0.0.1/32'),
-            'owner': SubjectEqual(),
-        },
-    ),
-    Policy(
-        uid='2',
-        description='Allows Max to update any resource',
-        effect=ALLOW_ACCESS,
-        subjects=['Max'],
-        actions=['update'],
-        resources=['<.*>'],
-    ),
-    Policy(
-        uid='3',
-        description='Max is not allowed to print any resource',
-        effect=DENY_ACCESS,
-        subjects=['Max'],
-        actions=['print'],
-        resources=['<.*>'],
-    ),
-    Policy(
-        uid='4'
-    ),
-    Policy(
-        uid='5',
-        description='Allows Nina to update any resources that have only digits',
-        effect=ALLOW_ACCESS,
-        subjects=['Nina'],
-        actions=['update'],
-        resources=[r'<[\d]+>'],
-    ),
-    Policy(
-        uid='6',
-        description='Allows Nina to update any resources that have only digits. Defined by rules',
-        effect=ALLOW_ACCESS,
-        subjects=[Eq('Nina')],
-        actions=[Eq('update'), Eq('read')],
-        resources=[{'id': RegexMatch(r'\d+'), 'magazine': RegexMatch(r'[\d\w]+')}],
-    ),
-]
-for p in policies:
-    st.add(p)
+@pytest.fixture()
+def logger():
+    log = logging.getLogger('vakt.guard')
+    initial_handlers = log.handlers[:]
+    initial_level = log.getEffectiveLevel()
+    yield log
+    log.handlers = initial_handlers
+    log.setLevel(initial_level)
 
 
 @pytest.mark.parametrize('desc, inquiry, should_be_allowed, checker', [
@@ -296,6 +252,62 @@ for p in policies:
     ),
 ])
 def test_is_allowed(desc, inquiry, should_be_allowed, checker):
+    # Create all required test policies
+    st = MemoryStorage()
+    policies = [
+        Policy(
+            uid='1',
+            description="""
+            Max, Nina, Ben, Henry are allowed to create, delete, get the resources
+            only if the client IP matches and the inquiry states that any of them is the resource owner
+            """,
+            effect=ALLOW_ACCESS,
+            subjects=('Max', 'Nina', '<Ben|Henry>'),
+            resources=('myrn:example.com:resource:123', 'myrn:example.com:resource:345', 'myrn:something:foo:<.+>'),
+            actions=('<create|delete>', 'get'),
+            context={
+                'ip': CIDR('127.0.0.1/32'),
+                'owner': SubjectEqual(),
+            },
+        ),
+        Policy(
+            uid='2',
+            description='Allows Max to update any resource',
+            effect=ALLOW_ACCESS,
+            subjects=['Max'],
+            actions=['update'],
+            resources=['<.*>'],
+        ),
+        Policy(
+            uid='3',
+            description='Max is not allowed to print any resource',
+            effect=DENY_ACCESS,
+            subjects=['Max'],
+            actions=['print'],
+            resources=['<.*>'],
+        ),
+        Policy(
+            uid='4'
+        ),
+        Policy(
+            uid='5',
+            description='Allows Nina to update any resources that have only digits',
+            effect=ALLOW_ACCESS,
+            subjects=['Nina'],
+            actions=['update'],
+            resources=[r'<[\d]+>'],
+        ),
+        Policy(
+            uid='6',
+            description='Allows Nina to update any resources that have only digits. Defined by rules',
+            effect=ALLOW_ACCESS,
+            subjects=[Eq('Nina')],
+            actions=[Eq('update'), Eq('read')],
+            resources=[{'id': RegexMatch(r'\d+'), 'magazine': RegexMatch(r'[\d\w]+')}],
+        ),
+    ]
+    for p in policies:
+        st.add(p)
     g = Guard(st, checker)
     assert should_be_allowed == g.is_allowed(inquiry)
 
@@ -590,3 +602,41 @@ def test_is_allowed_for_inquiry_match_rules(desc, policy, inquiry, result):
     storage.add(policy)
     g = Guard(storage, RulesChecker())
     assert result == g.is_allowed(inquiry), 'Failed for case: ' + desc
+
+
+@pytest.mark.parametrize('inquiry, result, expect_message', [
+    (
+        Inquiry(subject='Max', action='watch', resource='TV'),
+        True,
+        "Incoming Inquiry was allowed. Inquiry: <class 'vakt.guard.Inquiry'> <Object ID some_ID>: " +
+        "{'resource': 'TV', 'action': 'watch', 'subject': 'Max', 'context': {}}",
+    ),
+    (
+        Inquiry(subject='Jim', action='watch', resource='TV'),
+        False,
+        "Incoming Inquiry was rejected. Inquiry: <class 'vakt.guard.Inquiry'> <Object ID some_ID>: " +
+        "{'resource': 'TV', 'action': 'watch', 'subject': 'Jim', 'context': {}}",
+    ),
+])
+def test_guard_logs_inquiry_decision(logger, inquiry, result, expect_message):
+    # set up logging
+    log_capture_str = io.StringIO()
+    h = logging.StreamHandler(log_capture_str)
+    h.setLevel(logging.INFO)
+    logger.setLevel(logging.INFO)
+    logger.addHandler(h)
+    # set up Guard
+    storage = MemoryStorage()
+    storage.add(Policy(
+        uid='1',
+        effect=ALLOW_ACCESS,
+        subjects=['Max'],
+        actions=['watch'],
+        resources=['TV'],
+    ))
+    g = Guard(storage, RegexChecker())
+    assert result == g.is_allowed(inquiry)
+    log_res = log_capture_str.getvalue().strip()
+    # a little hack to get rid of <Object ID 4502567760> in inquiry output
+    log_res = re.sub(r'<Object ID \d+>', '<Object ID some_ID>', log_res)
+    assert expect_message == log_res
