@@ -640,3 +640,29 @@ def test_guard_logs_inquiry_decision(logger, inquiry, result, expect_message):
     # a little hack to get rid of <Object ID 4502567760> in inquiry output
     log_res = re.sub(r'<Object ID \d+>', '<Object ID some_ID>', log_res)
     assert expect_message == log_res
+
+
+def test_guard_does_not_fail_if_storage_returns_none(logger):
+    class BadStorage(MemoryStorage):
+        def find_for_inquiry(self, inquiry, checker=None):
+            return None
+
+    # set up logging
+    log_capture_str = io.StringIO()
+    h = logging.StreamHandler(log_capture_str)
+    h.setLevel(logging.ERROR)
+    logger.setLevel(logging.ERROR)
+    logger.addHandler(h)
+    # set up Guard
+    storage = BadStorage()
+    storage.add(Policy(
+        uid='1',
+        effect=ALLOW_ACCESS,
+        subjects=['Max'],
+        actions=['watch'],
+        resources=['TV'],
+    ))
+    g = Guard(storage, RegexChecker())
+    assert not g.is_allowed(Inquiry(subject='Max', action='watch', resource='TV'))
+    assert 'Storage returned None, but is supposed to return at least an empty list' == \
+           log_capture_str.getvalue().strip()

@@ -87,6 +87,10 @@ class Guard:
         """
         try:
             policies = self.storage.find_for_inquiry(inquiry, self.checker)
+            # A safe guard against custom storages that may return None instead of an empty list
+            if policies is None:
+                log.error('Storage returned None, but is supposed to return at least an empty list')
+                return False
             # Storage is not obliged to do the exact policies match. It's up to the storage
             # to decide what policies to return. So we need a more correct programmatically done check.
             answer = self.check_policies_allow(inquiry, policies)
