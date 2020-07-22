@@ -56,13 +56,13 @@ class Guard:
 
     storage - what storage to use
     checker - what checker to use
-    audit_policies_message_cls - what message class to use for logging Policies in audit
+    audit_policies_cls - what message class to use for logging Policies in audit
     """
 
-    def __init__(self, storage, checker, audit_policies_message_cls=None):
+    def __init__(self, storage, checker, audit_policies_cls=None):
         self.storage = storage
         self.checker = checker
-        self.apm = audit_policies_message_cls
+        self.apm = audit_policies_cls
         if self.apm is None:
             self.apm = PoliciesUidMsg
 

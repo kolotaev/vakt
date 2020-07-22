@@ -764,7 +764,7 @@ Vakt logs can be comprehended in 2 basic levels:
 
 ### Audit
 
-Vakt allows you not only to watch the incoming inquiries and their resolution, but also keep track of the policies 
+Vakt allows you to not only watch the incoming inquiries and their resolution, but also keep track of the policies 
 that were responsible for allowing or rejecting the inquiry. It's done via audit logging.
 
 Audit logging is implemented within a standard Python logging framework.
@@ -797,7 +797,7 @@ The formatter supports the following fields:
 - inquiry - the inquiry in question.
 - all the standard Python logging fields like time, level, module name, etc.
 
-The `deciders` and `candidates` field can be logged in various ways depending on the the `audit_policies_message_cls`.
+The `deciders` and `candidates` field can be logged in various ways depending on the the `audit_policies_cls`.
 It can be passed to the `Guard` constructor.
 
 Vakt has the following Audit Policies messages classes out of the box:

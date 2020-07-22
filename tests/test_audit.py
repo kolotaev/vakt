@@ -197,7 +197,7 @@ def test_guard_can_use_specific_policies_message_class(audit_log):
     st.add(PolicyAllow('123', actions=['<.*>'], resources=['<.*>'], subjects=['<.*>']))
     st.add(PolicyDeny('124', actions=['<.*>'], resources=['<.*>'], subjects=['<.*>']))
     st.add(PolicyDeny('125', actions=['<.*>'], resources=['<.*>'], subjects=['<.*>']))
-    g = Guard(st, RegexChecker(), audit_policies_message_cls=PoliciesCountMsg)
+    g = Guard(st, RegexChecker(), audit_policies_cls=PoliciesCountMsg)
     # Run tests
     g.is_allowed(Inquiry(action='get', subject='Kim', resource='TV'))
     assert 'decs: count = 1, candidates: count = 3' == log_capture_str.getvalue().strip()
