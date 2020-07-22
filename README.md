@@ -141,6 +141,38 @@ inq = vakt.Inquiry(action='fork',
 assert guard.is_allowed(inq)
 ```
 
+Or if you prefer Amazon IAM Policies style:
+
+```python
+import vakt
+from vakt.rules import CIDR
+
+policy = vakt.Policy(
+    123457,
+    effect=vakt.ALLOW_ACCESS,
+    subjects=[r'<[a-zA-Z]+ M[a-z]+>'],
+    resources=['library:books:<.+>', 'office:magazines:<.+>'],
+    actions=['<read|get>'],
+    context={
+        'ip': CIDR('192.168.0.0/24'),
+    },
+    description="""
+    Allow all readers of the book library whose surnames start with M get and read any book or magazine,
+    but only when they connect from local library's computer
+    """,
+)
+storage = vakt.MemoryStorage()
+storage.add(policy)
+guard = vakt.Guard(storage, vakt.RegexChecker())
+
+inq = vakt.Inquiry(action='read',
+                   resource='library:books:Hobbit',
+                   subject='Jim Morrison',
+                   context={'ip': '192.168.0.220'})
+
+assert guard.is_allowed(inq)
+```
+
 For more examples see [here](./examples).
 
 *[Back to top](#documentation)*
