@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## [1.5.0] - TBD
+## [1.5.0] - 2020-07-23
 ### Added
 - [vakt] Audit log functionality.
 - [Guard] Optional `audit_policies_cls` argument to `Guard` constructor that is responsible for  defining class
