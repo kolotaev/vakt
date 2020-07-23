@@ -3,18 +3,51 @@ Redis storage for Policies.
 """
 
 import logging
+import pickle
 
 from ..storage.abc import Storage
+from ..policy import Policy
 
 
 log = logging.getLogger(__name__)
 
 
+# todo - move to a separate module
+class JSONSerializer:
+    """
+    Serializes/de-serializes policies to JSON for Redis storage
+    """
+    @staticmethod
+    def serialize(policy):
+        return policy.to_json()
+
+    @staticmethod
+    def deserialize(data):
+        return Policy.from_json(data)
+
+
+# todo - add levels
+class PickleSerializer:
+    """
+    Serializes/de-serializes policies Python pickle representation for Redis storage
+    """
+    @staticmethod
+    def serialize(policy):
+        return pickle.dumps(policy)
+
+    @staticmethod
+    def deserialize(data):
+        return pickle.loads(data)
+
+
 class RedisStorage(Storage):
     """Stores all policies in Redis"""
 
-    def __init__(self, client):
+    def __init__(self, client, serializer=None):
         self.client = client
+        self.serializer = serializer
+        if serializer is None:
+            self.serializer = JSONSerializer
 
     def add(self, policy):
         uid = policy.uid
