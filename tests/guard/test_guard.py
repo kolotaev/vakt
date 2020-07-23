@@ -1,6 +1,7 @@
 import logging
 import io
 import re
+import sys
 
 import pytest
 
@@ -604,6 +605,7 @@ def test_is_allowed_for_inquiry_match_rules(desc, policy, inquiry, result):
     assert result == g.is_allowed(inquiry), 'Failed for case: ' + desc
 
 
+@pytest.mark.skipif(sys.version_info <= (3, 5, 99), reason='unpredictable sorting order inquiry fields on python3.5')
 @pytest.mark.parametrize('inquiry, result, expect_message', [
     (
         Inquiry(subject='Max', action='watch', resource='TV'),
