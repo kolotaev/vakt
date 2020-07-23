@@ -814,6 +814,7 @@ fmt = 'msg: %(message)s | effect: %(effect)s | deciders: %(deciders)s | candidat
 fileHandler = logging.FileHandler('test.log')
 fileHandler.setFormatter(logging.Formatter(fmt))
 fileHandler.setLevel(logging.INFO)
+logger.addHandler(fileHandler)
 
 ... # here go all the Vakt calls.
 ```
