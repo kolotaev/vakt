@@ -4,7 +4,7 @@
 Perform the following actions:
 - Make sure all changes are listed in the CHANGELOG file.
 - Make sure milestones are checked.
-- Make sure all new features are documented.
+- Make sure all new features/changes are documented.
 - Run `make lint` to see code quality diff. If needed update code according to suggestions.
 - Update vakt version through all the codebase.
 - Push to github (release candidate must be a `master` branch).
