@@ -6,9 +6,11 @@ Also contains Inquiry class.
 import logging
 
 from .util import JsonSerializer, PrettyPrint
-
+from .audit import PoliciesUidMsg, __name__ as audit_module_name
+from .effects import ALLOW_ACCESS, DENY_ACCESS
 
 log = logging.getLogger(__name__)
+audit_log = logging.getLogger(audit_module_name)
 
 
 class Inquiry(JsonSerializer, PrettyPrint):
@@ -51,33 +53,44 @@ class Guard:
     """
     Executor of policy checks.
     Given a storage and a checker it can decide via `is_allowed` method if a given inquiry allowed or not.
+
+    storage - what storage to use
+    checker - what checker to use
+    audit_policies_cls - what message class to use for logging Policies in audit
     """
 
-    def __init__(self, storage, checker):
+    def __init__(self, storage, checker, audit_policies_cls=None):
         self.storage = storage
         self.checker = checker
+        self.apm = audit_policies_cls
+        if self.apm is None:
+            self.apm = PoliciesUidMsg
 
     def is_allowed(self, inquiry):
         """
         Is given inquiry intent allowed or not?
-        Same as `is_allowed_no_audit`, but also logs policy enforcement decisions to audit-log.
+        Same as `is_allowed_check`, but also logs policy enforcement decisions to log for every incoming inquiry.
         Is meant to be used by an end-user.
         """
-        answer = self.is_allowed_no_audit(inquiry)
+        answer = self.is_allowed_check(inquiry)
         if answer:
             log.info('Incoming Inquiry was allowed. Inquiry: %s', inquiry)
         else:
             log.info('Incoming Inquiry was rejected. Inquiry: %s', inquiry)
         return answer
 
-    def is_allowed_no_audit(self, inquiry):
+    def is_allowed_check(self, inquiry):
         """
         Is given inquiry intent allowed or not?
-        Does not log answers.
+        Does not log answers to 'vakt.guard' log-stream.
         Is not meant to be called by an end-user. Use it only if you want the core functionality of allowance check.
         """
         try:
             policies = self.storage.find_for_inquiry(inquiry, self.checker)
+            # A safe guard against custom Storages that may return None instead of an empty list
+            if policies is None:
+                log.error('Storage returned None, but is supposed to return at least an empty list')
+                return False
             # Storage is not obliged to do the exact policies match. It's up to the storage
             # to decide what policies to return. So we need a more correct programmatically done check.
             answer = self.check_policies_allow(inquiry, policies)
@@ -90,10 +103,6 @@ class Guard:
         """
         Check if any of a given policy allows a specified inquiry
         """
-        # If no policies found or None is given -> deny access!
-        if not policies:
-            return False
-
         # Filter policies that fit Inquiry by its attributes.
         filtered = [p for p in policies if
                     self.checker.fits(p, 'actions', inquiry.action, inquiry) and
@@ -102,8 +111,27 @@ class Guard:
                     self.check_context_restriction(p, inquiry)]
 
         # no policies -> deny access!
+        if len(filtered) == 0:
+            audit_log.info('No potential policies were found', extra={
+                'effect': DENY_ACCESS, 'inquiry': inquiry,
+                'candidates': self.apm(filtered), 'deciders': self.apm([]),
+            })
+            return False
+
         # if we have 2 or more similar policies - all of them should have allow effect, otherwise -> deny access!
-        return len(filtered) > 0 and all(p.allow_access() for p in filtered)
+        for p in filtered:
+            if not p.allow_access():
+                audit_log.info('One of matching policies has deny effect', extra={
+                    'effect': DENY_ACCESS, 'inquiry': inquiry,
+                    'candidates': self.apm(filtered), 'deciders': self.apm([p]),
+                })
+                return False
+
+        audit_log.info('All matching policies have allow effect', extra={
+            'effect': ALLOW_ACCESS, 'inquiry': inquiry,
+            'candidates': self.apm(filtered), 'deciders': self.apm(filtered),
+        })
+        return True
 
     @staticmethod
     def check_context_restriction(policy, inquiry):

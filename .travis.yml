@@ -16,8 +16,10 @@ python:
   - "3.6"
   - "3.7"
   - "3.8"
-  - "nightly"  # nightly build
-  - "pypy3.5"  # Pypy3 3.5.3
+  - "3.9-dev"
+# Disable "nightly" for now due to psycopg2cffi build failures
+#  - "nightly"  # nightly build
+  - "pypy3"  # latest PyPy
 
 before_script:
   # run mongodb v4.2.1 service (not shipped with xenial)

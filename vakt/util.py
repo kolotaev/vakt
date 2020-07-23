@@ -15,7 +15,6 @@ class JsonSerializer:
     """
     Mixin for dumping object to JSON
     """
-
     @classmethod
     def from_json(cls, data):
         """

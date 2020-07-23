@@ -35,6 +35,7 @@ Attribute-based access control (ABAC) SDK for Python.
 - [Caching](#caching)
 - [JSON](#json)
 - [Logging](#logging)
+- [Audit](#audit)
 - [Examples](./examples)
 - [Milestones](#milestones)
 - [Benchmark](#benchmark)
@@ -136,6 +137,38 @@ inq = vakt.Inquiry(action='fork',
                    resource='repos/google/tensorflow',
                    subject={'name': 'larry', 'stars': 80},
                    context={'referer': 'https://github.com'})
+
+assert guard.is_allowed(inq)
+```
+
+Or if you prefer Amazon IAM Policies style:
+
+```python
+import vakt
+from vakt.rules import CIDR
+
+policy = vakt.Policy(
+    123457,
+    effect=vakt.ALLOW_ACCESS,
+    subjects=[r'<[a-zA-Z]+ M[a-z]+>'],
+    resources=['library:books:<.+>', 'office:magazines:<.+>'],
+    actions=['<read|get>'],
+    context={
+        'ip': CIDR('192.168.0.0/24'),
+    },
+    description="""
+    Allow all readers of the book library whose surnames start with M get and read any book or magazine,
+    but only when they connect from local library's computer
+    """,
+)
+storage = vakt.MemoryStorage()
+storage.add(policy)
+guard = vakt.Guard(storage, vakt.RegexChecker())
+
+inq = vakt.Inquiry(action='read',
+                   resource='library:books:Hobbit',
+                   subject='Jim Morrison',
+                   context={'ip': '192.168.0.220'})
 
 assert guard.is_allowed(inq)
 ```
@@ -755,7 +788,62 @@ root.addHandler(logging.StreamHandler())
 
 Vakt logs can be comprehended in 2 basic levels:
 1. *Error/Exception* - informs about exceptions and errors during Vakt work.
-2. *Info* - informs about incoming inquires and their resolution.
+2. *Info* - informs about incoming inquiries, their resolution and policies responsible for this decisions 
+('vakt.guard' and 'vakt.audit' streams).
+
+*[Back to top](#documentation)*
+
+
+### Audit
+
+Vakt allows you to not only watch the incoming inquiries and their resolution, but also keep track of the policies 
+that were responsible for allowing or rejecting the inquiry. It's done via audit logging.
+
+Audit logging is implemented within a standard Python logging framework.
+You can enable it by subscribing to an audit ('vakt.audit') logging "stream".
+
+Example of configuration in the code:
+
+```python
+import logging
+
+logger = logging.getLogger('vakt.audit')
+logger.setLevel(logging.INFO)
+
+fmt = 'msg: %(message)s | effect: %(effect)s | deciders: %(deciders)s | candidates: %(candidates)s | inquiry: %(inquiry)s'
+fileHandler = logging.FileHandler('test.log')
+fileHandler.setFormatter(logging.Formatter(fmt))
+fileHandler.setLevel(logging.INFO)
+
+... # here go all the Vakt calls.
+```
+
+Vakt logs all audit records at the `INFO` level.
+
+The formatter supports the following fields:
+
+- message - the message that tells what and why happened in the audit.
+- effect - effect that this decision has: 'allow' or 'deny'.
+- candidates - potential policies that were filtered by storage and checkers and may be responsible for the decision.
+- deciders - policies that are responsible for the final decision.
+- inquiry - the inquiry in question.
+- all the standard Python logging fields like time, level, module name, etc.
+
+The `deciders` and `candidates` field can be logged in various ways depending on the the `audit_policies_cls`.
+It can be passed to the `Guard` constructor.
+
+Vakt has the following Audit Policies messages classes out of the box:
+
+- PoliciesNopMsg
+- PoliciesUidMsg (is the default one)
+- PoliciesDescriptionMsg
+- PoliciesCountMsg
+
+Refer to their documentation on how they represent the policies.
+
+**WARNING. Please note, that if you have Guard caching enabled, then audit records for the same subsequent inquiries won't be 
+logged because the calls are cached. However the log records from 'vakt.guard' stream will be always logged - 
+they will tell only was the inquiry allowed or not.**
 
 *[Back to top](#documentation)*
 
@@ -768,7 +856,7 @@ Most valuable features to be implemented in the order of importance:
 - [x] Rules that reference Inquiry data for Rule-based policies 
 - [x] Caching mechanisms (for Storage and Guard)
 - [ ] YAML-based language for declarative policy definitions
-- [ ] Enhanced audit logging
+- [x] Enhanced audit logging
 - [ ] Redis Storage
 
 *[Back to top](#documentation)*

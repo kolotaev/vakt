@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.5.0] - TBD
+### Added
+- [vakt] Audit log functionality.
+- [Guard] Optional `audit_policies_cls` argument to `Guard` constructor that is responsible for  defining class
+which forms policies collection message in audit logs.
+
+### Changed
+- [Guard] Method `is_allowed_no_audit` was renamed to `is_allowed_check` because it reveals its purpose better and also
+in order not to confuse it with audit functionality.
+- [Guard] If Storage returns None instead of an empty list it will be logged as error. Previously it was treated the same
+as empty list.
+
+
 ## [1.4.0] - 2019-12-05
 ### Added
 - [Storage] Generic `retrieve_all` method that retrieves all the existing Policies from the storage.
