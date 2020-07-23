@@ -818,7 +818,7 @@ fileHandler.setLevel(logging.INFO)
 ... # here go all the Vakt calls.
 ```
 
-Vakt logs all audit records on the `INFO` level.
+Vakt logs all audit records at the `INFO` level.
 
 The formatter supports the following fields:
 

@@ -82,12 +82,12 @@ class Guard:
     def is_allowed_check(self, inquiry):
         """
         Is given inquiry intent allowed or not?
-        Does not log answers.
+        Does not log answers to 'vakt.guard' log-stream.
         Is not meant to be called by an end-user. Use it only if you want the core functionality of allowance check.
         """
         try:
             policies = self.storage.find_for_inquiry(inquiry, self.checker)
-            # A safe guard against custom storages that may return None instead of an empty list
+            # A safe guard against custom Storages that may return None instead of an empty list
             if policies is None:
                 log.error('Storage returned None, but is supposed to return at least an empty list')
                 return False
