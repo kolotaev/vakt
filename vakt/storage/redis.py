@@ -7,6 +7,7 @@ import pickle
 
 from ..storage.abc import Storage
 from ..policy import Policy
+from ..exceptions import PolicyExistsError
 
 
 log = logging.getLogger(__name__)
@@ -43,40 +44,61 @@ class PickleSerializer:
 class RedisStorage(Storage):
     """Stores all policies in Redis"""
 
-    def __init__(self, client, serializer=None):
+    def __init__(self, client, collection='vakt', serializer=None):
         self.client = client
-        self.serializer = serializer
+        self.sr = serializer
+        self.collection = collection
         if serializer is None:
             self.serializer = JSONSerializer
 
+    def prefix(self, uid):
+        return '%s:%s' % (self.collection, uid)
+
     def add(self, policy):
-        uid = policy.uid
-        with self.lock:
-            if uid in self.policies:
-                log.error('Error trying to create already existing policy with UID=%s', uid)
-                raise PolicyExistsError(uid)
-            self.policies[uid] = policy
-            log.info('Added Policy: %s', policy)
+        try:
+            key = self.prefix(policy.uid)
+            self.client.set(key, self.sr.serialize(policy), nx=True)
+        except Exception:
+            log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
+            raise PolicyExistsError(policy.uid)
+        log.info('Added Policy: %s', policy)
 
     def get(self, uid):
-        return self.policies.get(uid)
+        key = self.prefix(uid)
+        ret = self.client.get(key)
+        if not ret:
+            return None
+        return self.sr.deserialize(ret)
 
     def get_all(self, limit, offset):
         self._check_limit_and_offset(limit, offset)
-        result = [v for v in self.policies.values()]
-        if offset > len(result) or limit == 0:
+        # Special check for: https://docs.mongodb.com/manual/reference/method/cursor.limit/#zero-value
+        if limit == 0:
             return []
-        return result[offset:limit+offset]
+        match_pattern = self.prefix('*')
+        cur = self.client.scan(cursor=offset, match=match_pattern, count=limit)
+        return self.__feed_policies(cur)
 
     def find_for_inquiry(self, inquiry, checker=None):
-        with self.lock:
-            return self.policies.values()
+        self.retrieve_all(batch=100)
 
     def update(self, policy):
-        self.policies[policy.uid] = policy
-        log.info('Updated Policy with UID=%s. New value is: %s', policy.uid, policy)
+        uid = policy.uid
+        try:
+            key = self.prefix(uid)
+            self.client.set(key, self.sr.serialize(policy), xx=True)
+            log.info('Updated Policy with UID=%s. New value is: %s', uid, policy)
+        except Exception as e:
+            # todo - fix
+            raise e
 
     def delete(self, uid):
-        if uid in self.policies:
-            del self.policies[uid]
-            log.info('Policy with UID %s was deleted', uid)
+        self.client.el(uid)
+        log.info('Deleted Policy with UID=%s.', uid)
+
+    def __feed_policies(self, cursor):
+        """
+        Yields Policies from the given cursor.
+        """
+        for data in cursor:
+            yield self.sr.deserialize(data)
