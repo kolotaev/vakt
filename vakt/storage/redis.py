@@ -13,8 +13,8 @@ log = logging.getLogger(__name__)
 class RedisStorage(Storage):
     """Stores all policies in Redis"""
 
-    def __init__(self):
-        pass
+    def __init__(self, client):
+        self.client = client
 
     def add(self, policy):
         uid = policy.uid
