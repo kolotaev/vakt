@@ -12,6 +12,8 @@ from ..exceptions import PolicyExistsError
 
 log = logging.getLogger(__name__)
 
+DEFAULT_COLLECTION = 'vakt_policy'
+
 
 # todo - move to a separate module
 class JSONSerializer:
@@ -44,12 +46,12 @@ class PickleSerializer:
 class RedisStorage(Storage):
     """Stores all policies in Redis"""
 
-    def __init__(self, client, collection='vakt', serializer=None):
+    def __init__(self, client, collection=DEFAULT_COLLECTION, serializer=None):
         self.client = client
         self.sr = serializer
         self.collection = collection
         if serializer is None:
-            self.serializer = JSONSerializer
+            self.sr = JSONSerializer
 
     def prefix(self, uid):
         return '%s:%s' % (self.collection, uid)
@@ -58,7 +60,8 @@ class RedisStorage(Storage):
         try:
             key = self.prefix(policy.uid)
             self.client.set(key, self.sr.serialize(policy), nx=True)
-        except Exception:
+        # todo - log stacktrace?
+        except Exception as e:
             log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
             raise PolicyExistsError(policy.uid)
         log.info('Added Policy: %s', policy)
