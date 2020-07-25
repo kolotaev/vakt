@@ -53,16 +53,9 @@ class RedisStorage(Storage):
         if serializer is None:
             self.sr = JSONSerializer()
 
-    def prefix(self, uid):
-        return '%s:%s' % (self.collection, uid)
-
-    def un_prefix(self, uid):
-        return uid[len('%s:' % self.collection)+2:]
-
     def add(self, policy):
         try:
             uid = policy.uid
-            # name = self.prefix(policy.uid)
             done = self.client.hsetnx(self.collection, uid, self.sr.serialize(policy))
             if done == 0:
                 log.error('Error trying to create already existing policy with UID=%s.', uid)
@@ -74,25 +67,22 @@ class RedisStorage(Storage):
         log.info('Added Policy: %s', policy)
 
     def get(self, uid):
-        # key = self.prefix(uid)
         ret = self.client.hget(self.collection, uid)
         if not ret:
             return None
         return self.sr.deserialize(ret)
 
     def get_all(self, limit, offset):
+        # todo - explain?
         self._check_limit_and_offset(limit, offset)
         # Special check for: https://docs.mongodb.com/manual/reference/method/cursor.limit/#zero-value
         if limit == 0:
             return []
-        # match_pattern = self.prefix('*')
-        cur = self.client.hscan(self.collection,
-                                cursor=offset,
-                                # match=match_pattern,
-                                count=limit)
-        if len(cur) < 2:
+        result = self.client.hscan(self.collection, cursor=offset, count=limit)
+        if len(result) < 2:
+            log.error('Error calling Redis SCAN. Supposed to return tuple with 2 elements. Got: %s', result)
             return []
-        return self.__feed_policies(cur[1])
+        return self.__feed_policies(result[1])
 
     def find_for_inquiry(self, inquiry, checker=None):
         self.retrieve_all(batch=100)
@@ -100,15 +90,15 @@ class RedisStorage(Storage):
     def update(self, policy):
         uid = policy.uid
         try:
-            key = self.prefix(uid)
-            self.client.set(key, self.sr.serialize(policy), xx=True)
+            self.client.hset(self.collection, uid, self.sr.serialize(policy))
             log.info('Updated Policy with UID=%s. New value is: %s', uid, policy)
         except Exception as e:
             # todo - fix
             raise e
 
     def delete(self, uid):
-        self.client.el(uid)
+        # todo - check exceptions?
+        self.client.hdel(uid)
         log.info('Deleted Policy with UID=%s.', uid)
 
     def __feed_policies(self, data):
@@ -118,4 +108,3 @@ class RedisStorage(Storage):
         # todo - why dict is returned???
         for uid in data:
             yield self.sr.deserialize(data[uid])
-            # yield self.get(str(self.un_prefix(str(uid).strip('\''))))
