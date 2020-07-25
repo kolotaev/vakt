@@ -392,17 +392,17 @@ class TestMongoStorage:
     #     st.update(Policy(id, actions=['get'], description='bar'))
     #     assert st.get(id) is None
     #
-    # def test_delete(self, st):
-    #     policy = Policy('1')
-    #     st.add(policy)
-    #     assert '1' == st.get('1').uid
-    #     st.delete('1')
-    #     assert None is st.get('1')
-    #
-    # def test_delete_nonexistent(self, st):
-    #     uid = str(ObjectId())
-    #     st.delete(uid)
-    #     assert None is st.get(uid)
+    def test_delete(self, st):
+        policy = Policy('1')
+        st.add(policy)
+        assert '1' == st.get('1').uid
+        st.delete('1')
+        assert None is st.get('1')
+
+    def test_delete_nonexistent(self, st):
+        uid = '123456789_not_here'
+        st.delete(uid)
+        assert None is st.get(uid)
     #
     # def test_returned_condition(self, st):
     #     uid = str(uuid.uuid4())
