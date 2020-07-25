@@ -110,6 +110,12 @@ def test_update(st):
     assert 'get' == st.get(2).actions[0].val
 
 
+def test_update_non_existing_does_not_create_anything(st):
+    uid = str('1234567890_non_existent')
+    st.update(Policy(uid, actions=['get'], description='bar'))
+    assert st.get(uid) is None
+
+
 def test_delete(st):
     policy = Policy('1')
     st.add(policy)

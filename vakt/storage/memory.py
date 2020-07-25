@@ -43,7 +43,10 @@ class MemoryStorage(Storage):
             return self.policies.values()
 
     def update(self, policy):
-        self.policies[policy.uid] = policy
+        with self.lock:
+            if policy.uid not in self.policies:
+                return
+            self.policies[policy.uid] = policy
         log.info('Updated Policy with UID=%s. New value is: %s', policy.uid, policy)
 
     def delete(self, uid):
