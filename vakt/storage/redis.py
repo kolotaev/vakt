@@ -56,6 +56,9 @@ class RedisStorage(Storage):
     def prefix(self, uid):
         return '%s:%s' % (self.collection, uid)
 
+    def un_prefix(self, uid):
+        return uid[len('%s:' % self.collection)+2:]
+
     def add(self, policy):
         try:
             key = self.prefix(policy.uid)
@@ -83,7 +86,9 @@ class RedisStorage(Storage):
             return []
         match_pattern = self.prefix('*')
         cur = self.client.scan(cursor=offset, match=match_pattern, count=limit)
-        return self.__feed_policies(cur)
+        if len(cur) < 2:
+            return []
+        return self.__feed_policies(cur[1])
 
     def find_for_inquiry(self, inquiry, checker=None):
         self.retrieve_all(batch=100)
@@ -102,9 +107,9 @@ class RedisStorage(Storage):
         self.client.el(uid)
         log.info('Deleted Policy with UID=%s.', uid)
 
-    def __feed_policies(self, cursor):
+    def __feed_policies(self, data):
         """
         Yields Policies from the given cursor.
         """
-        for data in cursor:
-            yield self.sr.deserialize(data)
+        for uid in data:
+            yield self.get(str(self.un_prefix(str(uid).strip('\''))))

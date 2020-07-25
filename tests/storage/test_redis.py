@@ -94,27 +94,28 @@ class TestMongoStorage:
 
     def test_get_nonexistent(self, st):
         assert None is st.get(123456789)
-    #
-    # @pytest.mark.parametrize('limit, offset, result', [
-    #     (50, 0, 20),
-    #     (11, 1, 11),
-    #     (50, 5, 15),
-    #     (20, 0, 20),
-    #     (20, 1, 19),
-    #     (19, 0, 19),
-    #     (20, 5, 15),
-    #     (0, 0, 0),
-    #     (0, 10, 0),
-    #     (1, 0, 1),
-    #     (5, 4, 5),
-    # ])
-    # def test_get_all(self, st, limit, offset, result):
-    #     for i in range(20):
-    #         desc = ''.join(random.choice('abcde') for _ in range(30))
-    #         st.add(Policy(str(i), description=desc))
-    #     policies = list(st.get_all(limit=limit, offset=offset))
-    #     assert result == len(policies)
-    #
+
+    @pytest.mark.parametrize('limit, offset, result', [
+        (50, 0, 20),
+        # (11, 1, 11),
+        # (50, 5, 15),
+        # (20, 0, 20),
+        # (20, 1, 19),
+        # (19, 0, 19),
+        # (20, 5, 15),
+        # (0, 0, 0),
+        # (0, 10, 0),
+        # (1, 0, 1),
+        # (5, 4, 5),
+    ])
+    def test_get_all(self, st, limit, offset, result):
+        for i in range(20):
+            desc = ''.join(random.choice('abcde') for _ in range(30))
+            st.add(Policy(str(i), description=desc))
+        policies = list(st.get_all(limit=limit, offset=offset))
+        ll = len(policies)
+        assert result == ll
+
     # def test_get_all_check_policy_properties(self, st):
     #     p = Policy(
     #         uid='1',
