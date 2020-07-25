@@ -61,20 +61,21 @@ class RedisStorage(Storage):
 
     def add(self, policy):
         try:
-            key = self.prefix(policy.uid)
-            done = self.client.set(key, self.sr.serialize(policy), nx=True)
-            if not done:
-                log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
-                raise PolicyExistsError(policy.uid)
+            uid = policy.uid
+            # name = self.prefix(policy.uid)
+            done = self.client.hsetnx(self.collection, uid, self.sr.serialize(policy))
+            if done == 0:
+                log.error('Error trying to create already existing policy with UID=%s.', uid)
+                raise PolicyExistsError(uid)
         # todo - log stacktrace?
         except Exception as e:
-            log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
-            raise PolicyExistsError(policy.uid)
+            log.error('Error trying to create already existing policy with UID=%s.', uid)
+            raise PolicyExistsError(uid)
         log.info('Added Policy: %s', policy)
 
     def get(self, uid):
-        key = self.prefix(uid)
-        ret = self.client.get(key)
+        # key = self.prefix(uid)
+        ret = self.client.hget(self.collection, uid)
         if not ret:
             return None
         return self.sr.deserialize(ret)
@@ -84,8 +85,11 @@ class RedisStorage(Storage):
         # Special check for: https://docs.mongodb.com/manual/reference/method/cursor.limit/#zero-value
         if limit == 0:
             return []
-        match_pattern = self.prefix('*')
-        cur = self.client.scan(cursor=offset, match=match_pattern, count=limit)
+        # match_pattern = self.prefix('*')
+        cur = self.client.hscan(self.collection,
+                                cursor=offset,
+                                # match=match_pattern,
+                                count=limit)
         if len(cur) < 2:
             return []
         return self.__feed_policies(cur[1])
@@ -111,5 +115,7 @@ class RedisStorage(Storage):
         """
         Yields Policies from the given cursor.
         """
+        # todo - why dict is returned???
         for uid in data:
-            yield self.get(str(self.un_prefix(str(uid).strip('\''))))
+            yield self.sr.deserialize(data[uid])
+            # yield self.get(str(self.un_prefix(str(uid).strip('\''))))
