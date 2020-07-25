@@ -59,7 +59,10 @@ class RedisStorage(Storage):
     def add(self, policy):
         try:
             key = self.prefix(policy.uid)
-            self.client.set(key, self.sr.serialize(policy), nx=True)
+            done = self.client.set(key, self.sr.serialize(policy), nx=True)
+            if not done:
+                log.error('Error trying to create already existing policy with UID=%s.', policy.uid)
+                raise PolicyExistsError(policy.uid)
         # todo - log stacktrace?
         except Exception as e:
             log.error('Error trying to create already existing policy with UID=%s.', policy.uid)

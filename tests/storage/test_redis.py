@@ -77,34 +77,23 @@ class TestMongoStorage:
         assert 1 == len(st.get('2').resources)
         assert isinstance(st.get('2').resources[0]['books'], Eq)
         assert 'Harry' == st.get('2').resources[0]['books'].val
-    #
-    # def test_add_with_bson_object_id(self, st):
-    #     id = str(ObjectId())
-    #     p = Policy(
-    #         uid=id,
-    #         description='foo',
-    #     )
-    #     st.add(p)
-    #
-    #     back = st.get(id)
-    #     assert id == back.uid
-    #
-    # def test_policy_create_existing(self, st):
-    #     id = str(uuid.uuid4())
-    #     st.add(Policy(id, description='foo'))
-    #     with pytest.raises(PolicyExistsError):
-    #         st.add(Policy(id, description='bar'))
-    #
-    # def test_get(self, st):
-    #     st.add(Policy('1'))
-    #     st.add(Policy(2, description='some text'))
-    #     assert isinstance(st.get('1'), Policy)
-    #     assert '1' == st.get('1').uid
-    #     assert 2 == st.get(2).uid
-    #     assert 'some text' == st.get(2).description
-    #
-    # def test_get_nonexistent(self, st):
-    #     assert None is st.get(123456789)
+
+    def test_policy_create_existing(self, st):
+        uid = str(uuid.uuid4())
+        st.add(Policy(uid, description='foo'))
+        with pytest.raises(PolicyExistsError):
+            st.add(Policy(uid, description='bar'))
+
+    def test_get(self, st):
+        st.add(Policy('1'))
+        st.add(Policy(2, description='some text'))
+        assert isinstance(st.get('1'), Policy)
+        assert '1' == st.get('1').uid
+        assert 2 == st.get(2).uid
+        assert 'some text' == st.get(2).description
+
+    def test_get_nonexistent(self, st):
+        assert None is st.get(123456789)
     #
     # @pytest.mark.parametrize('limit, offset, result', [
     #     (50, 0, 20),
