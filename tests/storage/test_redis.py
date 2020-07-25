@@ -8,13 +8,13 @@ from operator import attrgetter
 import pytest
 from redis import Redis
 
-from vakt.storage.redis import *
+from vakt.storage.redis import RedisStorage, JSONSerializer, PickleSerializer
 from vakt.storage.memory import MemoryStorage
 from vakt.effects import ALLOW_ACCESS
 from vakt.policy import Policy
 from vakt.rules.string import Equal
-from vakt.rules.logic import Any
-from vakt.rules.operator import Eq
+from vakt.rules.logic import Any, And
+from vakt.rules.operator import Eq, Greater
 from vakt.exceptions import PolicyExistsError, UnknownCheckerType
 from vakt.guard import Inquiry, Guard
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
@@ -33,12 +33,22 @@ def create_client():
 # @pytest.mark.integration
 class TestMongoStorage:
 
-    @pytest.fixture()
-    def st(self):
+    # We test storage with all available serializers
+    @pytest.fixture(params=[JSONSerializer(), PickleSerializer()])
+    def st(self, request):
         client = create_client()
-        yield RedisStorage(client, collection=COLLECTION)
+        yield RedisStorage(client, collection=COLLECTION, serializer=request.param)
         client.flushdb()
         client.close()
+
+    def test_storage_uses_json_serializer_by_default(self):
+        client = create_client()
+        try:
+            s = RedisStorage(client, collection=COLLECTION)
+            sr = s.sr
+            assert isinstance(sr, JSONSerializer)
+        finally:
+            client.close()
 
     def test_add(self, st):
         id = str(uuid.uuid4())
@@ -50,6 +60,7 @@ class TestMongoStorage:
             resources=['<.*>'],
             context={
                 'secret': Equal('i-am-a-teacher'),
+                'rating': And(Eq(80), Greater(80))
             },
         )
         st.add(p)
@@ -57,6 +68,7 @@ class TestMongoStorage:
         assert id == back.uid
         assert 'foo bar баз' == back.description
         assert isinstance(back.context['secret'], Equal)
+        assert isinstance(back.context['rating'], And)
         st.add(Policy('2', actions=[Eq('get'), Eq('put')], subjects=[Any()], resources=[{'books': Eq('Harry')}]))
         assert '2' == st.get('2').uid
         assert 2 == len(st.get('2').actions)

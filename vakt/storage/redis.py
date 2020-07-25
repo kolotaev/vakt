@@ -48,10 +48,10 @@ class RedisStorage(Storage):
 
     def __init__(self, client, collection=DEFAULT_COLLECTION, serializer=None):
         self.client = client
-        self.sr = serializer
         self.collection = collection
+        self.sr = serializer
         if serializer is None:
-            self.sr = JSONSerializer
+            self.sr = JSONSerializer()
 
     def prefix(self, uid):
         return '%s:%s' % (self.collection, uid)
