@@ -32,7 +32,7 @@ def create_client():
 
 
 # @pytest.mark.integration
-class TestMongoStorage:
+class TestRedisStorage:
 
     # We test storage with all available serializers
     @pytest.fixture(params=[JSONSerializer(), PickleSerializer()])
@@ -111,6 +111,7 @@ class TestMongoStorage:
         (5, 4, 5),
         (10000, 0, 20),
         (5, 21, 0),
+        # todo - find out
         # (5, 20, 1),
     ])
     def test_get_all(self, st, limit, offset, result):
@@ -162,198 +163,24 @@ class TestMongoStorage:
         for p in found:
             pols.append(p.uid)
         assert 2 == len(pols)
-    #
-    # def test_get_all_ascending_sorting_order(self, st):
-    #     for i in range(1, 20):
-    #         st.add(Policy(i))
-    #     assert list(range(1, 20)) == list(map(attrgetter('uid'), st.get_all(30, 0)))
-    #
-    # @pytest.mark.parametrize('checker, expect_number', [
-    #     (None, 6),
-    #     (RegexChecker(), 2),
-    #     (RulesChecker(), 2),
-    #     (StringExactChecker(), 1),
-    #     (StringFuzzyChecker(), 1),
-    # ])
-    # def test_find_for_inquiry_returns_existing_policies(self, st, checker, expect_number):
-    #     st.add(Policy('1', subjects=['<[mM]ax>', '<.*>']))
-    #     st.add(Policy('2', subjects=['sam<.*>', 'foo']))
-    #     st.add(Policy('3', subjects=['Jim'], actions=['delete'], resources=['server']))
-    #     st.add(Policy('3.1', subjects=['Jim'], actions=[r'del<\w+>'], resources=['server']))
-    #     st.add(Policy('4', subjects=[{'stars': Eq(90)}, Eq('Max')]))
-    #     st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
-    #     inquiry = Inquiry(subject='Jim', action='delete', resource='server')
-    #     found = st.find_for_inquiry(inquiry, checker)
-    #     assert expect_number == len(list(found))
-    #
-    # def test_find_for_inquiry_with_exact_string_checker(self, st):
-    #     st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['books', 'comics', 'magazines']))
-    #     st.add(Policy('2', subjects=['maxim'], actions=['get'], resources=['books', 'comics', 'magazines']))
-    #     st.add(Policy('3', subjects=['sam', 'nina']))
-    #     st.add(Policy('4', subjects=[Eq('sam'), Eq('nina')]))
-    #     inquiry = Inquiry(subject='max', action='get', resource='books')
-    #     found = st.find_for_inquiry(inquiry, StringExactChecker())
-    #     found = list(found)
-    #     assert 1 == len(found)
-    #     assert '1' == found[0].uid
-    #
-    # def test_find_for_inquiry_with_fuzzy_string_checker(self, st):
-    #     st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['books', 'comics', 'magazines']))
-    #     st.add(Policy('2', subjects=['maxim'], actions=['get'], resources=['books', 'foos']))
-    #     st.add(Policy('3', subjects=['Max'], actions=['get'], resources=['books', 'comics']))
-    #     st.add(Policy('4', subjects=['sam', 'nina']))
-    #     st.add(Policy('5', subjects=[Eq('sam'), Eq('nina')]))
-    #     inquiry = Inquiry(subject='max', action='et', resource='oo')
-    #     found = st.find_for_inquiry(inquiry, StringFuzzyChecker())
-    #     found = list(found)
-    #     assert 2 == len(found)
-    #     ids = [found[0].uid, found[1].uid]
-    #     assert '1' in ids
-    #     assert '2' in ids
-    #     inquiry = Inquiry(subject='Max', action='get', resource='comics')
-    #     found = st.find_for_inquiry(inquiry, StringFuzzyChecker())
-    #     found = list(found)
-    #     assert 1 == len(found)
-    #     assert '3' == found[0].uid
-    #
-    # @pytest.mark.parametrize('policies, inquiry, expected_reference', [
-    #     (
-    #         [
-    #             Policy(
-    #                 uid=1,
-    #                 actions=['get', 'post'],
-    #                 effect=ALLOW_ACCESS,
-    #                 resources=['<.*>'],
-    #                 subjects=['<[Mm]ax>', '<Jim>']
-    #             ),
-    #         ],
-    #         Inquiry(action='get', resource='printer', subject='Max'),
-    #         True,
-    #     ),
-    #     (
-    #         [
-    #             Policy(
-    #                 uid=1,
-    #                 actions=['<.*>'],
-    #                 effect=ALLOW_ACCESS,
-    #                 resources=['<.*>'],
-    #                 subjects=['<.*>']
-    #             ),
-    #         ],
-    #         Inquiry(action='get', resource='printer', subject='Max'),
-    #         True,
-    #     ),
-    #     (
-    #         [
-    #             Policy(
-    #                 uid=1,
-    #                 actions=['<.*>'],
-    #                 effect=ALLOW_ACCESS,
-    #                 resources=['library:books:<.+>'],
-    #                 subjects=['<.*>']
-    #             ),
-    #         ],
-    #         Inquiry(action='get', resource='library:books:dracula', subject='Max'),
-    #         True,
-    #     ),
-    #     (
-    #         [
-    #             Policy(
-    #                 uid=1,
-    #                 actions=[r'<\d+>'],
-    #                 effect=ALLOW_ACCESS,
-    #                 resources=[r'<\w{1,3}>'],
-    #                 subjects=[r'<\w{2}-\d+>']
-    #             ),
-    #         ],
-    #         Inquiry(action='12', resource='Pie', subject='Jo-1'),
-    #         True,
-    #     ),
-    #     (
-    #         [
-    #             Policy(
-    #                 uid=1,
-    #                 actions=['parse'],
-    #                 effect=ALLOW_ACCESS,
-    #                 resources=['library:books'],
-    #                 subjects=['Max']
-    #             ),
-    #         ],
-    #         Inquiry(action='parse', resource='library:books', subject='Max'),
-    #         True,
-    #     ),
-    #     (
-    #         [
-    #             Policy(
-    #                 uid=1,
-    #                 actions=['parse'],
-    #                 effect=ALLOW_ACCESS,
-    #                 resources=['library:manu<(al|scripts)>'],
-    #                 subjects=['Max']
-    #             ),
-    #         ],
-    #         Inquiry(action='parse', resource='library:books', subject='Max'),
-    #         False,
-    #     ),
-    #     (
-    #         [
-    #             Policy(
-    #                 uid=1,
-    #                 actions=['parse'],
-    #                 effect=ALLOW_ACCESS,
-    #                 resources=['library:books'],
-    #                 subjects=['Max']
-    #             ),
-    #             Policy(
-    #                 uid=2,
-    #                 actions=['parse'],
-    #                 effect=ALLOW_ACCESS,
-    #                 resources=['library:manu<(al|scripts)>'],
-    #                 subjects=['Max']
-    #             ),
-    #         ],
-    #         Inquiry(action='parse', resource='library:manuscripts', subject='Max'),
-    #         True,
-    #     ),
-    # ])
-    # def test_find_for_inquiry_with_regex_checker(self, st, policies, inquiry, expected_reference):
-    #     mem_storage = MemoryStorage()  # it returns all stored policies so we consider Guard as a reference
-    #     for p in policies:
-    #         st.add(p)
-    #         mem_storage.add(p)
-    #     reference_answer = Guard(mem_storage, RegexChecker()).is_allowed(inquiry)
-    #     assert expected_reference == reference_answer, 'Check reference answer'
-    #     assert reference_answer == Guard(st, RegexChecker()).is_allowed(inquiry), \
-    #         'Mongo storage should give the same answers as reference'
-    #
-    # def test_find_for_inquiry_with_regex_checker_for_mongodb_prior_to_4_2(self, st):
-    #     # mock db server version for this test
-    #     st.db_server_version = (3, 4, 0)
-    #     st.add(Policy('1', subjects=['<[mM]ax>', '<.*>']))
-    #     st.add(Policy('2', subjects=['sam<.*>', 'foo']))
-    #     st.add(Policy('3', subjects=['Jim'], actions=['delete'], resources=['server']))
-    #     st.add(Policy('3.1', subjects=['Jim'], actions=[r'del<\w+>'], resources=['server']))
-    #     st.add(Policy('4', subjects=[{'stars': Eq(90)}, Eq('Max')]))
-    #     st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
-    #     inquiry = Inquiry(subject='Jim', action='delete', resource='server')
-    #     found = st.find_for_inquiry(inquiry, RegexChecker())
-    #     found = list(found)
-    #     # should return all string-based polices, but not only matched ones
-    #     assert 4 == len(found)
-    #     assert ['1', '2', '3', '3.1'] == sorted(map(attrgetter('uid'), found))
-    #
-    # def test_find_for_inquiry_with_rules_checker(self, st):
-    #     assertions = unittest.TestCase('__init__')
-    #     st.add(Policy(1, subjects=[{'name': Equal('Max')}], actions=[{'foo': Equal('bar')}]))
-    #     st.add(Policy(2, subjects=[{'name': Equal('Max')}], actions=[{'foo': Equal('bar2')}]))
-    #     st.add(Policy(3, subjects=['sam', 'nina']))
-    #     st.add(Policy(4, actions=[r'<\d+>'], effect=ALLOW_ACCESS, resources=[r'<\w{1,3}>'], subjects=[r'<\w{2}-\d+>']))
-    #     st.add(Policy(5, subjects=[{'name': Equal('Jim')}], actions=[{'foo': Equal('bar3')}]))
-    #     inquiry = Inquiry(subject={'name': 'max'}, action='get', resource='books')
-    #     found = st.find_for_inquiry(inquiry, RulesChecker())
-    #     found = list(found)
-    #     assert 3 == len(found)
-    #     assertions.assertListEqual([1, 2, 5], list(map(operator.attrgetter('uid'), found)))
+
+    @pytest.mark.parametrize('checker, expect_number', [
+        (None, 6),
+        (RegexChecker(), 6),
+        (RulesChecker(), 6),
+        (StringExactChecker(), 6),
+        (StringFuzzyChecker(), 6),
+    ])
+    def test_find_for_inquiry_returns_all_policies_for_any_checker_and_inquiry(self, st, checker, expect_number):
+        st.add(Policy('1', subjects=['<[mM]ax>', '<.*>']))
+        st.add(Policy('2', subjects=['sam<.*>', 'foo']))
+        st.add(Policy('3', subjects=['Jim'], actions=['delete'], resources=['server']))
+        st.add(Policy('3.1', subjects=['Jim'], actions=[r'del<\w+>'], resources=['server']))
+        st.add(Policy('4', subjects=[{'stars': Eq(90)}, Eq('Max')]))
+        st.add(Policy('5', subjects=[Eq('Jim'), Eq('Nina')]))
+        inquiry = Inquiry(subject='Jim', action='delete', resource='server')
+        found = st.find_for_inquiry(inquiry, checker)
+        assert expect_number == len(list(found))
 
     def test_find_for_inquiry_returns_generator(self, st):
         st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
@@ -419,7 +246,6 @@ class TestMongoStorage:
             context={
                 'secret': Equal('i-am-a-teacher'),
                 'secret2': Equal('i-am-a-husband'),
-
             },
         )
         st.add(p)
