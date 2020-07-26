@@ -57,7 +57,7 @@ class TestMongoStorage:
             uid=id,
             description='foo bar баз',
             subjects=('Edward Rooney', 'Florence Sparrow'),
-            actions=['<.*>'],
+            actions=['好'],
             resources=['<.*>'],
             context={
                 'secret': Equal('i-am-a-teacher'),
@@ -70,6 +70,7 @@ class TestMongoStorage:
         assert 'foo bar баз' == back.description
         assert isinstance(back.context['secret'], Equal)
         assert isinstance(back.context['rating'], And)
+        assert '好' == back.actions[0]
         st.add(Policy('2', actions=[Eq('get'), Eq('put')], subjects=[Any()], resources=[{'books': Eq('Harry')}]))
         assert '2' == st.get('2').uid
         assert 2 == len(st.get('2').actions)
@@ -154,10 +155,10 @@ class TestMongoStorage:
         st.add(Policy('2'))
         found = st.get_all(500, 0)
         assert isinstance(found, types.GeneratorType)
-        l = []
+        pols = []
         for p in found:
-            l.append(p.uid)
-        assert 2 == len(l)
+            pols.append(p.uid)
+        assert 2 == len(pols)
     #
     # def test_get_all_ascending_sorting_order(self, st):
     #     for i in range(1, 20):
@@ -350,12 +351,6 @@ class TestMongoStorage:
     #     found = list(found)
     #     assert 3 == len(found)
     #     assertions.assertListEqual([1, 2, 5], list(map(operator.attrgetter('uid'), found)))
-    #
-    # def test_find_for_inquiry_with_unknown_checker(self, st):
-    #     st.add(Policy('1'))
-    #     inquiry = Inquiry(subject='sam', action='get', resource='books')
-    #     with pytest.raises(UnknownCheckerType):
-    #         list(st.find_for_inquiry(inquiry, Inquiry()))
 
     def test_find_for_inquiry_returns_generator(self, st):
         st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
@@ -363,10 +358,10 @@ class TestMongoStorage:
         inquiry = Inquiry(subject='max', action='get', resource='comics')
         found = st.find_for_inquiry(inquiry)
         assert isinstance(found, types.GeneratorType)
-        l = []
+        pols = []
         for p in found:
-            l.append(p.uid)
-        assert 2 == len(l)
+            pols.append(p.uid)
+        assert 2 == len(pols)
 
     def test_find_for_inquiry_returns_empty_list_if_nothing_is_returned(self, st):
         inquiry = Inquiry(subject='max', action='get', resource='comics')
