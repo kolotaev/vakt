@@ -26,7 +26,7 @@ class JSONSerializer:
 
     @staticmethod
     def deserialize(data):
-        return Policy.from_json(data)
+        return Policy.from_json(data.decode('utf-8'))
 
 
 # todo - add levels
