@@ -365,33 +365,34 @@ class TestMongoStorage:
     #     for p in found:
     #         l.append(p.uid)
     #     assert 2 == len(l)
-    #
-    # def test_update(self, st):
-    #     id = str(uuid.uuid4())
-    #     policy = Policy(id)
-    #     st.add(policy)
-    #     assert id == st.get(id).uid
-    #     assert None is st.get(id).description
-    #     assert [] == st.get(id).actions
-    #     policy.description = 'foo'
-    #     policy.actions = ['a', 'b', 'c']
-    #     st.update(policy)
-    #     assert id == st.get(id).uid
-    #     assert 'foo' == st.get(id).description
-    #     assert ['a', 'b', 'c'] == st.get(id).actions
-    #     p = Policy(2, actions=[Any()], subjects=[Eq('max'), Eq('bob')])
-    #     st.add(p)
-    #     assert 2 == st.get(2).uid
-    #     p.actions = [Eq('get')]
-    #     st.update(p)
-    #     assert 1 == len(st.get(2).actions)
-    #     assert 'get' == st.get(2).actions[0].val
-    #
-    # def test_update_non_existing_does_not_create_anything(self, st):
-    #     id = str(uuid.uuid4())
-    #     st.update(Policy(id, actions=['get'], description='bar'))
-    #     assert st.get(id) is None
-    #
+
+    def test_update(self, st):
+        id = str(uuid.uuid4())
+        policy = Policy(id)
+        st.add(policy)
+        assert id == st.get(id).uid
+        assert None is st.get(id).description
+        # todo - why?
+        assert () == st.get(id).actions or [] == st.get(id).actions
+        policy.description = 'foo'
+        policy.actions = ['a', 'b', 'c']
+        st.update(policy)
+        assert id == st.get(id).uid
+        assert 'foo' == st.get(id).description
+        assert ['a', 'b', 'c'] == st.get(id).actions
+        p = Policy(2, actions=[Any()], subjects=[Eq('max'), Eq('bob')])
+        st.add(p)
+        assert 2 == st.get(2).uid
+        p.actions = [Eq('get')]
+        st.update(p)
+        assert 1 == len(st.get(2).actions)
+        assert 'get' == st.get(2).actions[0].val
+
+    def test_update_non_existing_does_not_create_anything(self, st):
+        uid = str(uuid.uuid4())
+        st.update(Policy(uid, actions=['get'], description='bar'))
+        assert st.get(uid) is None
+
     def test_delete(self, st):
         policy = Policy('1')
         st.add(policy)

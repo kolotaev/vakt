@@ -12,7 +12,7 @@ from ..exceptions import PolicyExistsError
 
 log = logging.getLogger(__name__)
 
-DEFAULT_COLLECTION = 'vakt_policy'
+DEFAULT_COLLECTION = 'vakt_policies'
 
 
 # todo - move to a separate module
@@ -44,9 +44,15 @@ class PickleSerializer:
 
 
 class RedisStorage(Storage):
-    """Stores all policies in Redis"""
+    """
+    Stores Policies in Redis.
+
+    Stores all policies in a single hash whose name is a `collection` argument.
+    Each filed in this hash is a Policy's UID and the value of this key is a serialized Policy representation.
+    """
 
     def __init__(self, client, collection=DEFAULT_COLLECTION, serializer=None):
+        # todo - use hiredis
         self.client = client
         self.collection = collection
         self.sr = serializer
@@ -89,12 +95,33 @@ class RedisStorage(Storage):
 
     def update(self, policy):
         uid = policy.uid
-        try:
+        # todo - use scripting for transactional update
+        exists = self.client.hexists(self.collection, uid)
+        if exists:
             self.client.hset(self.collection, uid, self.sr.serialize(policy))
             log.info('Updated Policy with UID=%s. New value is: %s', uid, policy)
-        except Exception as e:
-            # todo - fix
-            raise e
+
+        # def transactional_update(pipe):
+        #     # pipe.multi()
+        #     rr = pipe.hexists(self.collection, uid)
+        #     if rr:
+        #         pipe.hset(self.collection, uid, self.sr.serialize(policy))
+        #         # pipe.execute()
+        # res = self.client.transaction(transactional_update, self.collection)
+        # return res
+
+        # pipe = self.client.pipeline()
+        # try:
+        #     pipe.hexists(self.collection, uid)
+        #     pipe.hset(self.collection, uid, self.sr.serialize(policy))
+        #     res = pipe.execute()
+        #     if not res[0]:
+        #         pipe.reset()
+        #     log.info('Updated Policy with UID=%s. New value is: %s', uid, policy)
+        # except Exception as e:
+        #     # todo - fix
+        #     pipe.reset()
+        #     raise e
 
     def delete(self, uid):
         # todo - check exceptions?
