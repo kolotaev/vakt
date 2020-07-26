@@ -4,6 +4,7 @@ import types
 import operator
 import unittest
 from operator import attrgetter
+from unittest.mock import Mock
 
 import pytest
 from redis import Redis
@@ -116,46 +117,47 @@ class TestMongoStorage:
         ll = len(policies)
         assert result == ll
 
-    # def test_get_all_check_policy_properties(self, st):
-    #     p = Policy(
-    #         uid='1',
-    #         description='foo bar баз',
-    #         subjects=('Edward Rooney', 'Florence Sparrow'),
-    #         actions=['<.*>'],
-    #         resources=['<.*>'],
-    #         context={
-    #             'secret': Equal('i-am-a-teacher'),
-    #         },
-    #     )
-    #     st.add(p)
-    #     policies = list(st.get_all(100, 0))
-    #     assert 1 == len(policies)
-    #     assert '1' == policies[0].uid
-    #     assert 'foo bar баз' == policies[0].description
-    #     assert ['Edward Rooney', 'Florence Sparrow'] == policies[0].subjects
-    #     assert ['<.*>'] == policies[0].actions
-    #     assert ['<.*>'] == policies[0].resources
-    #     assert isinstance(policies[0].context['secret'], Equal)
-    #
-    # def test_get_all_with_incorrect_args(self, st):
-    #     for i in range(10):
-    #         st.add(Policy(str(i), description='foo'))
-    #     with pytest.raises(ValueError) as e:
-    #         list(st.get_all(-1, 9))
-    #     assert "Limit can't be negative" == str(e.value)
-    #     with pytest.raises(ValueError) as e:
-    #         list(st.get_all(0, -3))
-    #     assert "Offset can't be negative" == str(e.value)
-    #
-    # def test_get_all_returns_generator(self, st):
-    #     st.add(Policy('1'))
-    #     st.add(Policy('2'))
-    #     found = st.get_all(500, 0)
-    #     assert isinstance(found, types.GeneratorType)
-    #     l = []
-    #     for p in found:
-    #         l.append(p.uid)
-    #     assert 2 == len(l)
+    def test_get_all_check_policy_properties(self, st):
+        p = Policy(
+            uid='1',
+            description='foo bar баз',
+            subjects=('Edward Rooney', 'Florence Sparrow'),
+            actions=['<.*>'],
+            resources=['<.*>'],
+            context={
+                'secret': Equal('i-am-a-teacher'),
+            },
+        )
+        st.add(p)
+        policies = list(st.get_all(100, 0))
+        assert 1 == len(policies)
+        assert '1' == policies[0].uid
+        assert 'foo bar баз' == policies[0].description
+        assert ['Edward Rooney', 'Florence Sparrow'] == policies[0].subjects or \
+               ('Edward Rooney', 'Florence Sparrow') == policies[0].subjects
+        assert ['<.*>'] == policies[0].actions
+        assert ['<.*>'] == policies[0].resources
+        assert isinstance(policies[0].context['secret'], Equal)
+
+    def test_get_all_with_incorrect_args(self, st):
+        for i in range(10):
+            st.add(Policy(str(i), description='foo'))
+        with pytest.raises(ValueError) as e:
+            list(st.get_all(-1, 9))
+        assert "Limit can't be negative" == str(e.value)
+        with pytest.raises(ValueError) as e:
+            list(st.get_all(0, -3))
+        assert "Offset can't be negative" == str(e.value)
+
+    def test_get_all_returns_generator(self, st):
+        st.add(Policy('1'))
+        st.add(Policy('2'))
+        found = st.get_all(500, 0)
+        assert isinstance(found, types.GeneratorType)
+        l = []
+        for p in found:
+            l.append(p.uid)
+        assert 2 == len(l)
     #
     # def test_get_all_ascending_sorting_order(self, st):
     #     for i in range(1, 20):
@@ -354,17 +356,24 @@ class TestMongoStorage:
     #     inquiry = Inquiry(subject='sam', action='get', resource='books')
     #     with pytest.raises(UnknownCheckerType):
     #         list(st.find_for_inquiry(inquiry, Inquiry()))
-    #
-    # def test_find_for_inquiry_returns_generator(self, st):
-    #     st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
-    #     st.add(Policy('2', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
-    #     inquiry = Inquiry(subject='max', action='get', resource='comics')
-    #     found = st.find_for_inquiry(inquiry)
-    #     assert isinstance(found, types.GeneratorType)
-    #     l = []
-    #     for p in found:
-    #         l.append(p.uid)
-    #     assert 2 == len(l)
+
+    def test_find_for_inquiry_returns_generator(self, st):
+        st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
+        st.add(Policy('2', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
+        inquiry = Inquiry(subject='max', action='get', resource='comics')
+        found = st.find_for_inquiry(inquiry)
+        assert isinstance(found, types.GeneratorType)
+        l = []
+        for p in found:
+            l.append(p.uid)
+        assert 2 == len(l)
+
+    def test_find_for_inquiry_returns_empty_list_if_nothing_is_returned(self, st):
+        inquiry = Inquiry(subject='max', action='get', resource='comics')
+        assert [] == st.find_for_inquiry(inquiry)
+        mock_client = Mock(spec=Redis, **{'hgetall.side_effect': [None]})
+        st.client = mock_client
+        assert [] == st.find_for_inquiry(inquiry)
 
     def test_update(self, st):
         id = str(uuid.uuid4())
@@ -404,18 +413,18 @@ class TestMongoStorage:
         uid = '123456789_not_here'
         st.delete(uid)
         assert None is st.get(uid)
-    #
-    # def test_returned_condition(self, st):
-    #     uid = str(uuid.uuid4())
-    #     p = Policy(
-    #         uid=uid,
-    #         context={
-    #             'secret': Equal('i-am-a-teacher'),
-    #             'secret2': Equal('i-am-a-husband'),
-    #
-    #         },
-    #     )
-    #     st.add(p)
-    #     context = st.get(uid).context
-    #     assert context['secret'].satisfied('i-am-a-teacher')
-    #     assert context['secret2'].satisfied('i-am-a-husband')
+
+    def test_returned_condition(self, st):
+        uid = str(uuid.uuid4())
+        p = Policy(
+            uid=uid,
+            context={
+                'secret': Equal('i-am-a-teacher'),
+                'secret2': Equal('i-am-a-husband'),
+
+            },
+        )
+        st.add(p)
+        context = st.get(uid).context
+        assert context['secret'].satisfied('i-am-a-teacher')
+        assert context['secret2'].satisfied('i-am-a-husband')

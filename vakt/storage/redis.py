@@ -91,7 +91,11 @@ class RedisStorage(Storage):
         return self.__feed_policies(result[1])
 
     def find_for_inquiry(self, inquiry, checker=None):
-        self.retrieve_all(batch=100)
+        # todo - use lock?
+        data = self.client.hgetall(self.collection)
+        if not data:
+            return []
+        return self.__feed_policies(data)
 
     def update(self, policy):
         uid = policy.uid
