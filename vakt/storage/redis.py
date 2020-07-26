@@ -4,6 +4,7 @@ Redis storage for Policies.
 
 import logging
 import pickle
+import itertools
 
 from ..storage.abc import Storage
 from ..policy import Policy
@@ -79,16 +80,13 @@ class RedisStorage(Storage):
         return self.sr.deserialize(ret)
 
     def get_all(self, limit, offset):
-        # todo - explain?
+        # According to docs https://redis.io/commands/scan#the-count-option
+        # Redis doesn't guarantee the exact number of elements returned,
+        # so we opt to fetching all data and manual slicing on the client side.
         self._check_limit_and_offset(limit, offset)
-        # Special check for: https://docs.mongodb.com/manual/reference/method/cursor.limit/#zero-value
-        if limit == 0:
-            return []
-        result = self.client.hscan(self.collection, cursor=offset, count=limit)
-        if len(result) < 2:
-            log.error('Error calling Redis SCAN. Supposed to return tuple with 2 elements. Got: %s', result)
-            return []
-        return self.__feed_policies(result[1])
+        data = self.client.hgetall(self.collection)
+        sliced = itertools.islice(data.items(), offset, limit+offset)
+        return self.__feed_policies(dict(sliced))
 
     def find_for_inquiry(self, inquiry, checker=None):
         # todo - use lock?

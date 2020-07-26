@@ -99,16 +99,19 @@ class TestMongoStorage:
 
     @pytest.mark.parametrize('limit, offset, result', [
         (50, 0, 20),
-        # (11, 1, 11),
-        # (50, 5, 15),
+        (11, 1, 11),
+        (50, 5, 15),
         (20, 0, 20),
-        # (20, 1, 19),
+        (20, 1, 19),
         (19, 0, 19),
-        # (20, 5, 15),
+        (20, 5, 15),
         (0, 0, 0),
         (0, 10, 0),
-        # (1, 0, 1),
+        (1, 0, 1),
         (5, 4, 5),
+        (10000, 0, 20),
+        (5, 21, 0),
+        # (5, 20, 1),
     ])
     def test_get_all(self, st, limit, offset, result):
         for i in range(20):
