@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 from vakt import (
     MemoryStorage, DENY_ACCESS, ALLOW_ACCESS,
-    Policy, RegexChecker, RulesChecker, Guard, Inquiry,
+    Policy, RegexChecker, StringExactChecker, StringFuzzyChecker, RulesChecker, Guard, Inquiry,
 )
 from vakt.storage.mongo import MongoStorage
 from vakt.storage.sql import SQLStorage
@@ -124,6 +124,10 @@ def gen_policy():
 def get_checker():
     if ARGS.checker == 'rules':
         return RulesChecker()
+    elif ARGS.checker == 'exact':
+        return StringExactChecker()
+    elif ARGS.checker == 'fuzzy':
+        return StringFuzzyChecker()
     return RegexChecker(ARGS.cache) if ARGS.cache else RegexChecker()
 
 
