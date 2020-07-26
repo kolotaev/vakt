@@ -8,6 +8,7 @@ from functools import partial
 from pymongo import MongoClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
+from redis import Redis
 
 from vakt import (
     MemoryStorage, DENY_ACCESS, ALLOW_ACCESS,
@@ -16,6 +17,7 @@ from vakt import (
 from vakt.storage.mongo import MongoStorage
 from vakt.storage.sql import SQLStorage
 from vakt.storage.sql.migrations import SQLMigrationSet
+from vakt.storage.redis import RedisStorage, JSONSerializer, PickleSerializer
 from vakt.rules import operator, logic, list, net
 
 
@@ -29,7 +31,7 @@ similar_regexp_policies_created = 0
 parser = argparse.ArgumentParser(description='Run vakt benchmark.')
 parser.add_argument('-n', '--number', dest='policies_number', nargs='?', type=int, default=100000,
                     help='number of policies to create in DB (default: %(default)d)')
-parser.add_argument('-s', '--storage', choices=('mongo', 'memory', 'sql'), default='memory',
+parser.add_argument('-s', '--storage', choices=('mongo', 'memory', 'sql', 'redis'), default='memory',
                     help='type of storage (default: %(default)s)')
 parser.add_argument('-d', '--dsn', dest='sql_dsn', nargs='?', type=str, default='sqlite:///:memory:',
                     help='DSN connection string for sql storage (default: %(default)s)')
@@ -43,6 +45,10 @@ regex_group.add_argument('--same', type=int, default=0,
                          help='number of similar regexps in Policy')
 regex_group.add_argument('--cache', type=int,
                          help="number of LRU-cache for RegexChecker (default: RegexChecker's default cache-size)")
+
+redis_group = parser.add_argument_group('Redis Storage related')
+redis_group.add_argument('--serializer', choices=('json', 'pickle'), default='json',
+                         help='type of serializer for policies stored in Redis (default: %(default)s)')
 
 ARGS = parser.parse_args()
 
@@ -185,6 +191,18 @@ def get_storage():
         # todo - why is there left an uncommitted transaction?
         sql_session.commit()
         migration.down()
+    if ARGS.storage == 'redis':
+        collection = 'vakt_policies_benchmark'
+        client = Redis('127.0.0.1', 6379, db=0)
+        if ARGS.serializer == 'json':
+            serializer = JSONSerializer()
+        elif ARGS.serializer == 'pickle':
+            serializer = PickleSerializer()
+        else:
+            serializer = None
+        yield RedisStorage(client, collection=collection, serializer=serializer)
+        client.flushdb()
+        client.close()
     else:
         yield MemoryStorage()
 
