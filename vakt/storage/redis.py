@@ -16,7 +16,6 @@ log = logging.getLogger(__name__)
 DEFAULT_COLLECTION = 'vakt_policies'
 
 
-# todo - move to a separate module
 class JSONSerializer:
     """
     Serializes/de-serializes policies to JSON for Redis storage
@@ -58,7 +57,7 @@ class RedisStorage(Storage):
         self.collection = collection
         self.sr = serializer
         if serializer is None:
-            self.sr = JSONSerializer()
+            self.sr = PickleSerializer()
 
     def add(self, policy):
         uid = policy.uid

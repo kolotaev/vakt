@@ -53,12 +53,12 @@ class TestRedisStorage:
         al.handlers = initial_handlers
         al.setLevel(initial_level)
 
-    def test_storage_uses_json_serializer_by_default(self):
+    def test_storage_uses_pickle_serializer_by_default(self):
         client = create_client()
         try:
             s = RedisStorage(client, collection=COLLECTION)
             sr = s.sr
-            assert isinstance(sr, JSONSerializer)
+            assert isinstance(sr, PickleSerializer)
         finally:
             client.close()
 
