@@ -233,9 +233,16 @@ class TestRedisStorage:
         assert 1 == len(st.get(2).actions)
         assert 'get' == st.get(2).actions[0].val
 
-    def test_update_non_existing_does_not_create_anything(self, st):
+    def test_update_non_existing_does_not_create_anything(self, st, log):
+        log_capture_str = io.StringIO()
+        h = logging.StreamHandler(log_capture_str)
+        h.setLevel(logging.INFO)
+        log.setLevel(logging.INFO)
+        log.addHandler(h)
+        # test
         uid = str(uuid.uuid4())
         st.update(Policy(uid, actions=['get'], description='bar'))
+        assert '' == log_capture_str.getvalue().strip()
         assert st.get(uid) is None
 
     def test_delete(self, st, log):
@@ -247,6 +254,7 @@ class TestRedisStorage:
         h.setLevel(logging.INFO)
         log.setLevel(logging.INFO)
         log.addHandler(h)
+        # test
         st.delete('1')
         assert 'Deleted Policy with UID=1' == log_capture_str.getvalue().strip()
         assert None is st.get('1')
@@ -257,6 +265,7 @@ class TestRedisStorage:
         h.setLevel(logging.INFO)
         log.setLevel(logging.INFO)
         log.addHandler(h)
+        # test
         uid = '123456789_not_here'
         st.delete(uid)
         assert 'Nothing to delete by UID=123456789_not_here' == log_capture_str.getvalue().strip()

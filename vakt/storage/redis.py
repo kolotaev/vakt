@@ -61,15 +61,14 @@ class RedisStorage(Storage):
             self.sr = JSONSerializer()
 
     def add(self, policy):
+        uid = policy.uid
         try:
-            uid = policy.uid
             done = self.client.hsetnx(self.collection, uid, self.sr.serialize(policy))
             if done == 0:
                 log.error('Error trying to create already existing policy with UID=%s.', uid)
                 raise PolicyExistsError(uid)
-        # todo - log stacktrace?
-        except Exception as e:
-            log.error('Error trying to create already existing policy with UID=%s.', uid)
+        except Exception:
+            log.exception('Error trying to create already existing policy with UID=%s.', uid)
             raise PolicyExistsError(uid)
         log.info('Added Policy: %s', policy)
 
@@ -97,33 +96,22 @@ class RedisStorage(Storage):
 
     def update(self, policy):
         uid = policy.uid
-        # todo - use scripting for transactional update
-        exists = self.client.hexists(self.collection, uid)
-        if exists:
-            self.client.hset(self.collection, uid, self.sr.serialize(policy))
-            log.info('Updated Policy with UID=%s. New value is: %s', uid, policy)
-
-        # def transactional_update(pipe):
-        #     # pipe.multi()
-        #     rr = pipe.hexists(self.collection, uid)
-        #     if rr:
-        #         pipe.hset(self.collection, uid, self.sr.serialize(policy))
-        #         # pipe.execute()
-        # res = self.client.transaction(transactional_update, self.collection)
-        # return res
-
-        # pipe = self.client.pipeline()
-        # try:
-        #     pipe.hexists(self.collection, uid)
-        #     pipe.hset(self.collection, uid, self.sr.serialize(policy))
-        #     res = pipe.execute()
-        #     if not res[0]:
-        #         pipe.reset()
-        #     log.info('Updated Policy with UID=%s. New value is: %s', uid, policy)
-        # except Exception as e:
-        #     # todo - fix
-        #     pipe.reset()
-        #     raise e
+        lua = """
+        local exists = redis.call('HEXISTS', KEYS[1], ARGV[1])
+        if exists == 1
+        then
+            return redis.call('HSET', KEYS[1], ARGV[1], ARGV[2])
+        end
+        return 0
+        """
+        update_policy = self.client.register_script(lua)
+        try:
+            res = update_policy(keys=[self.collection], args=[uid, self.sr.serialize(policy)])
+            if res == 1:
+                log.info('Updated Policy with UID=%s. New value is: %s', uid, policy)
+        except Exception as e:
+            log.exception('Error trying to update policy with UID=%s.', uid)
+            raise e
 
     def delete(self, uid):
         res = self.client.hdel(self.collection, uid)
