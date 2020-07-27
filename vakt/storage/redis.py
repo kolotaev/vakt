@@ -98,8 +98,7 @@ class RedisStorage(Storage):
         uid = policy.uid
         lua = """
         local exists = redis.call('HEXISTS', KEYS[1], ARGV[1])
-        if exists == 1
-        then
+        if exists == 1 then
             return redis.call('HSET', KEYS[1], ARGV[1], ARGV[2])
         end
         return 0
@@ -124,6 +123,5 @@ class RedisStorage(Storage):
         """
         Yields Policies from the given cursor.
         """
-        # todo - why dict is returned???
         for uid in data:
             yield self.sr.deserialize(data[uid])

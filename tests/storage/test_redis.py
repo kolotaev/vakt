@@ -133,6 +133,9 @@ class TestRedisStorage:
         ll = len(policies)
         assert result == ll
 
+    def test_get_all_for_empty_database(self, st):
+        assert [] == list(st.get_all(limit=100, offset=0))
+
     def test_get_all_check_policy_properties(self, st):
         p = Policy(
             uid='1',
@@ -192,6 +195,9 @@ class TestRedisStorage:
         inquiry = Inquiry(subject='Jim', action='delete', resource='server')
         found = st.find_for_inquiry(inquiry, checker)
         assert expect_number == len(list(found))
+
+    def test_find_for_inquiry_for_empty_database(self, st):
+        assert [] == list(st.find_for_inquiry(Inquiry(), RegexChecker()))
 
     def test_find_for_inquiry_returns_generator(self, st):
         st.add(Policy('1', subjects=['max', 'bob'], actions=['get'], resources=['comics']))
