@@ -892,9 +892,9 @@ Output is:
 
 Script usage:
 ```
-usage: benchmark.py [-h] [-n [POLICIES_NUMBER]] [-s {mongo,memory,sql}]
-                    [-d [SQL_DSN]] [-c {regex,rules,exact,fuzzy}] [--regexp]
-                    [--same SAME] [--cache CACHE]
+usage: benchmark.py [-h] [-n [POLICIES_NUMBER]] [-s {mongo,memory,sql,redis}]
+                    [-d [SQL_DSN]] [-c {regex,rules,exact,fuzzy}]
+                    [--regexp] [--same SAME] [--cache CACHE] [--serializer {json,pickle}]
 
 Run vakt benchmark.
 
@@ -902,20 +902,21 @@ optional arguments:
   -h, --help            show this help message and exit
   -n [POLICIES_NUMBER], --number [POLICIES_NUMBER]
                         number of policies to create in DB (default: 100000)
-  -s {mongo,memory,sql}, --storage {mongo,memory,sql}
+  -s {mongo,memory,sql,redis}, --storage {mongo,memory,sql,redis}
                         type of storage (default: memory)
   -d [SQL_DSN], --dsn [SQL_DSN]
-                        DSN connection string for sql storage (default:
-                        sqlite:///:memory:)
+                        DSN connection string for sql storage (default: sqlite:///:memory:)
   -c {regex,rules,exact,fuzzy}, --checker {regex,rules,exact,fuzzy}
                         type of checker (default: regex)
 
 regex policy related:
-  --regexp              should Policies be defined without Regex syntax?
-                        (default: True)
+  --regexp              should Policies be defined without Regex syntax? (default: True)
   --same SAME           number of similar regexps in Policy
-  --cache CACHE         number of LRU-cache for RegexChecker (default:
-                        RegexChecker's default cache-size)
+  --cache CACHE         number of LRU-cache for RegexChecker (default: RegexChecker's default cache-size)
+
+Redis Storage related:
+  --serializer {json,pickle}
+                        type of serializer for policies stored in Redis (default: json)
 ```
 
 *[Back to top](#documentation)*
