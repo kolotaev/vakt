@@ -1,6 +1,8 @@
 import uuid
 import random
 import types
+import logging
+import io
 import operator
 import unittest
 from operator import attrgetter
@@ -41,6 +43,15 @@ class TestRedisStorage:
         yield RedisStorage(client, collection=COLLECTION, serializer=request.param)
         client.flushdb()
         client.close()
+
+    @pytest.fixture()
+    def log(self):
+        al = logging.getLogger('vakt.storage.redis')
+        initial_handlers = al.handlers[:]
+        initial_level = al.getEffectiveLevel()
+        yield al
+        al.handlers = initial_handlers
+        al.setLevel(initial_level)
 
     def test_storage_uses_json_serializer_by_default(self):
         client = create_client()
@@ -227,16 +238,28 @@ class TestRedisStorage:
         st.update(Policy(uid, actions=['get'], description='bar'))
         assert st.get(uid) is None
 
-    def test_delete(self, st):
+    def test_delete(self, st, log):
         policy = Policy('1')
         st.add(policy)
         assert '1' == st.get('1').uid
+        log_capture_str = io.StringIO()
+        h = logging.StreamHandler(log_capture_str)
+        h.setLevel(logging.INFO)
+        log.setLevel(logging.INFO)
+        log.addHandler(h)
         st.delete('1')
+        assert 'Deleted Policy with UID=1' == log_capture_str.getvalue().strip()
         assert None is st.get('1')
 
-    def test_delete_nonexistent(self, st):
+    def test_delete_nonexistent(self, st, log):
+        log_capture_str = io.StringIO()
+        h = logging.StreamHandler(log_capture_str)
+        h.setLevel(logging.INFO)
+        log.setLevel(logging.INFO)
+        log.addHandler(h)
         uid = '123456789_not_here'
         st.delete(uid)
+        assert 'Nothing to delete by UID=123456789_not_here' == log_capture_str.getvalue().strip()
         assert None is st.get(uid)
 
     def test_returned_condition(self, st):

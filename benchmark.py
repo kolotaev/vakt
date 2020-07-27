@@ -221,6 +221,7 @@ if __name__ == '__main__':
         print('Number of unique Policies in DB: {:,}'.format(overall_policies_created))
         print('Among them Policies with the same regexp pattern: {:,}'.format(similar_regexp_policies_created))
         print('Checker used: %s' % checker.__class__.__name__)
+        print('Storage used: %s' % st.__class__.__name__)
         # print('Inquiry looks like: %s' % vars(inq))
         print('Decision for 1 Inquiry took: %0.4f seconds' % (stop - start))
         print('Inquiry passed the guard? %s' % allowed)

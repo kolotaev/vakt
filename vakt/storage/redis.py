@@ -126,9 +126,11 @@ class RedisStorage(Storage):
         #     raise e
 
     def delete(self, uid):
-        # todo - check exceptions?
-        self.client.hdel(self.collection, uid)
-        log.info('Deleted Policy with UID=%s.', uid)
+        res = self.client.hdel(self.collection, uid)
+        if res == 0:
+            log.info('Nothing to delete by UID=%s', uid)
+        else:
+            log.info('Deleted Policy with UID=%s', uid)
 
     def __feed_policies(self, data):
         """
