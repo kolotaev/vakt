@@ -153,7 +153,7 @@ policy = vakt.Policy(
     effect=vakt.ALLOW_ACCESS,
     subjects=[r'<[a-zA-Z]+ M[a-z]+>'],
     resources=['library:books:<.+>', 'office:magazines:<.+>'],
-    actions=['<read|get>'],
+    actions=['read', 'get'],
     context={
         'ip': CIDR('192.168.0.0/24'),
     },
@@ -437,6 +437,10 @@ Syntax for description of Policy fields is:
 ```
 Where `<>` are delimiters of a regular expression boundaries part. Custom Policy can redefine them by overriding
 `start_tag` and `end_tag` properties. Generally you always want to use the first variant: `<foo.*>`.
+
+Due to relatively slow performance of regular expressions execution we recommend to define your policies in
+regex syntax only when you really need it, in other cases use simple strings: 
+both will work perfectly (and now swiftly!) with RegexChecker.
 
 **WARNING. Please note, that storages have varying level of regexp support. For example,
 most SQL databases allow to use POSIX metacharacters whereas python `re` module
