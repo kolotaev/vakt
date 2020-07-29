@@ -3,23 +3,18 @@ import random
 import types
 import logging
 import io
-import operator
-import unittest
-from operator import attrgetter
 from unittest.mock import Mock
 
 import pytest
 from redis import Redis
 
 from vakt.storage.redis import RedisStorage, JSONSerializer, PickleSerializer
-from vakt.storage.memory import MemoryStorage
-from vakt.effects import ALLOW_ACCESS
 from vakt.policy import Policy
 from vakt.rules.string import Equal
 from vakt.rules.logic import Any, And
 from vakt.rules.operator import Eq, Greater
-from vakt.exceptions import PolicyExistsError, UnknownCheckerType
-from vakt.guard import Inquiry, Guard
+from vakt.exceptions import PolicyExistsError
+from vakt.guard import Inquiry
 from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, RulesChecker
 
 
@@ -33,6 +28,7 @@ def create_client():
     return Redis(REDIS_HOST, REDIS_PORT, DB)
 
 
+# todo - uncomment me
 # @pytest.mark.integration
 class TestRedisStorage:
 
