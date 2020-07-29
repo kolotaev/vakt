@@ -29,18 +29,22 @@ class JSONSerializer:
         return Policy.from_json(data.decode('utf-8'))
 
 
-# todo - add levels
 class PickleSerializer:
     """
     Serializes/de-serializes policies Python pickle representation for Redis storage
     """
-    @staticmethod
-    def serialize(policy):
-        return pickle.dumps(policy)
+    def __init__(self, *args, **kwargs):
+        """
+        Use args and kwargs to pass them to customized pickle module calls.
+        """
+        self.args = args
+        self.kwargs = kwargs
 
-    @staticmethod
-    def deserialize(data):
-        return pickle.loads(data)
+    def serialize(self, policy):
+        return pickle.dumps(policy, *self.args, **self.kwargs)
+
+    def deserialize(self, data):
+        return pickle.loads(data, **self.kwargs)
 
 
 class RedisStorage(Storage):
@@ -52,7 +56,6 @@ class RedisStorage(Storage):
     """
 
     def __init__(self, client, collection=DEFAULT_COLLECTION, serializer=None):
-        # todo - use hiredis
         self.client = client
         self.collection = collection
         self.sr = serializer

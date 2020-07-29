@@ -290,3 +290,12 @@ class TestRedisStorage:
         context = st.get(uid).context
         assert context['secret'].satisfied('i-am-a-teacher')
         assert context['secret2'].satisfied('i-am-a-husband')
+
+    def test_custom_pickle_serializer_works(self, st):
+        st.sr = PickleSerializer(3, fix_imports=False)
+        st.add(Policy('1'))
+        st.add(Policy(2, description='some text'))
+        assert isinstance(st.get('1'), Policy)
+        assert '1' == st.get('1').uid
+        assert 2 == st.get(2).uid
+        assert 'some text' == st.get(2).description
