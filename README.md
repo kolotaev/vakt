@@ -31,6 +31,7 @@ Attribute-based access control (ABAC) SDK for Python.
         - [Memory](#memory)
         - [MongoDB](#mongodb)
         - [SQL](#sql)
+        - [Redis](#redis)
     - [Migration](#migration)
 - [Caching](#caching)
 - [JSON](#json)
@@ -569,6 +570,35 @@ Note that vakt focuses on testing SQLStorage functionality only for two most pop
 MySQL and Postgres. Other databases support may have worse performance characteristics and/or bugs.
 Feel free to report any issues.
 
+
+##### Redis
+Redis storage.
+
+RedisStorate stores all Policies in he hash whose key is the collection name and the hash'es key value pairs are 
+Policy UID -> serialized Policy representation.
+
+Default collection name is "vakt_policies".
+
+You can use different Serializers. Any custom or one of the vakt's native.
+
+Vakt is shiped with:
+- `JSONSerializer`
+- `PickleSerializer` - the fastest. Used as the default one.
+
+Due to serialization/deserialization Redis is not as fast as simple `MemoryStorage`.
+You can run the [benchmark](#benchmark) and check performance for your use-case.
+
+```python
+from redis import Redis
+from vakt.storage.redis import RedisStorage
+
+client = Redis('127.0.0.1', 6379)
+yield RedisStorage(client, collection='optional-policies-collection-name')
+client.flushdb()
+client.close()
+...
+```
+
 *[Back to top](#documentation)*
 
 
@@ -858,7 +888,7 @@ Most valuable features to be implemented in the order of importance:
 - [x] Caching mechanisms (for Storage and Guard)
 - [ ] YAML-based language for declarative policy definitions
 - [x] Enhanced audit logging
-- [ ] Redis Storage
+- [x] Redis Storage
 
 *[Back to top](#documentation)*
 
@@ -944,9 +974,11 @@ $ pylint vakt                      # to check code quality with PyLint
 ```
 
 To run only integration tests (for Storage adapters other than `MemoryStorage`):
+Other
 
 ```bash
 $ docker run --rm -d -p 27017:27017 mongo
+$ # run sql and Redis database here as well...
 $ pytest -m integration
 ```
 
