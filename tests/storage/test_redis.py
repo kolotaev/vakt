@@ -28,8 +28,7 @@ def create_client():
     return Redis(REDIS_HOST, REDIS_PORT, DB)
 
 
-# todo - uncomment me
-# @pytest.mark.integration
+@pytest.mark.integration
 class TestRedisStorage:
 
     # We test storage with all available serializers
@@ -117,9 +116,10 @@ class TestRedisStorage:
         (1, 0, 1),
         (5, 4, 5),
         (10000, 0, 20),
+        (5, 18, 2),
+        (5, 19, 1),
+        (5, 20, 0),
         (5, 21, 0),
-        # todo - find out
-        # (5, 20, 1),
     ])
     def test_get_all(self, st, limit, offset, result):
         for i in range(20):
@@ -219,7 +219,6 @@ class TestRedisStorage:
         st.add(policy)
         assert id == st.get(id).uid
         assert None is st.get(id).description
-        # todo - why?
         assert () == st.get(id).actions or [] == st.get(id).actions
         policy.description = 'foo'
         policy.actions = ['a', 'b', 'c']

@@ -90,7 +90,6 @@ class RedisStorage(Storage):
         return self.__feed_policies(dict(sliced))
 
     def find_for_inquiry(self, inquiry, checker=None):
-        # todo - use lock?
         data = self.client.hgetall(self.collection)
         if not data:
             return []
