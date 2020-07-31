@@ -11,6 +11,15 @@ import jsonpickle
 log = logging.getLogger(__name__)
 
 
+def merge_dicts(x, y):
+    """
+    Merges dict y into dict x
+    """
+    z = x.copy()
+    z.update(y)
+    return z
+
+
 class JsonSerializer:
     """
     Mixin for dumping object to JSON

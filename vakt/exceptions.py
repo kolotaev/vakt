@@ -33,3 +33,11 @@ class UnknownCheckerType(Exception):
 class Irreversible(Exception):
     """Storage migration can't convert record back to a lower version."""
     pass
+
+
+class PolicyReadError(Exception):
+    """Reader failed to read Policy."""
+    def __init__(self, exception, data):
+        super().__init__(
+            'Reader failed to read Policy. Caused by: %s. Data was: %s' % (exception, data)
+        )

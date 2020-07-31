@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.6.0] - not released
+### Added
+- [Policy] Added policies YAML reader that allows you to load policies from their definition in yaml file
+
+
 ## [1.5.0] - 2020-07-23
 ### Added
 - [vakt] Audit log functionality.
