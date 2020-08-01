@@ -21,8 +21,7 @@ class FileStorage(Storage):
             self.back_store = MemoryStorage()
 
     def add(self, policy):
-        # todo - raise exception for write-part
-        return self.back_store.add(policy)
+        raise NotImplemented
 
     def get(self, uid):
         return self.back_store.get(uid)
@@ -34,7 +33,7 @@ class FileStorage(Storage):
         return self.back_store.find_for_inquiry(inquiry, checker)
 
     def update(self, policy):
-        return self.back_store.update(policy)
+        raise NotImplemented
 
     def delete(self, uid):
-        return self.back_store.update(uid)
+        raise NotImplemented
