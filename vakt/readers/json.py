@@ -1,4 +1,5 @@
 import json
+import threading
 
 from .abc import Reader
 from ..policy import Policy
@@ -20,15 +21,13 @@ class JSONReader(Reader):
         Reads policies definitions from JSON file.
         If some policy fails to be created from definition PolicyReadError is raised.
         """
-        f = open(self.file, 'r')
-        try:
-            for data in json.loads(f):
+        with open(self.file) as f:
+            data = f.read()
+            for data in json.loads(data):
                 try:
-                    yield Policy(self.auto_increment_counter)
+                    yield Policy(self._inc())
                 except Exception as e:
                     raise PolicyReadError(e, data)
-        finally:
-            f.close()
 
     def populate(self, storage):
         pass

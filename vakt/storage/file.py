@@ -6,7 +6,7 @@ import logging
 
 from ..storage.abc import Storage
 from ..storage.memory import MemoryStorage
-from ..readers import JSONReader, YamlReader
+from ..readers import YamlReader, JSONReader
 
 
 log = logging.getLogger(__name__)
@@ -19,16 +19,14 @@ class FileStorage(Storage):
     def __init__(self, file, storage=None):
         if storage is None:
             self.back_store = MemoryStorage()
-        read_done = []
         reader = None
-        readers = [JSONReader, YamlReader]
-        while not len(read_done) < len(readers):
+        for reader_cls in [JSONReader, YamlReader]:
             try:
-                for reader_cls in readers:
-                    reader = reader_cls(file)
-                    read_done.append(True)
+                reader = reader_cls(file)
+                if reader:
+                    break
             except Exception:
-                read_done.append(False)
+                pass
         if not reader:
             raise RuntimeError('Failed to created reader from file %s', file)
         for p in reader.read():

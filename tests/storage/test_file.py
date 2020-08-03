@@ -1,3 +1,5 @@
+from unittest.mock import patch, mock_open
+
 import pytest
 
 from vakt.storage.file import FileStorage
@@ -6,7 +8,8 @@ from vakt.policy import Policy
 
 @pytest.fixture
 def st():
-    return FileStorage('')
+    with patch('vakt.readers.json.open', mock_open(read_data='{}')):
+        yield FileStorage('foo/bar.json')
 
 
 def test_add(st):
