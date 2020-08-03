@@ -1,5 +1,4 @@
 import json
-import threading
 
 from .abc import Reader
 from ..policy import Policy
@@ -12,8 +11,8 @@ class JSONReader(Reader):
 
     """
     def __init__(self, file, custom_rules_map=None):
+        super().__init__()
         self.file = file
-        self.auto_increment_counter = 1
         self.rules_map = self.get_rules_map(custom_rules_map)
 
     def read(self):
@@ -25,7 +24,7 @@ class JSONReader(Reader):
             data = f.read()
             for data in json.loads(data):
                 try:
-                    yield Policy(self._inc())
+                    yield Policy(self.counter)
                 except Exception as e:
                     raise PolicyReadError(e, data)
 

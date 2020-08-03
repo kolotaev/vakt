@@ -15,8 +15,8 @@ class YamlReader(Reader):
 
     """
     def __init__(self, file, custom_rules_map=None):
+        super().__init__()
         self.file = file
-        self.auto_increment_counter = 1
         self.rules_map = self.get_rules_map(custom_rules_map)
 
     def read(self):
@@ -46,8 +46,7 @@ class YamlReader(Reader):
         if 'uid' in data:
             policy_data['uid'] = data['uid']
         else:
-            policy_data['uid'] = self.auto_increment_counter
-            self.auto_increment_counter += 1
+            policy_data['uid'] = self.counter
         if 'description' in data:
             policy_data['description'] = data['description'].strip()
         effect = data.get('effect', '')
