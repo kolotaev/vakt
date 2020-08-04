@@ -34,10 +34,6 @@ class YamlReader(Reader):
         finally:
             f.close()
 
-    def populate(self, storage):
-        for policy in self.read():
-            storage.add(policy)
-
     def _policy_from_definition(self, data):
         """
         Create policy from YAML definition

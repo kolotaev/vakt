@@ -27,6 +27,3 @@ class JSONReader(Reader):
                     yield Policy(self.counter)
                 except Exception as e:
                     raise PolicyReadError(e, data)
-
-    def populate(self, storage):
-        pass
