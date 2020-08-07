@@ -18,6 +18,7 @@ class YamlReader(Reader):
         super().__init__()
         self.file = file
         self.rules_map = self.get_rules_map(custom_rules_map)
+        self._check_file()
 
     def read(self):
         """
@@ -30,7 +31,7 @@ class YamlReader(Reader):
                 try:
                     yield self._policy_from_definition(data)
                 except Exception as e:
-                    raise PolicyReadError(e, data)
+                    raise PolicyReadError(e, self, data)
         finally:
             f.close()
 

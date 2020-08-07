@@ -37,7 +37,8 @@ class Irreversible(Exception):
 
 class PolicyReadError(Exception):
     """Reader failed to read Policy."""
-    def __init__(self, exception, data):
+    def __init__(self, exception, reader, data):
         super().__init__(
-            'Reader failed to read Policy. Caused by: %s. Data was: %s' % (exception, data)
+            'Reader %s failed to read Policy. Caused by: %s. Data was: %s' %
+            (reader.__class__.__name__, exception, data)
         )

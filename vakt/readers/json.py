@@ -14,6 +14,7 @@ class JSONReader(Reader):
         super().__init__()
         self.file = file
         self.rules_map = self.get_rules_map(custom_rules_map)
+        self._check_file()
 
     def read(self):
         """
@@ -22,8 +23,8 @@ class JSONReader(Reader):
         """
         with open(self.file) as f:
             data = f.read()
-            for data in json.loads(data):
-                try:
+            try:
+                for data in json.loads(data):
                     yield Policy(self.counter)
-                except Exception as e:
-                    raise PolicyReadError(e, data)
+            except Exception as e:
+                raise PolicyReadError(e, self, data)

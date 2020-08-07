@@ -21,6 +21,7 @@ class Reader(metaclass=ABCMeta):
     Base class for all readers.
     """
     def __init__(self):
+        self.file = None
         self._lock = threading.Lock()
         self._counter = 0
 
@@ -49,3 +50,10 @@ class Reader(metaclass=ABCMeta):
         with self._lock:
             self._counter += 1
             return self._counter
+
+    def _check_file(self):
+        """
+        Check file exists and is readable.
+        """
+        with open(self.file):
+            pass
