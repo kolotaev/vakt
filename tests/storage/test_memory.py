@@ -55,6 +55,11 @@ def test_get(st):
     (1, 0, 1),
     (5, 4, 5),
     (200, 300, 0),
+    (10000, 0, 200),
+    (5, 198, 2),
+    (5, 199, 1),
+    (5, 200, 0),
+    (5, 201, 0),
 ])
 def test_get_all(st, limit, offset, result):
     for i in range(200):
@@ -108,6 +113,12 @@ def test_update(st):
     st.update(p)
     assert 1 == len(st.get(2).actions)
     assert 'get' == st.get(2).actions[0].val
+
+
+def test_update_non_existing_does_not_create_anything(st):
+    uid = str('1234567890_non_existent')
+    st.update(Policy(uid, actions=['get'], description='bar'))
+    assert st.get(uid) is None
 
 
 def test_delete(st):

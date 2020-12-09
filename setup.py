@@ -42,6 +42,9 @@ if __name__ == '__main__':
             'sql': [
                 'SQLAlchemy~=1.3'
             ],
+            'redis': [
+                'redis~=3.3'
+            ],
         },
         packages=find_packages(exclude='tests'),
         classifiers=[

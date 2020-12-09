@@ -31,6 +31,7 @@ Attribute-based access control (ABAC) SDK for Python.
         - [Memory](#memory)
         - [MongoDB](#mongodb)
         - [SQL](#sql)
+        - [Redis](#redis)
     - [Migration](#migration)
 - [Caching](#caching)
 - [JSON](#json)
@@ -152,7 +153,7 @@ policy = vakt.Policy(
     effect=vakt.ALLOW_ACCESS,
     subjects=[r'<[a-zA-Z]+ M[a-z]+>'],
     resources=['library:books:<.+>', 'office:magazines:<.+>'],
-    actions=['<read|get>'],
+    actions=['read', 'get'],
     context={
         'ip': CIDR('192.168.0.0/24'),
     },
@@ -437,6 +438,10 @@ Syntax for description of Policy fields is:
 Where `<>` are delimiters of a regular expression boundaries part. Custom Policy can redefine them by overriding
 `start_tag` and `end_tag` properties. Generally you always want to use the first variant: `<foo.*>`.
 
+Due to relatively slow performance of regular expressions execution we recommend to define your policies in
+regex syntax only when you really need it, in other cases use simple strings: 
+both will work perfectly (and now swiftly!) with RegexChecker.
+
 **WARNING. Please note, that storages have varying level of regexp support. For example,
 most SQL databases allow to use POSIX metacharacters whereas python `re` module
 and thus MemoryStorage does not. So, while defining policies you're safe and sound
@@ -568,6 +573,35 @@ When used with the RulesChecker it simply returns all the Policies from the data
 Note that vakt focuses on testing SQLStorage functionality only for two most popular open-source databases:
 MySQL and Postgres. Other databases support may have worse performance characteristics and/or bugs.
 Feel free to report any issues.
+
+
+##### Redis
+Redis storage.
+
+RedisStorate stores all Policies in he hash whose key is the collection name and the hash'es key value pairs are 
+Policy UID -> serialized Policy representation.
+
+Default collection name is "vakt_policies".
+
+You can use different Serializers. Any custom or one of the vakt's native.
+
+Vakt is shiped with:
+- `JSONSerializer`
+- `PickleSerializer` - the fastest. Used as the default one.
+
+Due to serialization/deserialization Redis is not as fast as simple `MemoryStorage`.
+You can run the [benchmark](#benchmark) and check performance for your use-case.
+
+```python
+from redis import Redis
+from vakt.storage.redis import RedisStorage
+
+client = Redis('127.0.0.1', 6379)
+yield RedisStorage(client, collection='optional-policies-collection-name')
+client.flushdb()
+client.close()
+...
+```
 
 *[Back to top](#documentation)*
 
@@ -858,7 +892,7 @@ Most valuable features to be implemented in the order of importance:
 - [x] Caching mechanisms (for Storage and Guard)
 - [ ] YAML-based language for declarative policy definitions
 - [x] Enhanced audit logging
-- [ ] Redis Storage
+- [x] Redis Storage
 
 *[Back to top](#documentation)*
 
@@ -892,9 +926,9 @@ Output is:
 
 Script usage:
 ```
-usage: benchmark.py [-h] [-n [POLICIES_NUMBER]] [-s {mongo,memory,sql}]
-                    [-d [SQL_DSN]] [-c {regex,rules,exact,fuzzy}] [--regexp]
-                    [--same SAME] [--cache CACHE]
+usage: benchmark.py [-h] [-n [POLICIES_NUMBER]] [-s {mongo,memory,sql,redis}]
+                    [-d [SQL_DSN]] [-c {regex,rules,exact,fuzzy}]
+                    [--regexp] [--same SAME] [--cache CACHE] [--serializer {json,pickle}]
 
 Run vakt benchmark.
 
@@ -902,20 +936,21 @@ optional arguments:
   -h, --help            show this help message and exit
   -n [POLICIES_NUMBER], --number [POLICIES_NUMBER]
                         number of policies to create in DB (default: 100000)
-  -s {mongo,memory,sql}, --storage {mongo,memory,sql}
+  -s {mongo,memory,sql,redis}, --storage {mongo,memory,sql,redis}
                         type of storage (default: memory)
   -d [SQL_DSN], --dsn [SQL_DSN]
-                        DSN connection string for sql storage (default:
-                        sqlite:///:memory:)
+                        DSN connection string for sql storage (default: sqlite:///:memory:)
   -c {regex,rules,exact,fuzzy}, --checker {regex,rules,exact,fuzzy}
                         type of checker (default: regex)
 
 regex policy related:
-  --regexp              should Policies be defined without Regex syntax?
-                        (default: True)
+  --regexp              should Policies be defined without Regex syntax? (default: True)
   --same SAME           number of similar regexps in Policy
-  --cache CACHE         number of LRU-cache for RegexChecker (default:
-                        RegexChecker's default cache-size)
+  --cache CACHE         number of LRU-cache for RegexChecker (default: RegexChecker's default cache-size)
+
+Redis Storage related:
+  --serializer {json,pickle}
+                        type of serializer for policies stored in Redis (default: json)
 ```
 
 *[Back to top](#documentation)*
@@ -936,16 +971,18 @@ To hack Vakt locally run:
 
 ```bash
 $ ...                              # activate virtual environment w/ preferred method (optional)
-$ pip install -e .[dev,mongo,sql]  # to install all dependencies
+$ pip install -e .[dev,mongo,sql,redis]  # to install all dependencies
 $ pytest -m "not integration"      # to run non-integration tests with coverage report
 $ pytest --cov=vakt tests/         # to get coverage report
 $ pylint vakt                      # to check code quality with PyLint
 ```
 
 To run only integration tests (for Storage adapters other than `MemoryStorage`):
+Other
 
 ```bash
 $ docker run --rm -d -p 27017:27017 mongo
+$ # run sql and Redis database here as well...
 $ pytest -m integration
 ```
 

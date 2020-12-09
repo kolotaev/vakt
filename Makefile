@@ -8,7 +8,7 @@ default: test lint
 
 .PHONY: deps
 deps:
-	${PIP} install -e .[dev,mongo,sql]
+	${PIP} install -e .[dev,mongo,sql,redis]
 
 .PHONY: test
 test:

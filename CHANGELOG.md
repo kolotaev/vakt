@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.6.0-alpha] - Not released
+### Added
+- [Storage] New `RedisStorage`.
+
+### Changed
+- [Storage] `MemoryStorage` `update` method now doesn't add new policy to Storage if it did not exist prior to the call.
+
+
 ## [1.5.0] - 2020-07-23
 ### Added
 - [vakt] Audit log functionality.
