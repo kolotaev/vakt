@@ -11,38 +11,41 @@ Attribute-based access control (ABAC) SDK for Python.
 
 ## Documentation
 
-- [Description](#description)
-- [Concepts](#concepts)
-- [Install](#install)
-- [Usage](#usage)
-- [Components](#components)
-	- [Policy](#policy)
-	- [Inquiry](#inquiry)
-	- [Rules](#rules)
-	    - [Comparison-related](#comparison-related)
-	    - [Logic-related](#logic-related)
-	    - [List-related](#list-related)
-	    - [Network-related](#network-related)
-	    - [String-related](#string-related)
-	    - [Inquiry-related](#inquiry-related)
-	- [Checker](#checker)
-	- [Guard](#guard)
-	- [Storage](#storage)
-        - [Memory](#memory)
-        - [MongoDB](#mongodb)
-        - [SQL](#sql)
-        - [Redis](#redis)
+- [Documentation](#documentation)
+  - [Description](#description)
+  - [Concepts](#concepts)
+  - [Install](#install)
+  - [Usage](#usage)
+  - [Components](#components)
+    - [Policy](#policy)
+    - [Inquiry](#inquiry)
+    - [Rules](#rules)
+      - [Comparison-related](#comparison-related)
+      - [Logic-related](#logic-related)
+      - [List-related](#list-related)
+      - [Network-related](#network-related)
+      - [String-related](#string-related)
+      - [Inquiry-related](#inquiry-related)
+    - [Checker](#checker)
+    - [Guard](#guard)
+    - [Storage](#storage)
+      - [Memory](#memory)
+      - [MongoDB](#mongodb)
+      - [SQL](#sql)
+      - [Redis](#redis)
     - [Migration](#migration)
-- [Caching](#caching)
-- [JSON](#json)
-- [Logging](#logging)
-- [Audit](#audit)
-- [Examples](./examples)
-- [Milestones](#milestones)
-- [Benchmark](#benchmark)
-- [Acknowledgements](#acknowledgements)
-- [Development](#development)
-- [License](#license)
+  - [Caching](#caching)
+      - [Caching `RegexChecker`](#caching-regexchecker)
+      - [Caching the entire Storage backend](#caching-the-entire-storage-backend)
+      - [Caching the Guard](#caching-the-guard)
+  - [JSON](#json)
+  - [Logging](#logging)
+  - [Audit](#audit)
+  - [Milestones](#milestones)
+  - [Benchmark](#benchmark)
+  - [Acknowledgements](#acknowledgements)
+  - [Development](#development)
+  - [License](#license)
 
 
 ### Description
@@ -89,7 +92,7 @@ Vakt allows you to gain:
 
 ### Install
 
-Vakt runs on Python >= 3.4.  
+Vakt runs on Python >= 3.4.
 PyPy implementation is supported as well.
 
 For in-memory storage:
@@ -191,24 +194,24 @@ The main parts reflect questions described in [Concepts](#concepts) section:
 * effect - If policy matches all the above conditions, what effect does it imply?
 Can be either `vakt.ALLOW_ACCESS` or `vakt.DENY_ACCESS`
 
-All `resources`, `subjects` and `actions` are described with 
-a list containing strings, regexes, [Rules](#rules) or dictionaries of strings (attributes) to [Rules](#rules). 
-Each element in list acts as logical OR. Each key in a dictionary of Rules acts as logical AND.   
+All `resources`, `subjects` and `actions` are described with
+a list containing strings, regexes, [Rules](#rules) or dictionaries of strings (attributes) to [Rules](#rules).
+Each element in list acts as logical OR. Each key in a dictionary of Rules acts as logical AND.
 `context` can be described only with a dictionary of [Rules](#rules).
 
-Depending on a way `resources`, `subjects`, `actions` are described, Policy can have either 
-String-based or Rule-based type. Can be inspected by `policy.type`. 
+Depending on a way `resources`, `subjects`, `actions` are described, Policy can have either
+String-based or Rule-based type. Can be inspected by `policy.type`.
 This enforces the use of a concrete Checker implementation. See [Checker](#checker) for more.
 
 ```python
 from vakt import Policy, ALLOW_ACCESS
 from vakt.rules import CIDR, Any, Eq, NotEq, In
-    
+
 # Rule-based policy (defined with Rules and dictionaries of Rules)
 Policy(
     1,
     description="""
-    Allow access to administration interface subcategories: 'panel', 'switch' if user is not 
+    Allow access to administration interface subcategories: 'panel', 'switch' if user is not
     a developer and came from local IP address.
     """,
     actions=[Any()],
@@ -245,7 +248,7 @@ for p in policies:
 Additionally you can create Policies with predefined effect classes:
 ```python
 from vakt import PolicyAllow, PolicyDeny, ALLOW_ACCESS, DENY_ACCESS
-    
+
 p = PolicyAllow(1, actions=['<read|get>'], resources=['library:books:<.+>'], subjects=['<[\w]+ M[\w]+>'])
 assert ALLOW_ACCESS == p.effect
 
@@ -274,7 +277,7 @@ inquiry2 = Inquiry(subject={'login': request.form['username'], 'role': request.f
                    action=request.form['action'],
                    resource={'book': session.get('book'), 'chapter': request.form['chapter']},
                    context={'ip': request.remote_addr})
-                   
+
 # if policies are defined with strings or regular expressions:
 inquiry = Inquiry(subject=request.form['username'],
                   action=request.form['action'],
@@ -299,7 +302,7 @@ variants of resource access from the owner side and Inquiry describes an concret
 
 
 #### Rules
-Rules allow you to describe conditions directly on `action`, `subject`, `resource` and `context` 
+Rules allow you to describe conditions directly on `action`, `subject`, `resource` and `context`
 or on their attributes.
 If at least one Rule in the Rule-set is not satisfied Inquiry is rejected by given Policy.
 
@@ -439,7 +442,7 @@ Where `<>` are delimiters of a regular expression boundaries part. Custom Policy
 `start_tag` and `end_tag` properties. Generally you always want to use the first variant: `<foo.*>`.
 
 Due to relatively slow performance of regular expressions execution we recommend to define your policies in
-regex syntax only when you really need it, in other cases use simple strings: 
+regex syntax only when you really need it, in other cases use simple strings:
 both will work perfectly (and now swiftly!) with RegexChecker.
 
 **WARNING. Please note, that storages have varying level of regexp support. For example,
@@ -543,9 +546,9 @@ Default collection name is 'vakt_policies'.
 
 Actions are the same as for any Storage that conforms interface of `vakt.storage.abc.Storage` base class.
 
-Beware that currently MongoStorage supports indexed and filtered-out `find_for_inquiry()` only for 
+Beware that currently MongoStorage supports indexed and filtered-out `find_for_inquiry()` only for
 StringExact, StringFuzzy and Regex (since MongoDB version 4.2 and onwards) checkers.
-When used with the RulesChecker it simply returns all the Policies from the database. 
+When used with the RulesChecker it simply returns all the Policies from the database.
 
 
 ##### SQL
@@ -566,9 +569,9 @@ storage = SQLStorage(scoped_session=scoped_session(sessionmaker(bind=engine)))
 ...
 ```
 
-Beware that currently SQLStorage supports indexed and filtered-out `find_for_inquiry()` only for 
+Beware that currently SQLStorage supports indexed and filtered-out `find_for_inquiry()` only for
 StringExact, StringFuzzy and Regex checkers.
-When used with the RulesChecker it simply returns all the Policies from the database. 
+When used with the RulesChecker it simply returns all the Policies from the database.
 
 Note that vakt focuses on testing SQLStorage functionality only for two most popular open-source databases:
 MySQL and Postgres. Other databases support may have worse performance characteristics and/or bugs.
@@ -578,7 +581,7 @@ Feel free to report any issues.
 ##### Redis
 Redis storage.
 
-RedisStorate stores all Policies in he hash whose key is the collection name and the hash'es key value pairs are 
+RedisStorate stores all Policies in he hash whose key is the collection name and the hash'es key value pairs are
 Policy UID -> serialized Policy representation.
 
 Default collection name is "vakt_policies".
@@ -667,15 +670,15 @@ interact with each other, but rather work in tandem
 (nonetheless you are free to use any single layer alone or any combination of them).
 That said let's look at all those layers.
 
- 
+
 ##### Caching [`RegexChecker`](#checker)
 
 It's relevant only for `RegexChecker` and allows to cache parsing and execution of regex-defined Policies,
 which can be very expensive
 due to inherently slow computational performance of regular expressions and vakt's parsing. When creating a `RegexChecker`
-you can specify a cache size for an in-memory 
+you can specify a cache size for an in-memory
 [LRU (least recently used)](https://docs.python.org/3/library/functools.html#functools.lru_cache) cache. Currently
-only python's native LRU cache is supported.  
+only python's native LRU cache is supported.
 
 ```python
 # preferably size is a power of 2
@@ -695,17 +698,17 @@ Rule-based policies. In this case they return the whole set of the existing poli
 Needless to say that it makes your application very heavy IO-bound and decreases performance for large policy sets
 drastically. See [benchmark](#benchmark) for more details and exact numbers.
 
-In such a case you can use `EnfoldCache` that wraps your main storage (e.g. MongoStorage) into another one 
-(it's meant to be some in-memory Storage). It returns you a Storage that behind the scene routes all the read-calls 
+In such a case you can use `EnfoldCache` that wraps your main storage (e.g. MongoStorage) into another one
+(it's meant to be some in-memory Storage). It returns you a Storage that behind the scene routes all the read-calls
 (get, get_all, find_for_inquiry, ...) to an in-memory one and all modify-calls (add, update, delete) to your main Storage (
 don't worry, in-memory Storage is kept up-to date with the main Storage). In case a requested policy is not found in in-memory Storage
 it's considered a cache miss and a request is routed to a main Storage.
 
-Also, in order to keep Storages in sync, 
-when you initialize `EnfoldCache` the in-memory Storage will fetch all the existing Policies from a main one - 
-therefore be forewarned that it might take some amount of time depending on the size of a policy-set.  
-Optionally you can call `populate` method after initialization, but in this case __do not ever call any modify-related methods of 
-EnfoldCache'd storage before `populate()`, otherwise Storages will be in an unsynchronized state and it'll 
+Also, in order to keep Storages in sync,
+when you initialize `EnfoldCache` the in-memory Storage will fetch all the existing Policies from a main one -
+therefore be forewarned that it might take some amount of time depending on the size of a policy-set.
+Optionally you can call `populate` method after initialization, but in this case __do not ever call any modify-related methods of
+EnfoldCache'd storage before `populate()`, otherwise Storages will be in an unsynchronized state and it'll
 result in broken `Guard` functionality.__
 
 ```python
@@ -722,23 +725,23 @@ guard = Guard(storage, RegexChecker())
 
 ##### Caching the Guard
 
-`Guard.is_allowed` it the the centerpiece of vakt. Therefore it makes ultimate sense to cache it. 
-And `create_cached_guard()` function allows you to do exactly that. You need to pass it a Storage, a Checker and a 
+`Guard.is_allowed` it the the centerpiece of vakt. Therefore it makes ultimate sense to cache it.
+And `create_cached_guard()` function allows you to do exactly that. You need to pass it a Storage, a Checker and a
 maximum size of a cache. It will return you a tuple of: Guard, Storage and AllowanceCache instance:
 
-- You must do all policies operations with the returned storage 
+- You must do all policies operations with the returned storage
 (which is a slightly enhanced version of a Storage you provided to the function).
 - The returned Guard is a normal vakt's `Guard`, but its `is_allowed` is cached with `AllowaceCache`.
 - The returned cache is an instance of `AllowaceCache` and has a handy method `info` that provides current state of the cache.
 
 How it works?
 
-Only the first Inquiry will be passed to `is_allowed`, all the subsequent answers for similar Inquiries will be taken 
+Only the first Inquiry will be passed to `is_allowed`, all the subsequent answers for similar Inquiries will be taken
 from cache. `AllowanceCache` is rather coarse-grained and if you call Storage's `add`, `update` or `delete` the whole
 cache will be invalided because the policy-set has changed. However for stable policy-sets it is a good performance boost.
 
 By default `AllowanceCache` uses in-memory LRU cache and `maxsize` param is it's size. If for some reason it does not satisfy
-your needs, you can pass your own implementation of a cache backend that is a subclass of 
+your needs, you can pass your own implementation of a cache backend that is a subclass of
 `vakt.cache.AllowanceCacheBackend` to `create_cached_guard` as a `cache` keyword argument.
 
 ```python
@@ -822,7 +825,7 @@ root.addHandler(logging.StreamHandler())
 
 Vakt logs can be comprehended in 2 basic levels:
 1. *Error/Exception* - informs about exceptions and errors during Vakt work.
-2. *Info* - informs about incoming inquiries, their resolution and policies responsible for this decisions 
+2. *Info* - informs about incoming inquiries, their resolution and policies responsible for this decisions
 ('vakt.guard' and 'vakt.audit' streams).
 
 *[Back to top](#documentation)*
@@ -830,7 +833,7 @@ Vakt logs can be comprehended in 2 basic levels:
 
 ### Audit
 
-Vakt allows you to not only watch the incoming inquiries and their resolution, but also keep track of the policies 
+Vakt allows you to not only watch the incoming inquiries and their resolution, but also keep track of the policies
 that were responsible for allowing or rejecting the inquiry. It's done via audit logging.
 
 Audit logging is implemented within a standard Python logging framework.
@@ -876,8 +879,8 @@ Vakt has the following Audit Policies messages classes out of the box:
 
 Refer to their documentation on how they represent the policies.
 
-**WARNING. Please note, that if you have Guard caching enabled, then audit records for the same subsequent inquiries won't be 
-logged because the calls are cached. However the log records from 'vakt.guard' stream will be always logged - 
+**WARNING. Please note, that if you have Guard caching enabled, then audit records for the same subsequent inquiries won't be
+logged because the calls are cached. However the log records from 'vakt.guard' stream will be always logged -
 they will tell only was the inquiry allowed or not.**
 
 *[Back to top](#documentation)*
@@ -888,7 +891,7 @@ they will tell only was the inquiry allowed or not.**
 Most valuable features to be implemented in the order of importance:
 
 - [x] SQL Storage
-- [x] Rules that reference Inquiry data for Rule-based policies 
+- [x] Rules that reference Inquiry data for Rule-based policies
 - [x] Caching mechanisms (for Storage and Guard)
 - [ ] YAML-based language for declarative policy definitions
 - [x] Enhanced audit logging
@@ -900,11 +903,11 @@ Most valuable features to be implemented in the order of importance:
 ### Benchmark
 
 You can see how much time it takes for a single Inquiry to be processed given we have a number of unique Policies in a
-Storage. 
-For [MemoryStorage](#memory) it measures the runtime of a decision-making process for all 
-the existing Policies when [Guard's](#guard) code iterates the whole list of Policies to decide if 
+Storage.
+For [MemoryStorage](#memory) it measures the runtime of a decision-making process for all
+the existing Policies when [Guard's](#guard) code iterates the whole list of Policies to decide if
 Inquiry is allowed or not. In case of other Storages the mileage
-may vary since they may return a smaller subset of Policies that fit the given Inquiry. 
+may vary since they may return a smaller subset of Policies that fit the given Inquiry.
 Don't forget that most external Storages add some time penalty to perform I/O operations.
 The runtime also depends on a Policy-type used (and thus checker): RulesChecker performs much better than RegexChecker.
 

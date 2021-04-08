@@ -40,7 +40,8 @@ if __name__ == '__main__':
                 'pymongo~=3.5',
             ],
             'sql': [
-                'SQLAlchemy~=1.3'
+                'SQLAlchemy~=1.3',
+                'typing', # sqlalchemy imports typing since v1.3.24
             ],
             'redis': [
                 'redis~=3.3'
@@ -64,6 +65,7 @@ if __name__ == '__main__':
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
             'Programming Language :: Python :: Implementation :: PyPy',
             'Programming Language :: Python :: Implementation :: CPython',
         ],

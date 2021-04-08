@@ -3,6 +3,8 @@ import uuid
 import timeit
 import argparse
 import contextlib
+import threading
+import statistics
 from functools import partial
 
 from pymongo import MongoClient
@@ -37,6 +39,8 @@ parser.add_argument('-d', '--dsn', dest='sql_dsn', nargs='?', type=str, default=
                     help='DSN connection string for sql storage (default: %(default)s)')
 parser.add_argument('-c', '--checker', choices=('regex', 'rules', 'exact', 'fuzzy'), default='regex',
                     help='type of checker (default: %(default)s)')
+parser.add_argument('-t', '--threads', nargs='?', type=int, default=1,
+                    help='number of concurrent requests (default: %(default)s)')
 
 regex_group = parser.add_argument_group('regex policy related')
 regex_group.add_argument('--regexp', action='store_false', default=True,
@@ -209,20 +213,37 @@ def get_storage():
 
 if __name__ == '__main__':
     with get_storage() as st:
+        allowed = []
+        threads = []
+        call_time_results = []
+        checker = get_checker()
+        guard = Guard(st, checker)
+        def check_allow(guard, inquiry, allowed, call_time_results):
+            start = timeit.default_timer()
+            a = guard.is_allowed(inquiry=inquiry)
+            stop = timeit.default_timer()
+            allowed.append(a)
+            call_time_results.append(stop - start)
         print('=' * LINE_LEN)
         print('Populating %s with Policies' % st.__class__.__name__)
         print_generation(partial(populate_storage, st), int(ARGS.policies_number / 100 * 1), LINE_LEN)
         print('START BENCHMARK!')
-        start = timeit.default_timer()
-        checker = get_checker()
-        inq = get_inquiry()
-        allowed = Guard(st, checker).is_allowed(inquiry=inq)
-        stop = timeit.default_timer()
+        for _ in range(ARGS.threads):
+            t = threading.Thread(target=check_allow, args=(guard, get_inquiry(), allowed, call_time_results))
+            threads.append(t)
+            t.start()
+        for t in threads:
+            t.join()
+        # fix for statistics - we need at least 2 datapoints
+        if len(call_time_results) == 1:
+            call_time_results.append(call_time_results[0])
+        # reports:
         print('Number of unique Policies in DB: {:,}'.format(overall_policies_created))
         print('Among them Policies with the same regexp pattern: {:,}'.format(similar_regexp_policies_created))
         print('Checker used: %s' % checker.__class__.__name__)
         print('Storage used: %s' % st.__class__.__name__)
-        # print('Inquiry looks like: %s' % vars(inq))
-        print('Decision for 1 Inquiry took: %0.4f seconds' % (stop - start))
-        print('Inquiry passed the guard? %s' % allowed)
+        print('Number of concurrent threads: {:,}'.format(ARGS.threads))
+        print('Decision for Inquiry took (mean: %0.4f seconds. stdev: %0.4f)' %
+            (statistics.mean(call_time_results), statistics.stdev(call_time_results)))
+        print('Inquiry passed the guard? %s' % allowed[0])
         print('=' * LINE_LEN)
