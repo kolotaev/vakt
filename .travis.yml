@@ -19,8 +19,7 @@ python:
   - "3.8"
   - "3.9"
   - "3.10-dev"
-# Disable "nightly" for now due to psycopg2cffi build failures
-#  - "nightly"  # nightly build
+  - "nightly"  # nightly build
   - "pypy3"  # latest PyPy
 
 before_script:
