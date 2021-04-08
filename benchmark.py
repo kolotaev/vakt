@@ -213,8 +213,12 @@ def get_storage():
 
 if __name__ == '__main__':
     with get_storage() as st:
-        def check_allow(storage, checker, inquiry, allowed, call_time_results):
-            guard = Guard(storage, checker)
+        allowed = []
+        threads = []
+        call_time_results = []
+        checker = get_checker()
+        guard = Guard(st, checker)
+        def check_allow(guard, inquiry, allowed, call_time_results):
             start = timeit.default_timer()
             a = guard.is_allowed(inquiry=inquiry)
             stop = timeit.default_timer()
@@ -223,13 +227,9 @@ if __name__ == '__main__':
         print('=' * LINE_LEN)
         print('Populating %s with Policies' % st.__class__.__name__)
         print_generation(partial(populate_storage, st), int(ARGS.policies_number / 100 * 1), LINE_LEN)
-        allowed = []
-        threads = []
-        call_time_results = []
-        checker = get_checker()
         print('START BENCHMARK!')
         for _ in range(ARGS.threads):
-            t = threading.Thread(target=check_allow, args=(st, checker, get_inquiry(), allowed, call_time_results))
+            t = threading.Thread(target=check_allow, args=(guard, get_inquiry(), allowed, call_time_results))
             threads.append(t)
             t.start()
         for t in threads:
