@@ -37,7 +37,7 @@ attribute in Inquiry's subject, action or resource respectively.
 
 ### Changed
 - [MongoStorage] `find_for_inquiry` now uses regex match on DB-server side for string-based policies
-which increases performance drastically. Works only for MongoDB v >=4.2. For older MongoDB versions the 
+which increases performance drastically. Works only for MongoDB v >=4.2. For older MongoDB versions the
 behaviour hasn't changed.
 - [Checker] All checkers now accept optional attribute `inquiry` in their `fits` method in order to support
 InquiryMatch rules. Generally it was needed only for `RulesChecker`, so others just ignore it.
