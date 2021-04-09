@@ -924,14 +924,15 @@ Output is:
 > Number of unique Policies in DB: 1,000<br />
 > Among them Policies with the same regexp pattern: 0<br />
 > Checker used: RegexChecker<br />
-> Decision for 1 Inquiry took: 0.4451 seconds<br />
+> Storage used: MemoryStorage<br />
+> Number of concurrent threads: 1<br />
+> Decision for Inquiry took (mean: 0.2062 seconds. stdev: 0.0000)<br />
 > Inquiry passed the guard? False<br />
 
 Script usage:
 ```
-usage: benchmark.py [-h] [-n [POLICIES_NUMBER]] [-s {mongo,memory,sql,redis}]
-                    [-d [SQL_DSN]] [-c {regex,rules,exact,fuzzy}]
-                    [--regexp] [--same SAME] [--cache CACHE] [--serializer {json,pickle}]
+usage: benchmark.py [-h] [-n [POLICIES_NUMBER]] [-s {mongo,memory,sql,redis}] [-d [SQL_DSN]] [-c {regex,rules,exact,fuzzy}]
+                    [-t [THREADS]] [--regexp] [--same SAME] [--cache CACHE] [--serializer {json,pickle}]
 
 Run vakt benchmark.
 
@@ -945,6 +946,8 @@ optional arguments:
                         DSN connection string for sql storage (default: sqlite:///:memory:)
   -c {regex,rules,exact,fuzzy}, --checker {regex,rules,exact,fuzzy}
                         type of checker (default: regex)
+  -t [THREADS], --threads [THREADS]
+                        number of concurrent requests (default: 1)
 
 regex policy related:
   --regexp              should Policies be defined without Regex syntax? (default: True)
