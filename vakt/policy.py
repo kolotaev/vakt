@@ -31,7 +31,7 @@ class Policy(JsonSerializer, PrettyPrint):
     _definition_fields = ['subjects', 'resources', 'actions']
 
     def __init__(self, uid, subjects=(), effect=DENY_ACCESS, resources=(),
-                 actions=(), context=None, rules=None, description=None):
+                 actions=(), context=None, rules=None, description=None, groups=()):
         self.uid = uid
         self.subjects = subjects
         self.effect = effect or DENY_ACCESS
@@ -49,6 +49,7 @@ class Policy(JsonSerializer, PrettyPrint):
             context = {}
         self.context = context
         self.description = description
+        self.groups = groups
         self.type = None
 
     @classmethod
@@ -137,17 +138,15 @@ class PolicyAllow(Policy):
     """
     Policy that has effect ALLOW_ACCESS by default.
     """
-    def __init__(self, uid, subjects=(), resources=(), actions=(), context=None, description=None):
-        super().__init__(uid, effect=ALLOW_ACCESS,
-                         subjects=subjects, resources=resources,
-                         actions=actions, context=context, description=description)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.effect = ALLOW_ACCESS
 
 
 class PolicyDeny(Policy):
     """
     Policy that has effect DENY_ACCESS by default.
     """
-    def __init__(self, uid, subjects=(), resources=(), actions=(), context=None, description=None):
-        super().__init__(uid, effect=DENY_ACCESS,
-                         subjects=subjects, resources=resources,
-                         actions=actions, context=context, description=description)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.effect = DENY_ACCESS

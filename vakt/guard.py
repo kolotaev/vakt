@@ -17,12 +17,13 @@ class Inquiry(JsonSerializer, PrettyPrint):
     """Holds all the information about the inquired intent.
     Is responsible to decisions if the inquired intent allowed or not."""
 
-    def __init__(self, resource=None, action=None, subject=None, context=None):
+    def __init__(self, resource=None, action=None, subject=None, context=None, groups=None):
         # explicitly assign empty strings instead of occasional None, (), etc.
         self.resource = resource or ''
         self.action = action or ''
         self.subject = subject or ''
         self.context = context or {}
+        self.groups = groups or []
 
     @classmethod
     def from_json(cls, data):
@@ -135,7 +136,7 @@ class Guard:
 
     @staticmethod
     def check_context_restriction(policy, inquiry):
-        """
+        """`
         Check if context restriction in the policy is satisfied for a given inquiry's context.
         If at least one rule is not present in Inquiry's context -> deny access.
         If at least one rule provided in Inquiry's context is not satisfied -> deny access.
