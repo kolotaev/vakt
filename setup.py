@@ -26,7 +26,7 @@ if __name__ == '__main__':
         py_modules=['vakt'],
         python_requires='>=3.4',
         install_requires=[
-            'jsonpickle~=1.0',
+            'jsonpickle>=1.0',
         ],
         extras_require={
             'dev': [
