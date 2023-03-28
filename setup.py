@@ -29,11 +29,13 @@ if __name__ == '__main__':
             'jsonpickle>=1.0',
         ],
         extras_require={
+            # Dev dependencies are not using pinned compatibility versions
+            # in order to support a wide array of Python versions
             'dev': [
-                'pytest~=4.6',
-                'pytest-cov~=2.6',
-                'pylint~=1.0',
-                'PyMySQL~=0.9',
+                'pytest',
+                'pytest-cov',
+                'pylint',
+                'PyMySQL',
                 'psycopg2cffi~=2.8',
             ],
             'mongo': [
@@ -41,7 +43,7 @@ if __name__ == '__main__':
             ],
             'sql': [
                 'SQLAlchemy~=1.3',
-                'typing', # sqlalchemy imports typing since v1.3.24
+                # 'typing', # sqlalchemy imports typing since v1.3.24
             ],
             'redis': [
                 'redis~=3.3'

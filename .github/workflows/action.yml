@@ -1,0 +1,76 @@
+name: Tests
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        python-version:
+          - "3.6"
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
+          - "pypy3.9"
+
+    services:
+      mongo:
+        image: mongo
+        ports:
+          - 27017:27017
+      postgresql:
+        image: postgres
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pswrd
+          POSTGRES_DB: vakt_db
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      # See on "why?": https://ovirium.com/blog/how-to-make-mysql-work-in-your-github-actions/
+      - name: Set up MySQL
+        run: |
+          sudo /etc/init.d/mysql start
+          mysql -e 'CREATE DATABASE vakt_db CHARACTER SET utf8 COLLATE utf8_bin;' -uroot -proot
+
+      - name: Install dependencies
+        run: make deps
+
+      - name: Test all suites with coverage
+        run: make coverage
+        env:
+          DATABASE_DSN: "mysql+pymysql://root:root@127.0.0.1/vakt_db"
+
+      - name: Test SQL integration for SQLite
+        run: make test-sql-i
+        env:
+          DATABASE_DSN: "sqlite:///:memory:"
+
+      - name: Test SQL integration for Postgres
+        run: make test-sql-i
+        env:
+          DATABASE_DSN: "postgresql+psycopg2cffi://postgres:pswrd@localhost/vakt_db"
+
+      - name: Run performance tests
+        run: make bench
+
+      - name: Send coverage report
+        run: bash <(curl -s https://codecov.io/bash)

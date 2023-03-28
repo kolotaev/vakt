@@ -2,6 +2,7 @@ import uuid
 import random
 import types
 import operator
+import os
 import unittest
 from operator import attrgetter
 
@@ -23,7 +24,7 @@ from vakt.checker import StringExactChecker, StringFuzzyChecker, RegexChecker, R
 
 MONGO_HOST = '127.0.0.1'
 MONGO_PORT = 27017
-DB_NAME = 'vakt_db_test'
+DB_NAME = os.getenv('MONGO_DB_NAME', 'vakt_db_test')
 COLLECTION = 'vakt_policies_test'
 MIGRATION_COLLECTION = 'vakt_policies_migration_ver_test'
 
