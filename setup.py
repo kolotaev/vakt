@@ -24,7 +24,7 @@ if __name__ == '__main__':
         long_description=long_description,
         long_description_content_type='text/markdown',
         py_modules=['vakt'],
-        python_requires='>=3.4',
+        python_requires='>=3.6',
         install_requires=[
             'jsonpickle>=1.0',
         ],
@@ -62,8 +62,6 @@ if __name__ == '__main__':
             'Topic :: Utilities',
             'Natural Language :: English',
             'Programming Language :: Python',
-            'Programming Language :: Python :: 3.4',
-            'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',

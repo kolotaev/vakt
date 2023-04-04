@@ -92,7 +92,7 @@ Vakt allows you to gain:
 
 ### Install
 
-Vakt runs on Python >= 3.4.
+Vakt runs on Python >= 3.6.
 PyPy implementation is supported as well.
 
 For in-memory storage:
