@@ -2,7 +2,7 @@
 
 Attribute-based access control (ABAC) SDK for Python.
 
-[![Build Status](https://travis-ci.org/kolotaev/vakt.svg?branch=master)](https://travis-ci.org/kolotaev/vakt)
+[![Build Status](https://github.com/kolotaev/vakt/workflows/Tests/badge.svg?branch=master)](https://github.com/kolotaev/vakt/actions)
 [![codecov.io](https://codecov.io/github/kolotaev/vakt/coverage.svg?branch=master)](https://codecov.io/github/kolotaev/vakt?branch=master)
 [![PyPI version](https://badge.fury.io/py/vakt.svg)](https://badge.fury.io/py/vakt)
 [![Apache 2.0 licensed](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://raw.githubusercontent.com/kolotaev/vakt/master/LICENSE)
