@@ -1,5 +1,5 @@
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from vakt.storage.sql import SQLStorage
@@ -72,14 +72,16 @@ class TestMigration0To1x3x0:
 
     def test_up(self, migration, engine):
         migration.up()
-        assert Base.metadata.tables[PolicyModel.__tablename__].exists(engine)
-        assert Base.metadata.tables[PolicySubjectModel.__tablename__].exists(engine)
-        assert Base.metadata.tables[PolicyResourceModel.__tablename__].exists(engine)
-        assert Base.metadata.tables[PolicyActionModel.__tablename__].exists(engine)
+        inspector = inspect(engine)
+        assert inspector.has_table(PolicyModel.__tablename__)
+        assert inspector.has_table(PolicySubjectModel.__tablename__)
+        assert inspector.has_table(PolicyResourceModel.__tablename__)
+        assert inspector.has_table(PolicyActionModel.__tablename__)
 
     def test_down(self, migration, engine):
         migration.down()
-        assert not Base.metadata.tables[PolicyModel.__tablename__].exists(engine)
-        assert not Base.metadata.tables[PolicySubjectModel.__tablename__].exists(engine)
-        assert not Base.metadata.tables[PolicyResourceModel.__tablename__].exists(engine)
-        assert not Base.metadata.tables[PolicyActionModel.__tablename__].exists(engine)
+        inspector = inspect(engine)
+        assert not inspector.has_table(PolicyModel.__tablename__)
+        assert not inspector.has_table(PolicySubjectModel.__tablename__)
+        assert not inspector.has_table(PolicyResourceModel.__tablename__)
+        assert not inspector.has_table(PolicyActionModel.__tablename__)

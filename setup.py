@@ -29,8 +29,6 @@ if __name__ == '__main__':
             'jsonpickle>=2.0',
         ],
         extras_require={
-            # Dev dependencies are not using pinned compatibility versions
-            # in order to support a wide array of Python versions
             'dev': [
                 'pytest~=7.0',
                 'pytest-cov~=4.0',
