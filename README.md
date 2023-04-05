@@ -558,6 +558,9 @@ When used with the RulesChecker it simply returns all the Policies from the data
 SQL storage is backed by SQLAlchemy, thus it should support any RDBMS available for it:
 MySQL, Postgres, Oracle, MSSQL, Sqlite, etc.
 
+Given that we support various SQL databases via SQLAlchemy, we don't specify any DB-specific drivers in the vakt
+dependencies, It's up to the user to provide a desired one. For example: `psycopg2` or `PyMySQL`.
+
 Example for MySQL.
 
 ```python
