@@ -26,7 +26,7 @@ from . import create_test_sql_engine
 @pytest.mark.sql_integration
 class TestSQLStorage:
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def session(self):
         engine = create_test_sql_engine()
         Base.metadata.create_all(engine)
@@ -34,7 +34,7 @@ class TestSQLStorage:
         yield session
         Base.metadata.drop_all(engine)
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def st(self, session):
         yield SQLStorage(scoped_session=session)
         session.remove()

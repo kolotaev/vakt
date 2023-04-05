@@ -12,14 +12,14 @@ from . import create_test_sql_engine
 @pytest.mark.sql_integration
 class TestSQLMigrationSet:
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def session(self):
         engine = create_test_sql_engine()
         session = scoped_session(sessionmaker(bind=engine))
         yield session
         Base.metadata.drop_all(engine)
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def migration_set(self, session):
         storage = SQLStorage(scoped_session=session)
         yield SQLMigrationSet(storage)
@@ -47,18 +47,18 @@ class TestSQLMigrationSet:
 @pytest.mark.sql_integration
 class TestMigration0To1x3x0:
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def engine(self):
         engine = create_engine('sqlite:///:memory:', echo=False)
         yield engine
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def session(self, engine):
         session = scoped_session(sessionmaker(bind=engine))
         yield session
         Base.metadata.drop_all(engine)
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def migration(self, session):
         storage = SQLStorage(scoped_session=session)
         yield Migration0To1x3x0(storage)
