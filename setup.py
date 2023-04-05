@@ -32,10 +32,10 @@ if __name__ == '__main__':
             # Dev dependencies are not using pinned compatibility versions
             # in order to support a wide array of Python versions
             'dev': [
-                'pytest',
-                'pytest-cov',
-                'pylint',
-                'PyMySQL',
+                'pytest~=7.0',
+                'pytest-cov~=4.0',
+                'pylint~=2.13',
+                'PyMySQL~=1.0',
                 'psycopg2cffi~=2.8',
             ],
             'mongo': [
