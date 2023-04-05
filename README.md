@@ -587,14 +587,15 @@ Feel free to report any issues.
 ##### Redis
 Redis storage.
 
-RedisStorate stores all Policies in he hash whose key is the collection name and the hash'es key value pairs are
+RedisStorate stores all Policies in a hash whose key is the collection name and the hash'es key value pairs are
 Policy UID -> serialized Policy representation.
 
 Default collection name is "vakt_policies".
 
 You can use different Serializers. Any custom or one of the vakt's native.
+Just pass it to the `RedisStorage` constructor.
 
-Vakt is shiped with:
+Vakt is shipped with:
 - `JSONSerializer`
 - `PickleSerializer` - the fastest. Used as the default one.
 

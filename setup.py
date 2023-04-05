@@ -39,13 +39,13 @@ if __name__ == '__main__':
                 'psycopg2cffi~=2.8',
             ],
             'mongo': [
-                'pymongo~=3.5',
+                'pymongo~=4.1',
             ],
             'sql': [
                 'SQLAlchemy~=1.4',
             ],
             'redis': [
-                'redis~=3.3'
+                'redis~=4.3'
             ],
         },
         packages=find_packages(exclude='tests'),
