@@ -26,7 +26,7 @@ if __name__ == '__main__':
         py_modules=['vakt'],
         python_requires='>=3.6',
         install_requires=[
-            'jsonpickle>=1.0',
+            'jsonpickle>=2.0',
         ],
         extras_require={
             # Dev dependencies are not using pinned compatibility versions
