@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - [Storage] `MemoryStorage` `update` method now doesn't add new policy to Storage if it did not exist prior to the call.
+- [Storage] `SQLStorage` regex checks are now performed with `REGEXP` operator instead of a `REGEXP BINARY`. This is 
+done to support MySQL 8. However this change doesn't affect the the expected and previous behavior of the storage.
 
 ### Removed
 - Drop Python 3.4 and 3.5 support. Minimal Python version is 3.6 now.

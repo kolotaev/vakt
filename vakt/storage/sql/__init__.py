@@ -147,7 +147,7 @@ class SQLStorage(Storage):
         Don't forget to check if there is a support for regex operator before using it.
         """
         if self.dialect == 'mysql':
-            return literal(left).op('REGEXP BINARY', is_comparison=True)(right)
+            return literal(left).op('REGEXP', is_comparison=True)(right)
         elif self.dialect == 'postgresql':
             return literal(left).op('~', is_comparison=True)(right)
         elif self.dialect == 'oracle':
