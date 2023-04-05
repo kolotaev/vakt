@@ -276,6 +276,19 @@ class TestSQLStorage:
             Inquiry(action='12', resource='Pie', subject='Jo-1'),
             True,
         ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=[r'<get>'],
+                    effect=ALLOW_ACCESS,
+                    resources=[r'<book>'],
+                    subjects=[r'<Jake>']
+                ),
+            ],
+            Inquiry(action='GET', resource='book', subject='Jake'),
+            False,
+        ),
     ])
     def test_find_for_inquiry_with_regex_checker(self, st, policies, inquiry, expected_reference):
         mem_storage = MemoryStorage()  # it returns all stored policies so we consider Guard as a reference

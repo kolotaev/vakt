@@ -445,6 +445,9 @@ Due to relatively slow performance of regular expressions execution we recommend
 regex syntax only when you really need it, in other cases use simple strings:
 both will work perfectly (and now swiftly!) with RegexChecker.
 
+**NOTE. All regex checks are performed in a case-sensitive way by default.
+Even thought some storages (e.g. MemoryStorage) allow you to specify regex modifiers within the regex string, we do not translate regex modifiers to all storages (e.g. SQLStorage). Also see warning below**
+
 **WARNING. Please note, that storages have varying level of regexp support. For example,
 most SQL databases allow to use POSIX metacharacters whereas python `re` module
 and thus MemoryStorage does not. So, while defining policies you're safe and sound
