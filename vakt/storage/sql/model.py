@@ -1,8 +1,7 @@
 import json
 
 from sqlalchemy import Column, Integer, SmallInteger, String, ForeignKey, Text, JSON, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import declarative_base, relationship
 
 from ...policy import Policy, ALLOW_ACCESS, DENY_ACCESS, TYPE_STRING_BASED
 from ...rules.base import Rule
