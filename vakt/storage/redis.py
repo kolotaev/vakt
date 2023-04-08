@@ -55,10 +55,24 @@ class RedisStorage(Storage):
     Each filed in this hash is a Policy's UID and the value of this key is a serialized Policy representation.
     """
 
+    class Scripts:
+        """
+        Helper class to register and store Redis Lua scripts.
+        """
+        def __init__(self, client) -> None:
+            self.updater = client.register_script("""
+                local exists = redis.call('HEXISTS', KEYS[1], ARGV[1])
+                if exists == 1 then
+                    return redis.call('HSET', KEYS[1], ARGV[1], ARGV[2])
+                end
+                return 0
+                """)
+
     def __init__(self, client, collection=DEFAULT_COLLECTION, serializer=None):
         self.client = client
         self.collection = collection
         self.sr = serializer
+        self.scripts = self.Scripts(client)
         if serializer is None:
             self.sr = PickleSerializer()
 
@@ -97,16 +111,8 @@ class RedisStorage(Storage):
 
     def update(self, policy):
         uid = policy.uid
-        lua = """
-        local exists = redis.call('HEXISTS', KEYS[1], ARGV[1])
-        if exists == 1 then
-            return redis.call('HSET', KEYS[1], ARGV[1], ARGV[2])
-        end
-        return 0
-        """
-        update_policy = self.client.register_script(lua)
         try:
-            res = update_policy(keys=[self.collection], args=[uid, self.sr.serialize(policy)])
+            res = self.scripts.updater(keys=[self.collection], args=[uid, self.sr.serialize(policy)])
             if res == 1:
                 log.info('Updated Policy with UID=%s. New value is: %s', uid, policy)
         except Exception as e:
