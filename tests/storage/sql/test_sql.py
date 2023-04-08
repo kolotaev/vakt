@@ -26,7 +26,7 @@ from . import create_test_sql_engine
 @pytest.mark.sql_integration
 class TestSQLStorage:
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def session(self):
         engine = create_test_sql_engine()
         Base.metadata.create_all(engine)
@@ -34,7 +34,7 @@ class TestSQLStorage:
         yield session
         Base.metadata.drop_all(engine)
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def st(self, session):
         yield SQLStorage(scoped_session=session)
         session.remove()
@@ -275,6 +275,19 @@ class TestSQLStorage:
             ],
             Inquiry(action='12', resource='Pie', subject='Jo-1'),
             True,
+        ),
+        (
+            [
+                Policy(
+                    uid=1,
+                    actions=[r'<get>'],
+                    effect=ALLOW_ACCESS,
+                    resources=[r'<book>'],
+                    subjects=[r'<Jake>']
+                ),
+            ],
+            Inquiry(action='GET', resource='book', subject='Jake'),
+            False,
         ),
     ])
     def test_find_for_inquiry_with_regex_checker(self, st, policies, inquiry, expected_reference):

@@ -1,4 +1,4 @@
-name: Tests
+name: CI
 
 on: [push]
 
@@ -34,6 +34,9 @@ jobs:
         image: redis
         ports:
           - 6379:6379
+
+    env:
+      FORCE_COLOR: "1"
 
     steps:
       - name: Checkout

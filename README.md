@@ -2,8 +2,8 @@
 
 Attribute-based access control (ABAC) SDK for Python.
 
-[![Build Status](https://github.com/kolotaev/vakt/workflows/Tests/badge.svg?branch=master)](https://github.com/kolotaev/vakt/actions)
-[![codecov.io](https://codecov.io/github/kolotaev/vakt/coverage.svg?branch=master)](https://codecov.io/github/kolotaev/vakt?branch=master)
+[![CI Status](https://github.com/kolotaev/vakt/workflows/CI/badge.svg?branch=master)](https://github.com/kolotaev/vakt/actions)
+[![codecov.io](https://codecov.io/github/kolotaev/vakt/coverage.svg?branch=master)](https://app.codecov.io/gh/kolotaev/vakt/tree/master)
 [![PyPI version](https://badge.fury.io/py/vakt.svg)](https://badge.fury.io/py/vakt)
 [![Apache 2.0 licensed](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://raw.githubusercontent.com/kolotaev/vakt/master/LICENSE)
 
@@ -445,6 +445,9 @@ Due to relatively slow performance of regular expressions execution we recommend
 regex syntax only when you really need it, in other cases use simple strings:
 both will work perfectly (and now swiftly!) with RegexChecker.
 
+**NOTE. All regex checks are performed in a case-sensitive way by default.
+Even thought some storages (e.g. MemoryStorage) allow you to specify regex modifiers within the regex string, we do not translate regex modifiers to all storages (e.g. SQLStorage). Also see warning below**
+
 **WARNING. Please note, that storages have varying level of regexp support. For example,
 most SQL databases allow to use POSIX metacharacters whereas python `re` module
 and thus MemoryStorage does not. So, while defining policies you're safe and sound
@@ -555,6 +558,9 @@ When used with the RulesChecker it simply returns all the Policies from the data
 SQL storage is backed by SQLAlchemy, thus it should support any RDBMS available for it:
 MySQL, Postgres, Oracle, MSSQL, Sqlite, etc.
 
+Given that we support various SQL databases via SQLAlchemy, we don't specify any DB-specific drivers in the vakt
+dependencies. It's up to the user to provide a desired one. For example: `psycopg2` or `PyMySQL`.
+
 Example for MySQL.
 
 ```python
@@ -581,14 +587,15 @@ Feel free to report any issues.
 ##### Redis
 Redis storage.
 
-RedisStorate stores all Policies in he hash whose key is the collection name and the hash'es key value pairs are
+RedisStorate stores all Policies in a hash whose key is the collection name and the hash'es key value pairs are
 Policy UID -> serialized Policy representation.
 
 Default collection name is "vakt_policies".
 
 You can use different Serializers. Any custom or one of the vakt's native.
+Just pass it to the `RedisStorage` constructor.
 
-Vakt is shiped with:
+Vakt is shipped with:
 - `JSONSerializer`
 - `PickleSerializer` - the fastest. Used as the default one.
 

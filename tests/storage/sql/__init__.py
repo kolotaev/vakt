@@ -24,7 +24,8 @@ def create_test_sql_engine():
         pytest.exit('Please set DATABASE_DSN env variable with the target database DSN, ex: sqlite:///:memory:')
     engine = create_engine(dsn, encoding='utf-8')
     try:
-        engine.execute(text('select 1'))
+        with engine.begin() as connection:
+            connection.execute(text('select 1'))
     except OperationalError as e:
         pytest.exit('DATABASE_DSN is not correct. Error: %s' % e)
     return engine

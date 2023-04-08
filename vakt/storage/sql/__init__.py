@@ -48,7 +48,7 @@ class SQLStorage(Storage):
         log.info('Added Policy: %s', policy)
 
     def get(self, uid):
-        policy_model = self.session.query(PolicyModel).get(uid)
+        policy_model = self.session.get(PolicyModel, uid)
         if not policy_model:
             return None
         return policy_model.to_policy()
@@ -66,7 +66,7 @@ class SQLStorage(Storage):
 
     def update(self, policy):
         try:
-            policy_model = self.session.query(PolicyModel).get(policy.uid)
+            policy_model = self.session.get(PolicyModel, policy.uid)
             if not policy_model:
                 return
             policy_model.update(policy)
@@ -147,7 +147,7 @@ class SQLStorage(Storage):
         Don't forget to check if there is a support for regex operator before using it.
         """
         if self.dialect == 'mysql':
-            return literal(left).op('REGEXP BINARY', is_comparison=True)(right)
+            return literal(left).op('REGEXP', is_comparison=True)(right)
         elif self.dialect == 'postgresql':
             return literal(left).op('~', is_comparison=True)(right)
         elif self.dialect == 'oracle':

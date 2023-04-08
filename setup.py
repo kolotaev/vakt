@@ -26,27 +26,24 @@ if __name__ == '__main__':
         py_modules=['vakt'],
         python_requires='>=3.6',
         install_requires=[
-            'jsonpickle>=1.0',
+            'jsonpickle>=2.0',
         ],
         extras_require={
-            # Dev dependencies are not using pinned compatibility versions
-            # in order to support a wide array of Python versions
             'dev': [
-                'pytest',
-                'pytest-cov',
-                'pylint',
-                'PyMySQL',
+                'pytest~=7.0',
+                'pytest-cov~=4.0',
+                'pylint~=2.13',
+                'PyMySQL~=1.0',
                 'psycopg2cffi~=2.8',
             ],
             'mongo': [
-                'pymongo~=3.5',
+                'pymongo~=4.1',
             ],
             'sql': [
-                'SQLAlchemy~=1.3',
-                # 'typing', # sqlalchemy imports typing since v1.3.24
+                'SQLAlchemy~=1.4',
             ],
             'redis': [
-                'redis~=3.3'
+                'redis~=4.3'
             ],
         },
         packages=find_packages(exclude='tests'),
@@ -62,13 +59,14 @@ if __name__ == '__main__':
             'Topic :: Utilities',
             'Natural Language :: English',
             'Programming Language :: Python',
+            'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
             'Programming Language :: Python :: 3.10',
             'Programming Language :: Python :: 3.11',
-            'Programming Language :: Python :: Implementation :: PyPy',
             'Programming Language :: Python :: Implementation :: CPython',
+            'Programming Language :: Python :: Implementation :: PyPy',
         ],
     )

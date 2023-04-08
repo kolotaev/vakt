@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 
 from .model import Base
 from ..migration import Migration, MigrationSet
@@ -36,7 +36,7 @@ class SQLMigrationSet(MigrationSet):
 
     def save_applied_number(self, number):
         try:
-            data = self.session.query(MigrationModel).get(self._index)
+            data = self.session.get(MigrationModel, self._index)
             # Insert if entry not found else update
             if not data:
                 data = MigrationModel(id=self._index, version=number)
@@ -49,7 +49,7 @@ class SQLMigrationSet(MigrationSet):
             raise err
 
     def last_applied(self):
-        data = self.session.query(MigrationModel).get(self._index)
+        data = self.session.get(MigrationModel, self._index)
         if data:
             return data.version
         return 0
