@@ -95,7 +95,7 @@ Vakt allows you to gain:
 Vakt runs on Python >= 3.6.
 PyPy implementation is supported as well.
 
-For in-memory storage:
+Bare-bones installation with in-memory storage:
 ```bash
 pip install vakt
 ```
@@ -108,7 +108,17 @@ pip install vakt[mongo]
 For SQL storage:
 ```bash
 pip install vakt[sql]
+pip install $ANY_DB_DRIVER_OF_YOUR_CHOICE_SUPPORTED_BY_SQLALCHEMY
 ```
+
+For Redis storage:
+```bash
+pip install vakt[redis]
+```
+Also see [redis-py](https://redis.readthedocs.io/en/stable/index.html) docs.
+For example if `hiredis` is found in the system, it will be used as a faster parser.
+However vakt doesn't enforce this dependency.
+
 
 *[Back to top](#documentation)*
 
@@ -991,12 +1001,12 @@ $ pylint vakt                      # to check code quality with PyLint
 ```
 
 To run only integration tests (for Storage adapters other than `MemoryStorage`):
-Other
 
 ```bash
 $ docker run --rm -d -p 27017:27017 mongo
 $ # run sql and Redis database here as well...
 $ pytest -m integration
+$ pytest -m sql_integration
 ```
 
 Optionally you can use `make` to perform development tasks.
