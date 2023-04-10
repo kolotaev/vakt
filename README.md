@@ -108,14 +108,14 @@ pip install vakt[mongo]
 For SQL storage:
 ```bash
 pip install vakt[sql]
-pip install $ANY_DB_OF_YOUR_CHOICE_DRIVER_SUPPORTED_BY_SQLALCHEMY
+pip install $ANY_DB_DRIVER_OF_YOUR_CHOICE_SUPPORTED_BY_SQLALCHEMY
 ```
 
 For Redis storage:
 ```bash
 pip install vakt[redis]
 ```
-Also see redis-py docs.
+Also see [redis-py](https://redis.readthedocs.io/en/stable/index.html) docs.
 For example if `hiredis` is found in the system, it will be used as a faster parser.
 However vakt doesn't enforce this dependency.
 

@@ -59,7 +59,7 @@ class RedisStorage(Storage):
         """
         Helper class to register and store Redis Lua scripts.
         """
-        def __init__(self, client) -> None:
+        def __init__(self, client):
             self.updater = client.register_script("""
                 local exists = redis.call('HEXISTS', KEYS[1], ARGV[1])
                 if exists == 1 then
