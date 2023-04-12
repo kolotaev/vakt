@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## [1.6.0-alpha] - Not released
+## [1.6.0] - 2023-04-12
 ### Added
 - [Storage] New `RedisStorage`.
 - Added Python 3.9, 3.10 and 3.11 support.
