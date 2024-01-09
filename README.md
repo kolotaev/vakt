@@ -55,7 +55,7 @@ toolkit that is based on policies.
 ABAC stands aside of RBAC and ACL models, giving you
 a fine-grained control on definition of the rules that restrict an access to resources and is generally considered a
 "next generation" authorization model.
-In its form Vakt resembles [IAM Policies](https://github.com/awsdocs/iam-user-guide/blob/master/doc_source/access_policies.md), but
+In its form Vakt resembles [IAM Policies](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html), but
 has a way nicer attribute managing.
 
 See [concepts](#concepts) section for more details.
