@@ -225,7 +225,7 @@ Policy(
     a developer and came from local IP address.
     """,
     actions=[Any()],
-    resources=[{'category': Eq('administration'), 'sub': In(['panel', 'switch'])}],
+    resources=[{'category': Eq('administration'), 'sub': In('panel', 'switch')}],
     subjects=[{'name': Any(), 'role': NotEq('developer')}],
     effect=ALLOW_ACCESS,
     context={'ip': CIDR('127.0.0.1/32')}
